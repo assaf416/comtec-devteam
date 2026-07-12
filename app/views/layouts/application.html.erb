@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>" dir="<%= I18n.locale.to_s == 'he' ? 'rtl' : 'ltr' %>" data-theme="light">
+  <head>
+    <title><%= content_for(:title) || t('app_name') %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="DevTeam Hub">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+
+    <style>
+      .topbar-contact { position: relative; display: inline-block; }
+      .contact-popover {
+        position: absolute; right: 0; top: 40px; width: 320px; max-height: 60vh; overflow: auto;
+        background: #fff; color: #12252b; border: 1px solid #e2e8f0; border-radius: 12px;
+        box-shadow: 0 14px 36px rgba(0,0,0,.20); padding: 12px; z-index: 1000;
+      }
+      .contact-popover.is-hidden { display: none; }
+      .contact-list { max-height: 38vh; overflow: auto; }
+      .contact-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-radius: 8px; }
+      .contact-row:hover { background: #f3f4f6; }
+      .contact-row.is-hidden { display: none; }
+      .contact-name { flex: 1; font-size: .85rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .contact-actions { display: flex; gap: 4px; }
+      .contact-btn { background: transparent; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer;
+        padding: 2px 7px; font-size: .9rem; line-height: 1.4; text-decoration: none; }
+      .contact-btn:hover { background: #eef2ff; }
+      .contact-compose { margin-top: 8px; border-top: 1px solid #e2e8f0; padding-top: 8px; }
+      .contact-compose.is-hidden { display: none; }
+
+      .topbar-menu { position: relative; display: inline-block; }
+      .topbar-menu > summary { list-style: none; cursor: pointer; white-space: nowrap; }
+      .topbar-menu > summary::-webkit-details-marker { display: none; }
+      .ceremony-menu {
+        position: absolute; right: 0; top: 40px; width: 230px; background: #fff; color: #12252b;
+        border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 14px 36px rgba(0,0,0,.20);
+        padding: 8px; z-index: 1000;
+      }
+      .ceremony-menu-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; color: #64748b; padding: 4px 8px; }
+      .ceremony-item { display: block; padding: 8px 10px; border-radius: 8px; font-size: .85rem;
+        color: #12252b; text-decoration: none; }
+      .ceremony-item:hover { background: #f3f4f6; color: #0b7a75; }
+    </style>
+  </head>
+
+  <body class="<%= I18n.locale.to_s == 'he' ? 'is-rtl' : '' %>">
+    <% if user_signed_in? %>
+    <%# ═══════════════════════════════════════════════════════════════════ %>
+    <%# Slack-style 3-column app shell %>
+    <%# ═══════════════════════════════════════════════════════════════════ %>
+    <div class="app-layout" data-controller="sidebar">
+
+      <%# ── Left sidebar ─────────────────────────────────────────────── %>
+      <%= render 'layouts/sidebar' %>
+
+      <%# ── Main area ────────────────────────────────────────────────── %>
+      <div class="app-main">
+
+        <%# Top bar %>
+        <div class="app-topbar">
+          <span class="topbar-title">
+            <%= content_for?(:page_title) ? yield(:page_title) : yield(:title).presence || t('app_name') %>
+          </span>
+
+          <div class="topbar-search">
+            <input class="form-control form-control-sm" type="search" placeholder="🔍 Jump to..." autocomplete="off">
+          </div>
+
+          <%# Language switcher %>
+          <%= link_to "🇮🇱", url_for(locale: :he), class: "btn btn-sm btn-link text-white px-1" %>
+          <%= link_to "🇺🇸", url_for(locale: :en), class: "btn btn-sm btn-link text-white px-1" %>
+
+          <%# Agile ceremonies menu (reachable on every page) %>
+          <details class="topbar-menu">
+            <summary class="topbar-panel-toggle" title="Agile ceremonies">📅 Ceremonies</summary>
+            <div class="ceremony-menu">
+              <div class="ceremony-menu-label">Agile ceremonies</div>
+              <%= link_to "🗣️ Daily Standup",       daily_meeting_path,          class: "ceremony-item" %>
+              <%= link_to "📋 Sprint Planning",      ceremony_path("planning"),   class: "ceremony-item" %>
+              <%= link_to "🔍 Backlog Refinement",   ceremony_path("refinement"), class: "ceremony-item" %>
+              <%= link_to "🎬 Sprint Review / Demo", ceremony_path("review"),     class: "ceremony-item" %>
+              <%= link_to "🔁 Retrospective",        retro_meeting_path,          class: "ceremony-item" %>
+            </div>
+          </details>
+
+          <%# Find & contact a teammate (call over Jitsi or send a message) %>
+          <div class="topbar-contact" data-controller="quick-contact"
+               data-action="click@window->quick-contact#close">
+            <button class="topbar-panel-toggle" data-action="quick-contact#toggle"
+                    title="Find &amp; contact a teammate">📇</button>
+            <div class="contact-popover is-hidden" data-quick-contact-target="panel">
+              <input type="search" class="form-control form-control-sm mb-2" placeholder="Find a teammate…"
+                     data-quick-contact-target="search" data-action="keyup->quick-contact#filter">
+              <div class="contact-list">
+                <% (@sidebar_team_members || []).each do |member| %>
+                  <div class="contact-row" data-quick-contact-target="item" data-name="<%= member.display_name.downcase %>">
+                    <%= user_avatar(member, size: 26) %>
+                    <span class="contact-name"><%= member.display_name %></span>
+                    <span class="contact-actions">
+                      <%= link_to "📹", new_meeting_path(invite: member.id), class: "contact-btn", title: "Video call (Jitsi)" %>
+                      <button type="button" class="contact-btn" title="Send a message"
+                              data-action="quick-contact#pick"
+                              data-quick-contact-user-param="<%= member.id %>"
+                              data-quick-contact-name-param="<%= member.display_name %>">💬</button>
+                    </span>
+                  </div>
+                <% end %>
+              </div>
+              <%= form_with url: quick_contact_path, method: :post, class: "contact-compose is-hidden",
+                    data: { quick_contact_target: "compose" } do %>
+                <input type="hidden" name="user_id" data-quick-contact-target="recipient">
+                <div class="fs-7 text-muted mb-1">To <strong data-quick-contact-target="recipientLabel"></strong></div>
+                <div class="d-flex gap-1">
+                  <input type="text" name="body" class="form-control form-control-sm" placeholder="Message…" required
+                         data-quick-contact-target="messageInput">
+                  <button class="btn btn-sm btn-primary">Send</button>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <%# Notifications toggle %>
+          <button class="topbar-panel-toggle"
+                  data-sidebar-target="toggleButton"
+                  data-action="click->sidebar#togglePanel"
+                  title="Toggle notifications">
+            🔔<% if @unread_notification_count > 0 %>
+              <span class="badge bg-danger" style="margin-left:2px;font-size:0.65rem;"><%= @unread_notification_count %></span>
+            <% end %>
+          </button>
+        </div>
+
+        <%# Flash messages %>
+        <% if flash.any? %>
+          <div class="app-flash px-5 pt-3">
+            <% flash.each do |type, message| %>
+              <div class="alert <%= flash_class(type) %> d-flex align-items-center py-2" data-controller="flash" role="alert">
+                <button class="btn-close ms-auto" data-action="click->flash#dismiss" aria-label="Close"></button>
+                <%= message %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%# Page content %>
+        <div class="app-content">
+          <%= yield %>
+        </div>
+      </div>
+
+      <%# ── Right notifications panel ────────────────────────────────── %>
+      <aside class="app-right-panel is-hidden" id="rightPanel" data-sidebar-target="panel">
+        <%= render 'layouts/notifications_panel',
+              panel_notifications: @panel_notifications,
+              panel_activity: @panel_activity %>
+      </aside>
+
+    </div>
+    <% else %>
+    <%# Non-authenticated pages (Devise sign-in etc.) %>
+    <div class="bg-light min-vh-100">
+      <%= yield %>
+    </div>
+    <% end %>
+  </body>
+</html>

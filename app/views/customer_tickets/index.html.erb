@@ -1,0 +1,49 @@
+<div class="level">
+  <div class="level-left">
+    <div>
+      <nav class="breadcrumb is-small" aria-label="breadcrumbs">
+        <ul><li><%= link_to "Customers", customers_path %></li><li><%= link_to @customer.name, @customer %></li><li class="is-active"><a>Tickets</a></li></ul>
+      </nav>
+      <h1 class="fw-bold">Support Tickets — <%= @customer.name %></h1>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to t("buttons.new_ticket"), new_customer_customer_ticket_path(@customer), class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="nav nav-tabs">
+  <ul>
+    <li class="<%= 'is-active' unless params[:status].present? %>"><%= link_to "All", customer_customer_tickets_path(@customer) %></li>
+    <li class="<%= 'is-active' if params[:status] == 'open' %>"><%= link_to "Open", customer_customer_tickets_path(@customer, status: :open) %></li>
+    <li class="<%= 'is-active' if params[:status] == 'in_progress' %>"><%= link_to "In Progress", customer_customer_tickets_path(@customer, status: :in_progress) %></li>
+    <li class="<%= 'is-active' if params[:status] == 'resolved' %>"><%= link_to "Resolved", customer_customer_tickets_path(@customer, status: :resolved) %></li>
+  </ul>
+</div>
+
+<% if @customer_tickets.any? %>
+  <table class="table table-striped table-hover w-100">
+    <thead>
+      <tr><th><%= t('table_headers.id') %></th><th><%= t('table_headers.title') %></th><th><%= t('table_headers.priority') %></th><th><%= t('table_headers.status') %></th><th><%= t('table_headers.assigned_to') %></th><th><%= t('table_headers.opened') %></th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @customer_tickets.each do |ct| %>
+        <tr>
+          <td><%= ct.id %></td>
+          <td><strong><%= link_to ct.title, customer_customer_ticket_path(@customer, ct) %></strong></td>
+          <td><%= priority_tag(ct.priority) %></td>
+          <td><%= status_tag(ct.status) %></td>
+          <td><%= ct.assigned_to&.display_name || "—" %></td>
+          <td><%= ct.created_at.strftime("%d/%m/%Y") %></td>
+          <td class="text-end">
+            <%= actions_dropdown do |d| %>
+              <% d.link t('common.view'), customer_customer_ticket_path(@customer, ct), icon: '👁' %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <div class="alert alert-light">No tickets found.</div>
+<% end %>

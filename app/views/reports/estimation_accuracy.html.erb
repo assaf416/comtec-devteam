@@ -1,0 +1,104 @@
+<% content_for :title, "Estimation Accuracy" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <h1 class="fw-bold mb-0">Estimation Accuracy</h1>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number"><%= @total_evaluated_tickets %></div><div class="stat-label">Closed Tickets Measured</div></div></div>
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number text-info"><%= @total_estimated_hours %>h</div><div class="stat-label">Estimated Hours</div></div></div>
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number text-primary"><%= @total_actual_hours %>h</div><div class="stat-label">Actual Hours</div></div></div>
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number <%= @overall_variance_hours > 0 ? 'text-danger' : 'text-success' %>"><%= @overall_variance_hours %>h</div><div class="stat-label">Overall Variance</div></div></div>
+</div>
+
+<div class="row">
+  <div class="col-6">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Accuracy Score by Developer</h3>
+      <%= column_chart @accuracy_by_developer,
+            suffix: "%",
+            min: 0,
+            max: 100,
+            height: "300px" %>
+    </div>
+  </div>
+  <div class="col-6">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Variance by Developer (Actual - Estimate)</h3>
+      <%= bar_chart @variance_by_developer,
+            suffix: "h",
+            height: "300px" %>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3 mb-3">
+  <h3 class="subfw-bold">Developer Summary</h3>
+  <table class="table table-hover w-100 fs-7">
+    <thead>
+      <tr>
+        <th><%= t('table_headers.developer') %></th>
+        <th><%= t('table_headers.tickets') %></th>
+        <th><%= t('table_headers.total_estimated') %></th>
+        <th><%= t('table_headers.total_actual') %></th>
+        <th><%= t('table_headers.variance') %></th>
+        <th><%= t('table_headers.under_estimated') %></th>
+        <th><%= t('table_headers.over_estimated') %></th>
+        <th><%= t('table_headers.accuracy_score') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @developer_rows.each do |row| %>
+        <tr>
+          <td><%= row[:estimator].display_name %></td>
+          <td><%= row[:tickets_count] %></td>
+          <td><%= row[:estimated_total] %>h</td>
+          <td><%= row[:actual_total] %>h</td>
+          <td class="<%= row[:variance_total] > 0 ? 'text-danger' : 'text-success' %>"><strong><%= row[:variance_total] %>h</strong></td>
+          <td><%= row[:under_estimated_count] %></td>
+          <td><%= row[:over_estimated_count] %></td>
+          <td><%= row[:accuracy_score] %>%</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="card p-3 mb-3">
+  <h3 class="subfw-bold">Latest Closed Tickets Included In Report</h3>
+  <table class="table table-hover w-100 fs-7">
+    <thead>
+      <tr>
+        <th><%= t('table_headers.ticket') %></th>
+        <th><%= t('table_headers.project') %></th>
+        <th><%= t('table_headers.estimator') %></th>
+        <th><%= t('table_headers.status') %></th>
+        <th><%= t('table_headers.est_dev') %></th>
+        <th><%= t('table_headers.actual') %></th>
+        <th><%= t('table_headers.variance') %></th>
+        <th><%= t('table_headers.last_updated') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @latest_estimation_tickets.each do |row| %>
+        <% ticket = row[:ticket] %>
+        <tr>
+          <td><%= link_to "##{ticket.id} #{ticket.title.truncate(45)}", ticket_path(ticket) %></td>
+          <td><%= ticket.project.name %></td>
+          <td><%= row[:estimator].display_name %></td>
+          <td><%= status_tag(ticket.status) %></td>
+          <td><%= row[:estimated_hours] %>h</td>
+          <td><%= ticket.actual_hours %> (<%= row[:actual_hours] %>h)</td>
+          <td class="<%= row[:variance_hours] > 0 ? 'text-danger' : 'text-success' %>"><%= row[:variance_hours] %>h</td>
+          <td><%= l(ticket.updated_at, format: :short) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="alert alert-info fs-7">
+  Note: <strong>1d</strong> in actual work is normalized to <strong>8h</strong> for comparison.
+</div>

@@ -1,0 +1,78 @@
+<% content_for(:title) { "Messages" } %>
+
+<div class="d-flex justify-content-between align-items-center mb-5">
+  <h1 class="fw-bold mb-0">💬 Message Thread</h1>
+  <p class="text-muted fs-7"><%= current_customer.display_name %></p>
+</div>
+
+<%# ── Message thread ────────────────────────────────────────────────────────── %>
+<div class="card p-3 mb-4" style="max-height: 520px; overflow-y: auto;" id="message-thread">
+  <% if @messages.empty? %>
+    <p class="text-muted text-center py-5">No messages yet. Start the conversation below.</p>
+  <% else %>
+    <% @messages.each do |msg| %>
+      <% is_mine = msg.sender_type == "CustomerUser" && msg.sender_id == current_customer_user.id %>
+      <div class="mb-4 d-flex <%= is_mine ? 'justify-content-end' : '' %>">
+        <div style="max-width:72%;">
+          <% unless is_mine %>
+            <p class="fs-7 text-muted mb-1">
+              <strong><%= msg.sender&.display_name || "DevTeam" %></strong>
+              <% if msg.sender_type == "User" %>
+                <span class="badge bg-dark is-light ms-1" style="font-size:0.65rem;">Team</span>
+              <% end %>
+            </p>
+          <% end %>
+          <div class="p-3" style="border-radius:12px; background:<%= is_mine ? '#ebf8ff' : '#f5f5f5' %>; border: 1px solid <%= is_mine ? '#b3daf7' : '#e8e8e8' %>;">
+            <% if msg.subject.present? %>
+              <p class="fw-semibold fs-7 mb-1"><%= msg.subject %></p>
+            <% end %>
+            <p class="fs-6 mb-0" style="white-space: pre-wrap;"><%= msg.body %></p>
+          </div>
+          <p class="fs-7 text-muted mt-1 <%= is_mine ? 'text-end' : '' %>">
+            <%= msg.created_at.strftime("%b %-d, %H:%M") %>
+          </p>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<%# ── Reply form ─────────────────────────────────────────────────────────────── %>
+<div class="card p-3 mb-3">
+  <h2 class="fw-bold fs-6 mb-3">Send a Message</h2>
+  <%= form_with url: customer_portal_messages_path, method: :post, local: true do |f| %>
+    <% if @new_message.errors.any? %>
+      <div class="alert alert-danger is-light mb-3">
+        <%= @new_message.errors.full_messages.join(", ") %>
+      </div>
+    <% end %>
+
+    <div class="mb-3">
+      <%= label_tag :subject, "Subject (optional)", class: "label is-small" %>
+      <div class="">
+        <%= text_field_tag "customer_message[subject]", nil, class: "input is-small",
+              placeholder: "e.g. Question about invoice #1023" %>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <%= label_tag :body, "Message", class: "label is-small" %>
+      <div class="">
+        <%= text_area_tag "customer_message[body]", nil, class: "textarea", rows: 4,
+              placeholder: "Type your message here..." %>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <div class="">
+        <%= submit_tag "Send Message", class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  // Scroll thread to bottom on load
+  const thread = document.getElementById("message-thread");
+  if (thread) thread.scrollTop = thread.scrollHeight;
+</script>

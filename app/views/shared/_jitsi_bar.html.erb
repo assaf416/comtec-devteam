@@ -1,0 +1,14 @@
+<%# Team video bar (Jitsi). locals: room, title %>
+<% url = jitsi_room_url(room) %>
+<div class="card mb-4">
+  <div class="d-flex align-items-center gap-2 px-3 py-2 bg-dark" style="border-radius:.5rem .5rem 0 0;">
+    <span class="text-white fw-semibold fs-7">📹 <%= title %></span>
+    <code class="text-info fs-8 flex-grow-1 text-truncate"><%= url %></code>
+    <button type="button" class="btn btn-sm btn-outline-light fs-8"
+            onclick="document.getElementById('jitsi-frame').requestFullscreen()">⛶ Fullscreen</button>
+    <a href="<%= url %>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light fs-8">↗ New Tab</a>
+  </div>
+  <iframe id="jitsi-frame" src="<%= url %>"
+          allow="camera; microphone; fullscreen; display-capture; clipboard-read; clipboard-write"
+          style="width:100%; height:420px; border:0; display:block;" title="<%= title %>"></iframe>
+</div>

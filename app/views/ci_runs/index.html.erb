@@ -1,0 +1,66 @@
+<% content_for :title, "CI Dashboard – #{@project.name}" %>
+
+<div class="level">
+  <div class="level-left"><h1 class="fw-bold">CI Dashboard — <%= @project.name %></h1></div>
+</div>
+
+<%# Status summary %>
+<div class="row mb-4">
+  <% [[:passed, 'is-success'], [:failed, 'is-danger'], [:running, 'is-warning'], [:pending, 'is-info']] .each do |status, color| %>
+    <div class="col-3">
+      <div class="card p-3 mb-3 stat-card">
+        <div class="stat-number <%= "has-text-#{color.delete_prefix('is-')}" %>">
+          <%= @ci_runs.select { |r| r.status == status.to_s }.count %>
+        </div>
+        <div class="stat-label"><%= status.to_s.humanize %></div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<div class="card p-3 mb-3">
+  <table class="table table-hover w-100">
+    <thead>
+      <tr>
+        <th><%= t('table_headers.build') %></th>
+        <th><%= t('table_headers.branch') %></th>
+        <th><%= t('table_headers.commit') %></th>
+        <th><%= t('table_headers.status') %></th>
+        <th><%= t('table_headers.duration') %></th>
+        <th><%= t('table_headers.test_results') %></th>
+        <th><%= t('table_headers.triggered_by') %></th>
+        <th><%= t('table_headers.started') %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @ci_runs.each do |run| %>
+        <tr class="<%= run.failed? ? 'bg-danger-subtle' : '' %>">
+          <td><%= link_to "##{run.build_number}", ci_run_path(run), class: "text-primary fw-bold" %></td>
+          <td><code class="fs-7"><%= run.branch_name %></code></td>
+          <td><code class="fs-7"><%= run.commit_sha&.first(8) %></code></td>
+          <td><%= status_tag(run.status) %></td>
+          <td><%= run.duration ? "#{run.duration}m" : "—" %></td>
+          <td>
+            <% tr = run.test_results.first %>
+            <% if tr %>
+              <span class="badge bg-success-subtle text-success"><%= tr.passed %>✓</span>
+              <% if tr.failed > 0 %><span class="badge bg-danger is-light"><%= tr.failed %>✗</span><% end %>
+              <% if tr.skipped > 0 %><span class="badge bg-light text-dark"><%= tr.skipped %>⊘</span><% end %>
+            <% else %>—<% end %>
+          </td>
+          <td><%= run.triggered_by&.display_name || '—' %></td>
+          <td><%= run.started_at&.strftime('%d/%m %H:%M') || '—' %></td>
+          <td>
+            <%= actions_dropdown do |d| %>
+              <% d.link t('common.view'), ci_run_path(run), icon: '👁' %>
+              <% if run.log_url.present? %>
+                <% d.link t('common.actions.view_log'), run.log_url, icon: '📋', target: '_blank' %>
+              <% end %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

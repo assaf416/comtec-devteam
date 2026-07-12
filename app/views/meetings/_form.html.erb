@@ -1,0 +1,77 @@
+<%= form_with(model: meeting, class: "card p-3 mb-3") do |f| %>
+  <% if meeting.errors.any? %>
+    <div class="alert alert-danger is-light">
+      <ul><% meeting.errors.full_messages.each do |m| %><li><%= m %></li><% end %></ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-8">
+      <div class="mb-3">
+        <%= f.label :title, class: "label" %>
+        <div class=""><%= f.text_field :title, class: "input", required: true %></div>
+      </div>
+    </div>
+    <div class="col-4">
+      <div class="mb-3">
+        <%= f.label :meeting_type, "Type", class: "label" %>
+        <div class="">
+          <div class="select w-100">
+            <%= f.select :meeting_type, Meeting.meeting_types.keys.map { |t| [t("meetings.types.#{t}"), t] } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="mb-3">
+        <%= f.label :scheduled_at, "Date & Time", class: "label" %>
+        <div class=""><%= f.datetime_local_field :scheduled_at, class: "input" %></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="mb-3">
+        <%= f.label :duration_minutes, "Duration (min)", class: "label" %>
+        <div class=""><%= f.number_field :duration_minutes, class: "input", value: meeting.duration_minutes || 30 %></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="mb-3">
+        <%= f.label :project_id, "Project (optional)", class: "label" %>
+        <div class="">
+          <div class="select w-100">
+            <%= f.select :project_id, Project.active.order(:name).map { |p| [p.name, p.id] }, { include_blank: "— No Project —" } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :agenda, class: "label" %>
+    <div class=""><%= f.text_area :agenda, class: "textarea", rows: 4, placeholder: "Meeting agenda items..." %></div>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :sprint_id, "Sprint (optional)", class: "label" %>
+    <div class="">
+      <div class="select w-100">
+        <%= f.select :sprint_id,
+              Sprint.active.order(:name).map { |s| ["#{s.project.name} — #{s.name}", s.id] },
+              { include_blank: "— No Sprint —", selected: params[:sprint_id] || meeting.sprint_id } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :jitsi_room, "Jitsi Room Name (leave blank to auto-generate)", class: "label" %>
+    <div class=""><%= f.text_field :jitsi_room, class: "input", placeholder: "devteam-daily" %></div>
+  </div>
+
+  <div class="d-flex gap-2 align-items-end">
+    <div class=""><%= f.submit meeting.new_record? ? "Schedule Meeting" : "Update Meeting", class: "btn btn-primary" %></div>
+    <div class=""><%= link_to "Cancel", meetings_path, class: "btn btn-secondary" %></div>
+  </div>
+<% end %>

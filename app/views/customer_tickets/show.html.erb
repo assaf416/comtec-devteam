@@ -1,0 +1,60 @@
+<nav class="breadcrumb is-small" aria-label="breadcrumbs">
+  <ul><li><%= link_to "Customers", customers_path %></li><li><%= link_to @customer.name, @customer %></li><li><%= link_to "Tickets", customer_customer_tickets_path(@customer) %></li><li class="is-active"><a><%= @customer_ticket.title.truncate(40) %></a></li></ul>
+</nav>
+
+<div class="level">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold"><%= @customer_ticket.title %></h1>
+      <div class="d-flex flex-wrap gap-1"><%= priority_tag(@customer_ticket.priority) %><%= status_tag(@customer_ticket.status) %></div>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to t("common.actions.edit"), edit_customer_customer_ticket_path(@customer, @customer_ticket), class: "btn btn-warning is-light me-2" %>
+    <% unless @customer_ticket.status_resolved? || @customer_ticket.status_closed? %>
+      <%= button_to "Mark Resolved", resolve_customer_customer_ticket_path(@customer, @customer_ticket),
+          method: :patch, class: "btn btn-success is-light" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-8">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Message</h3>
+      <div class="content"><%= simple_format(@customer_ticket.body) %></div>
+    </div>
+    <% if @customer_ticket.internal_ticket %>
+      <div class="alert alert-info is-light">
+        Linked to internal ticket: <%= link_to "##{@customer_ticket.internal_ticket.id} #{@customer_ticket.internal_ticket.title}", @customer_ticket.internal_ticket %>
+      </div>
+    <% else %>
+      <div class="card p-3 mb-3">
+        <h4 class="subfw-bold fs-6">Link to Internal Ticket</h4>
+        <%= form_with url: link_ticket_customer_customer_ticket_path(@customer, @customer_ticket), method: :patch, local: true do |f| %>
+          <div class="mb-3 has-addons">
+            <div class="flex-fill">
+              <div class="select w-100">
+                <%= f.select :internal_ticket_id, Ticket.order(:id).map { |t| ["##{t.id} #{t.title.truncate(60)}", t.id] }, { include_blank: "Select an internal ticket..." } %>
+              </div>
+            </div>
+            <div class=""><%= f.submit "Link", class: "btn btn-info" %></div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="col-4">
+    <div class="card p-3 mb-3">
+      <table class="table w-100 is-borderless fs-7">
+        <tr><th>Customer</th><td><%= link_to @customer.name, @customer %></td></tr>
+        <tr><th>Assigned To</th><td><%= @customer_ticket.assigned_to&.display_name || "—" %></td></tr>
+        <tr><th>Opened</th><td><%= @customer_ticket.created_at.strftime("%d/%m/%Y %H:%M") %></td></tr>
+        <% if @customer_ticket.resolved_at %>
+          <tr><th>Resolved</th><td><%= @customer_ticket.resolved_at.strftime("%d/%m/%Y %H:%M") %></td></tr>
+        <% end %>
+      </table>
+    </div>
+  </div>
+</div>

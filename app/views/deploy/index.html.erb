@@ -1,0 +1,145 @@
+<% content_for :title, "Deploy" %>
+<%
+  status_badge = { "pending" => "bg-secondary", "in_progress" => "bg-info text-dark",
+                   "succeeded" => "bg-success", "failed" => "bg-danger", "rolled_back" => "bg-dark" }
+  tags_json = @tags_by_project.transform_values { |tags| tags.map { |t| { tag: t.tag, label: t.label } } }.to_json
+  default_project = @projects.first
+%>
+
+<div class="level mb-3">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-1">🚀 Deploy</h1>
+      <p class="text-muted fs-7 mb-0">Roll out a CI image tag to one of your servers via the deploy backend.</p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to "🖥️ Servers", servers_path, class: "btn btn-secondary btn-sm" %>
+  </div>
+</div>
+
+<%# ── Backend status banner ────────────────────────────────────────────────── %>
+<% if @deploy.backend_configured? && @deploy.backend_available? %>
+  <div class="alert alert-success py-2 fs-7"><i class="bi bi-check-circle me-1"></i> Deploy backend connected. Rollouts will be triggered live.</div>
+<% elsif @deploy.backend_configured? %>
+  <div class="alert alert-warning py-2 fs-7"><i class="bi bi-exclamation-triangle me-1"></i> Deploy backend configured but unreachable — deployments will be queued.</div>
+<% else %>
+  <div class="alert alert-light border py-2 fs-7">
+    <i class="bi bi-info-circle me-1"></i>
+    <strong>Demo mode.</strong> No deploy backend wired up yet — set <code>JARVIS_URL</code> (and <code>JARVIS_API_KEY</code>) to connect Jarvis / Gitea Actions. Deployments are recorded and queued in the meantime.
+  </div>
+<% end %>
+
+<div class="row g-3">
+  <%# ── Deploy form ────────────────────────────────────────────────────────── %>
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-header"><strong><i class="bi bi-rocket-takeoff me-2"></i>New deployment</strong></div>
+      <div class="card-body">
+        <% if @projects.empty? || @servers.empty? %>
+          <p class="text-muted fs-7 mb-0">Need at least one project and one reporting server to deploy.</p>
+        <% else %>
+          <%= form_with url: deploy_path, method: :post,
+                data: { controller: "deploy-form", "deploy-form-tags-value": tags_json } do %>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Project</label>
+              <select name="project_id" class="form-select" data-deploy-form-target="project" data-action="change->deploy-form#populate">
+                <% @projects.each do |p| %>
+                  <option value="<%= p.id %>"><%= p.name %></option>
+                <% end %>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Image tag <span class="text-muted fw-normal">(from passing CI builds)</span></label>
+              <select name="image_tag" class="form-select" data-deploy-form-target="tag"></select>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label fw-semibold">Environment</label>
+                <select name="environment" class="form-select">
+                  <option value="staging">staging</option>
+                  <option value="production">production</option>
+                  <option value="qa">qa</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Target server</label>
+                <select name="server_ip" class="form-select">
+                  <% @servers.each do |s| %>
+                    <option value="<%= s.ip_address %>"><%= s.server_name.presence || s.ip_address %> (<%= s.ip_address %>)</option>
+                  <% end %>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100"
+                    data-turbo-confirm="Deploy this image tag to the selected server?">
+              <i class="bi bi-rocket-takeoff me-1"></i> Deploy
+            </button>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Servers ──────────────────────────────────────────────────────────────── %>
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <strong><i class="bi bi-hdd-rack me-2"></i>Servers</strong>
+        <span class="badge bg-secondary"><%= @servers.size %></span>
+      </div>
+      <% if @servers.any? %>
+        <div class="row g-0">
+          <% @servers.each do |s| %>
+            <div class="col-md-6 p-3 border-bottom">
+              <%= link_to server_path(ip: s.ip_address), class: "text-decoration-none text-dark" do %>
+                <div class="d-flex align-items-center justify-content-between">
+                  <span class="fw-semibold"><%= s.server_name.presence || s.ip_address %></span>
+                  <span class="badge <%= s.health_badge_class %>"><%= s.health.humanize %></span>
+                </div>
+                <div class="fs-8 text-muted mb-2"><code><%= s.ip_address %></code> · <%= s.server_os %></div>
+                <div class="d-flex gap-2 fs-8 text-muted">
+                  <span style="min-width:70px;">CPU <%= s.cpu %>%</span>
+                  <span style="min-width:70px;">MEM <%= s.mem %>%</span>
+                  <span style="min-width:70px;">DISK <%= s.disk %>%</span>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="card-body text-muted fs-7">No servers reporting yet.</div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%# ── Recent deployments ──────────────────────────────────────────────────────── %>
+<div class="card shadow-sm mt-3">
+  <div class="card-header"><strong><i class="bi bi-clock-history me-2"></i>Recent deployments</strong></div>
+  <% if @recent_deployments.any? %>
+    <table class="table table-hover align-middle mb-0 fs-7">
+      <thead>
+        <tr><th>When</th><th>Project</th><th>Image tag</th><th>Env</th><th>Server</th><th>By</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <% @recent_deployments.each do |d| %>
+          <tr style="cursor:pointer;" onclick="window.location='<%= deployment_path(d) %>'">
+            <td class="text-muted text-nowrap"><%= time_ago_in_words(d.created_at) %> ago</td>
+            <td class="fw-semibold"><%= d.project.name %></td>
+            <td><code><%= d.version %></code></td>
+            <td><span class="badge bg-light text-dark border"><%= d.environment %></span></td>
+            <td class="text-muted"><%= d.server_name.presence || d.ip_address || "—" %></td>
+            <td class="text-muted"><%= d.deployed_by&.display_name || "—" %></td>
+            <td><span class="badge <%= status_badge.fetch(d.status, "bg-secondary") %>"><%= d.status.humanize %></span></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div class="card-body text-muted fs-7">No deployments yet.</div>
+  <% end %>
+</div>

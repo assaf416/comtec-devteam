@@ -1,0 +1,11 @@
+<%# Renders a list of rule-based insights. locals: insights (array of {level:, text:}) %>
+<% if insights.present? %>
+  <div class="card p-3 mb-4">
+    <h2 class="fs-6 fw-bold mb-2">🔎 Analysis &amp; Insights</h2>
+    <% insights.each do |i| %>
+      <div class="alert alert-<%= %w[success warning danger info].include?(i[:level]) ? i[:level] : 'secondary' %> is-light py-2 mb-2 fs-7 mb-2">
+        <%= i[:text] %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

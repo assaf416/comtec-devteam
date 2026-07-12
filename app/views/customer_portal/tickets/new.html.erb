@@ -1,0 +1,63 @@
+<% is_story = @type == "feature_request"
+   label    = is_story ? "New Story / Feature Request" : "Submit a Support Ticket"
+   content_for(:title) { label }
+%>
+
+<div class="mb-4">
+  <%= link_to "← Back to #{is_story ? 'Stories' : 'Tickets'}", customer_portal_tickets_path(type: @type), class: "text-primary fs-7" %>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-8">
+    <div class="card p-3 mb-3">
+      <h1 class="fw-bold fs-4 mb-4"><%= is_story ? "💡" : "🎫" %> <%= label %></h1>
+
+      <%= form_with model: @ticket, url: customer_portal_tickets_path, method: :post do |f| %>
+        <%= f.hidden_field :ticket_type, value: @type %>
+
+        <% if @ticket.errors.any? %>
+          <div class="alert alert-danger is-light mb-4">
+            <% @ticket.errors.full_messages.each do |msg| %>
+              <p><%= msg %></p>
+            <% end %>
+          </div>
+        <% end %>
+
+        <div class="mb-3">
+          <%= f.label :title, is_story ? "Story title / Feature description" : "Issue title", class: "label" %>
+          <div class="">
+            <%= f.text_field :title, class: "input #{@ticket.errors[:fw-bold].any? ? 'is-danger' : ''}",
+                              placeholder: is_story ? "e.g. Add bulk export to CSV" : "e.g. Login fails on mobile" %>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :body, is_story ? "Describe the feature or story" : "Describe the issue in detail", class: "label" %>
+          <div class="">
+            <%= f.text_area :body, class: "textarea", rows: 6,
+                              placeholder: is_story ? "As a user, I want to... so that..." : "Steps to reproduce, expected behaviour, screenshots..." %>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :priority, class: "label" %>
+          <div class="">
+            <div class="select">
+              <%= f.select :priority, [["🟢 Low", "low"], ["🟡 Medium", "medium"], ["🔴 High", "high"], ["🚨 Critical", "critical"]], { selected: "medium" } %>
+            </div>
+          </div>
+          <% if is_story %>
+            <p class="form-text text-muted">For feature requests, priority indicates how important this is to your team.</p>
+          <% end %>
+        </div>
+
+        <div class="mb-3 mt-5">
+          <div class="">
+            <%= f.submit "Submit #{is_story ? 'Story' : 'Ticket'}", class: "btn btn-primary" %>
+            <%= link_to "Cancel", customer_portal_tickets_path(type: @type), class: "btn btn-secondary ms-2" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,107 @@
+<% content_for :title, t("tickets.all") %>
+
+<div class="level">
+  <div class="level-left">
+    <h1 class="fw-bold"><%= t("tickets.all") %></h1>
+  </div>
+</div>
+
+<%= render "tickets/quick_queries" %>
+
+<%# ── Filters ─────────────────────────────────────────────────────────── %>
+<div class="card p-3 mb-3">
+  <%= form_tag all_tickets_path, method: :get, class: "row g-2 align-items-end" do %>
+    <div class="col-md-2">
+      <label class="form-label fw-semibold fs-7"><%= t('table_headers.status') %></label>
+      <%= select_tag :status,
+            options_for_select(
+              [[t('tickets.filters.all_statuses'), ""]] + Ticket.statuses.keys.map { |s| [t("tickets.statuses.#{s}"), s] },
+              params[:status]
+            ),
+            class: "form-select form-select-sm" %>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label fw-semibold fs-7"><%= t('table_headers.project') %></label>
+      <%= select_tag :project_id,
+            options_for_select(
+              [[t('tickets.filters.all_projects'), ""]] + @projects.map { |p| [p.name, p.id] },
+              params[:project_id]
+            ),
+            class: "form-select form-select-sm" %>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label fw-semibold fs-7"><%= t('table_headers.assignee') %></label>
+      <%= select_tag :assignee_id,
+            options_for_select(
+              [[t('tickets.filters.all_assignees'), ""]] + @users.map { |u| [u.display_name, u.id] },
+              params[:assignee_id]
+            ),
+            class: "form-select form-select-sm" %>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label fw-semibold fs-7"><%= t('table_headers.owner') %></label>
+      <%= select_tag :owner_id,
+            options_for_select(
+              [[t('tickets.filters.all_owners'), ""]] + @users.map { |u| [u.display_name, u.id] },
+              params[:owner_id]
+            ),
+            class: "form-select form-select-sm" %>
+    </div>
+    <div class="col-md-1">
+      <%= submit_tag t('tickets.filters.filter'), class: "btn btn-primary btn-sm w-100" %>
+    </div>
+  <% end %>
+</div>
+
+<%# ── Results ─────────────────────────────────────────────────────────── %>
+<% if @tickets.any? %>
+  <div class="card p-3">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th><%= t('table_headers.id') %></th>
+          <th><%= t('table_headers.title') %></th>
+          <th><%= t('table_headers.project') %></th>
+          <th><%= t('table_headers.status') %></th>
+          <th><%= t('table_headers.priority') %></th>
+          <th><%= t('table_headers.assignee') %></th>
+          <th><%= t('table_headers.owner') %></th>
+          <th><%= t('table_headers.sprint') %></th>
+          <th>Progress</th>
+          <th class="text-end"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @tickets.each do |ticket| %>
+          <tr onclick="window.location='<%= ticket_path(ticket) %>'" style="cursor:pointer;">
+            <td class="text-muted"><%= ticket.id %></td>
+            <td class="fw-semibold"><%= ticket.title.truncate(60) %></td>
+            <td><%= ticket.project.name %></td>
+            <td><%= status_tag(ticket.status) %></td>
+            <td><%= priority_tag(ticket.priority) %></td>
+            <td><span class="d-inline-flex align-items-center gap-1"><%= user_avatar(ticket.assignee, size: 20) if ticket.assignee %><%= ticket.assignee&.display_name || "—" %></span></td>
+            <td><span class="d-inline-flex align-items-center gap-1"><%= user_avatar(ticket.owner, size: 20) if ticket.owner %><%= ticket.owner&.display_name || "—" %></span></td>
+            <td><%= ticket.sprint&.name || "—" %></td>
+            <td><%= render "tickets/progress_cell", ticket: ticket %></td>
+            <td class="text-end" onclick="event.stopPropagation();" style="cursor:default;">
+              <%= actions_dropdown do |d| %>
+                <% unless ticket.approved? %>
+                  <% d.button_action "Approve ticket", approve_ticket_path(ticket), icon: '✓' %>
+                  <% d.divider %>
+                <% end %>
+                <% d.button_action t('tickets.move.current_sprint'), move_to_sprint_ticket_path(ticket, target: 'current'), icon: '🏃' %>
+                <% d.button_action t('tickets.move.next_sprint'),    move_to_sprint_ticket_path(ticket, target: 'next'),    icon: '⏭️' %>
+                <% d.divider %>
+                <% d.button_action t('tickets.move.backlog'),        move_to_sprint_ticket_path(ticket, target: 'backlog'), icon: '📥' %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <div class="card p-4 text-center text-muted">
+    <p class="mb-0"><%= t("tickets.filtered.empty") %></p>
+  </div>
+<% end %>

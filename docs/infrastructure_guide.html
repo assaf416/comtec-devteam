@@ -1,0 +1,2765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DevTeam Hub — Infrastructure & Tooling Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --brand: #4a90d9;
+      --brand-dark: #2c6fac;
+      --accent: #e74c3c;
+      --green: #27ae60;
+      --orange: #e67e22;
+      --purple: #8e44ad;
+      --dark: #1a1d2e;
+      --mid: #2d3250;
+      --light-bg: #f8fafc;
+      --border: #e2e8f0;
+      --code-bg: #0d1117;
+      --sidebar-w: 260px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; color: #1e293b; background: var(--light-bg); line-height: 1.7; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; top: 0; left: 0; width: var(--sidebar-w);
+      height: 100vh; background: var(--dark); color: #cbd5e1;
+      overflow-y: auto; z-index: 100; padding: 0;
+    }
+    .sidebar-logo {
+      padding: 1.5rem 1.25rem 1rem;
+      font-size: 1.1rem; font-weight: 800; color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .sidebar-logo .logo-icon { font-size: 1.4rem; }
+    .sidebar-section { padding: 1rem 1rem 0.25rem; font-size: 0.65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; }
+    .sidebar a {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.5rem 1.25rem; font-size: 0.82rem; color: #94a3b8;
+      text-decoration: none; transition: all 0.15s; border-left: 3px solid transparent;
+    }
+    .sidebar a:hover { color: #fff; background: rgba(255,255,255,0.05); border-left-color: var(--brand); }
+    .sidebar a .icon { width: 18px; text-align: center; }
+
+    /* ── Main ── */
+    .main { margin-left: var(--sidebar-w); min-height: 100vh; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--dark) 0%, var(--mid) 50%, #424769 100%);
+      color: #fff; padding: 4rem 3rem 3rem; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234a90d9' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-eyebrow { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--brand); margin-bottom: 0.75rem; }
+    .hero h1 { font-size: 2.6rem; font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+    .hero h1 span { color: var(--brand); }
+    .hero p { font-size: 1.1rem; color: #94a3b8; max-width: 640px; margin-bottom: 1.5rem; }
+    .hero-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .hero-tag {
+      background: rgba(74,144,217,0.15); border: 1px solid rgba(74,144,217,0.3);
+      color: #93c5fd; padding: 0.25rem 0.75rem; border-radius: 100px; font-size: 0.78rem; font-weight: 600;
+    }
+
+    /* ── TOC ── */
+    .toc-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem; padding: 2rem 3rem; background: #fff; border-bottom: 1px solid var(--border);
+    }
+    .toc-card {
+      border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem;
+      text-decoration: none; color: inherit; display: flex; align-items: flex-start;
+      gap: 0.875rem; transition: all 0.15s;
+    }
+    .toc-card:hover { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(74,144,217,0.1); }
+    .toc-icon { font-size: 1.6rem; flex-shrink: 0; }
+    .toc-title { font-size: 0.9rem; font-weight: 700; }
+    .toc-desc { font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; }
+
+    /* ── Content ── */
+    .content { padding: 3rem; max-width: 1100px; }
+
+    /* ── Sections ── */
+    .chapter { margin-bottom: 4rem; }
+    .chapter-header {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 2rem; padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .chapter-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; flex-shrink: 0;
+    }
+    .chapter-icon.blue   { background: #dbeafe; }
+    .chapter-icon.green  { background: #dcfce7; }
+    .chapter-icon.orange { background: #ffedd5; }
+    .chapter-icon.purple { background: #f3e8ff; }
+    .chapter-icon.red    { background: #fee2e2; }
+    .chapter-icon.teal   { background: #ccfbf1; }
+    .chapter-icon.yellow { background: #fef9c3; }
+    .chapter-icon.gray   { background: #f1f5f9; }
+    .chapter-num { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; }
+    .chapter-title { font-size: 1.75rem; font-weight: 800; }
+
+    h2 { font-size: 1.25rem; font-weight: 700; margin: 2rem 0 0.75rem; color: var(--dark); }
+    h3 { font-size: 1rem; font-weight: 700; margin: 1.5rem 0 0.5rem; color: #334155; }
+    p { margin-bottom: 1rem; color: #475569; }
+
+    /* ── Code blocks ── */
+    pre {
+      background: var(--code-bg); border-radius: 10px; padding: 1.25rem 1.5rem;
+      overflow-x: auto; margin: 1.25rem 0; position: relative;
+      border: 1px solid #21262d;
+    }
+    pre .lang-label {
+      position: absolute; top: 0.5rem; right: 0.75rem;
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #6e7681; font-family: 'Fira Code', monospace;
+    }
+    code { font-family: 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.65; }
+    pre code { color: #e6edf3; }
+    :not(pre) > code {
+      background: #f1f5f9; color: #e11d48; padding: 0.15em 0.4em;
+      border-radius: 4px; font-size: 0.83em;
+    }
+    /* Syntax colouring (manual) */
+    .k  { color: #ff7b72; } /* keyword */
+    .s  { color: #a5d6ff; } /* string */
+    .c  { color: #8b949e; font-style: italic; } /* comment */
+    .m  { color: #79c0ff; } /* method / class */
+    .n  { color: #ffa657; } /* constant / number */
+    .p  { color: #e6edf3; } /* punctuation */
+    .v  { color: #d2a8ff; } /* variable */
+
+    /* ── Info boxes ── */
+    .callout {
+      border-radius: 10px; padding: 1rem 1.25rem; margin: 1.25rem 0;
+      border-left: 4px solid; display: flex; gap: 0.75rem;
+    }
+    .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.05rem; }
+    .callout p { margin: 0; font-size: 0.9rem; }
+    .callout.info    { background: #eff6ff; border-color: var(--brand); }
+    .callout.warning { background: #fffbeb; border-color: #f59e0b; }
+    .callout.success { background: #f0fdf4; border-color: var(--green); }
+    .callout.danger  { background: #fef2f2; border-color: var(--accent); }
+
+    /* ── Tool cards ── */
+    .tool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin: 1.5rem 0; }
+    .tool-card {
+      border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem;
+      background: #fff; position: relative; overflow: hidden;
+    }
+    .tool-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .tool-card.blue::before   { background: var(--brand); }
+    .tool-card.green::before  { background: var(--green); }
+    .tool-card.orange::before { background: var(--orange); }
+    .tool-card.purple::before { background: var(--purple); }
+    .tool-card.red::before    { background: var(--accent); }
+    .tool-card.teal::before   { background: #0d9488; }
+    .tool-logo { font-size: 2rem; margin-bottom: 0.75rem; }
+    .tool-name { font-size: 1rem; font-weight: 800; margin-bottom: 0.25rem; }
+    .tool-type { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.75rem; }
+    .tool-desc { font-size: 0.85rem; color: #64748b; margin: 0; }
+
+    /* ── Architecture diagram ── */
+    .arch-diagram {
+      background: #fff; border: 1px solid var(--border); border-radius: 14px;
+      padding: 2rem; margin: 1.5rem 0; overflow-x: auto;
+    }
+    .arch-diagram svg { display: block; margin: 0 auto; }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.875rem; }
+    th { background: var(--dark); color: #fff; padding: 0.75rem 1rem; text-align: left; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); color: #475569; }
+    tr:hover td { background: var(--light-bg); }
+
+    /* ── Badges ── */
+    .badge { display: inline-block; padding: 0.2em 0.6em; border-radius: 100px; font-size: 0.72rem; font-weight: 700; }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-green  { background: #dcfce7; color: #15803d; }
+    .badge-orange { background: #ffedd5; color: #c2410c; }
+    .badge-purple { background: #f3e8ff; color: #7e22ce; }
+    .badge-red    { background: #fee2e2; color: #b91c1c; }
+
+    /* ── Steps ── */
+    .steps { counter-reset: step; margin: 1.5rem 0; }
+    .step { display: flex; gap: 1rem; margin-bottom: 1.25rem; align-items: flex-start; }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      background: var(--brand); color: #fff; font-size: 0.8rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-body { flex: 1; }
+    .step-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .step-desc { font-size: 0.85rem; color: #64748b; }
+
+    /* ── Chart containers ── */
+    .chart-wrap { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin: 1.5rem 0; }
+    .chart-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--dark); }
+    canvas { max-height: 280px; }
+
+    /* ── Footer ── */
+    footer { background: var(--dark); color: #64748b; padding: 2rem 3rem; font-size: 0.82rem; margin-left: var(--sidebar-w); }
+    footer a { color: var(--brand); text-decoration: none; }
+
+    @media(max-width:768px) {
+      .sidebar { display: none; }
+      .main, footer { margin-left: 0; }
+      .content { padding: 1.5rem; }
+      .hero { padding: 2rem 1.5rem; }
+      .hero h1 { font-size: 1.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ SIDEBAR ════════════════════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">⚙️</span>
+    <span>Infra Guide</span>
+  </div>
+
+  <div class="sidebar-section">Overview</div>
+  <a href="#overview"><span class="icon">📋</span> Introduction</a>
+  <a href="#stack-summary"><span class="icon">📊</span> Stack Summary</a>
+
+  <div class="sidebar-section">Core Tools</div>
+  <a href="#git"><span class="icon">🌿</span> Git — Gitea</a>
+  <a href="#ci"><span class="icon">🔧</span> CI — Jenkins</a>
+  <a href="#deployments"><span class="icon">🚀</span> Deployments — Kamal</a>
+  <a href="#video"><span class="icon">📹</span> Video — Jitsi</a>
+
+  <div class="sidebar-section">Storage</div>
+  <a href="#s3"><span class="icon">🗄️</span> S3 — MinIO</a>
+  <a href="#active-storage"><span class="icon">📎</span> Active Storage Setup</a>
+
+  <div class="sidebar-section">Hosting</div>
+  <a href="#windows"><span class="icon">🪟</span> Windows Server</a>
+  <a href="#docker"><span class="icon">🐳</span> Docker Setup</a>
+  <a href="#docker-aspnet"><span class="icon">🔷</span> ASP.NET Docker</a>
+
+  <div class="sidebar-section">Testing</div>
+  <a href="#testing-overview"><span class="icon">🧪</span> Overview &amp; Strategy</a>
+  <a href="#testing-rails"><span class="icon">💎</span> Rails — Cucumber/Capybara</a>
+  <a href="#testing-dotnet"><span class="icon">🔷</span> ASP.NET Core — SpecFlow</a>
+  <a href="#testing-legacy-dotnet"><span class="icon">🪟</span> Legacy .NET — Selenium</a>
+  <a href="#testing-bun"><span class="icon">🟡</span> Bun / Node.js — Playwright</a>
+
+  <div class="sidebar-section">Code Review</div>
+  <a href="#code-review"><span class="icon">🔍</span> SonarQube + AI Review</a>
+
+  <div class="sidebar-section">Observability</div>
+  <a href="#monitoring"><span class="icon">🚨</span> Error Monitoring — Sentry</a>
+  <a href="#monitoring-errbit"><span class="icon">🪲</span> Lightweight Alt — Errbit</a>
+  <a href="#logging"><span class="icon">📋</span> Unified Logging — Loki</a>
+
+  <div class="sidebar-section">Reference</div>
+  <a href="#env-vars"><span class="icon">🔑</span> Environment Variables</a>
+  <a href="#ports"><span class="icon">🔌</span> Ports Reference</a>
+</nav>
+
+<!-- ═══════════════════════════════════════ MAIN ═════════════════════════════ -->
+<div class="main">
+
+  <!-- Hero -->
+  <div class="hero" id="overview">
+    <div class="hero-eyebrow">DevTeam Hub · Infrastructure Guide v1.0</div>
+    <h1>Tools, Integrations &amp;<br><span>Deployment Architecture</span></h1>
+    <p>A comprehensive reference for every service that powers DevTeam Hub — from source control and CI to on-prem object storage, video conferencing, and Docker-based production deployments on Windows Server.</p>
+    <div class="hero-tags">
+      <span class="hero-tag">Ruby on Rails 8</span>
+      <span class="hero-tag">Gitea</span>
+      <span class="hero-tag">Jenkins</span>
+      <span class="hero-tag">Kamal</span>
+      <span class="hero-tag">Jitsi Meet</span>
+      <span class="hero-tag">MinIO</span>
+      <span class="hero-tag">Docker</span>
+      <span class="hero-tag">ASP.NET</span>
+      <span class="hero-tag">Windows Server</span>
+      <span class="hero-tag">SonarQube</span>
+      <span class="hero-tag">Ollama AI</span>
+      <span class="hero-tag">Grafana Loki</span>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc-grid" id="stack-summary">
+    <a class="toc-card" href="#git">
+      <span class="toc-icon">🌿</span>
+      <div><div class="toc-title">Gitea — Git Server</div><div class="toc-desc">Self-hosted Git with webhooks, PR API, and branch management</div></div>
+    </a>
+    <a class="toc-card" href="#ci">
+      <span class="toc-icon">🔧</span>
+      <div><div class="toc-title">Jenkins — CI/CD</div><div class="toc-desc">Pipeline automation, test runs, build artifacts, webhook callbacks</div></div>
+    </a>
+    <a class="toc-card" href="#deployments">
+      <span class="toc-icon">🚀</span>
+      <div><div class="toc-title">Kamal — Deployments</div><div class="toc-desc">Zero-downtime Docker-based Rails deployment tool by Basecamp</div></div>
+    </a>
+    <a class="toc-card" href="#video">
+      <span class="toc-icon">📹</span>
+      <div><div class="toc-title">Jitsi Meet — Video</div><div class="toc-desc">Open-source self-hostable video conferencing embedded via iframe</div></div>
+    </a>
+    <a class="toc-card" href="#s3">
+      <span class="toc-icon">🗄️</span>
+      <div><div class="toc-title">MinIO — Object Storage</div><div class="toc-desc">S3-compatible on-prem storage powering Rails Active Storage</div></div>
+    </a>
+    <a class="toc-card" href="#docker">
+      <span class="toc-icon">🐳</span>
+      <div><div class="toc-title">Docker — Containerisation</div><div class="toc-desc">Dockerfiles for Rails + ASP.NET, Compose for local dev</div></div>
+    </a>
+    <a class="toc-card" href="#testing-overview">
+      <span class="toc-icon">🧪</span>
+      <div><div class="toc-title">Automated Testing</div><div class="toc-desc">Cucumber BDD across Rails, ASP.NET Core, legacy .NET and Bun/Node</div></div>
+    </a>
+    <a class="toc-card" href="#monitoring">
+      <span class="toc-icon">🚨</span>
+      <div><div class="toc-title">Error Monitoring</div><div class="toc-desc">Self-hosted Sentry, Errbit and GlitchTip — catch exceptions across all stacks</div></div>
+    </a>
+    <a class="toc-card" href="#code-review">
+      <span class="toc-icon">🔍</span>
+      <div><div class="toc-title">Code Review — SonarQube + AI</div><div class="toc-desc">On-prem static analysis, Quality Gates, and AI-powered review via Ollama</div></div>
+    </a>
+    <a class="toc-card" href="#logging">
+      <span class="toc-icon">📋</span>
+      <div><div class="toc-title">Unified Logging — Grafana Loki</div><div class="toc-desc">Centralised log aggregation, JSON format, correlation IDs, Grafana dashboards</div></div>
+    </a>
+  </div>
+
+  <!-- Architecture Diagram -->
+  <div class="content">
+    <div class="arch-diagram">
+      <svg width="900" height="400" viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+        <!-- Background grid -->
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="900" height="400" fill="url(#grid)"/>
+
+        <!-- Rails App box -->
+        <rect x="340" y="140" width="220" height="120" rx="14" fill="#1a1d2e" stroke="#4a90d9" stroke-width="2"/>
+        <text x="450" y="168" text-anchor="middle" fill="#4a90d9" font-size="10" font-weight="700" letter-spacing="1">RAILS APP</text>
+        <text x="450" y="186" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="800">DevTeam Hub</text>
+        <text x="450" y="204" text-anchor="middle" fill="#8b949e" font-size="10">Rails 8 · SQLite · Hotwire</text>
+        <text x="450" y="222" text-anchor="middle" fill="#8b949e" font-size="10">Puma · Solid Queue</text>
+        <text x="450" y="244" text-anchor="middle" fill="#6e7681" font-size="9">:5000</text>
+
+        <!-- Developer -->
+        <circle cx="80" cy="200" r="28" fill="#dbeafe" stroke="#4a90d9" stroke-width="2"/>
+        <text x="80" y="197" text-anchor="middle" font-size="18">👤</text>
+        <text x="80" y="213" text-anchor="middle" fill="#1d4ed8" font-size="10" font-weight="700">DEV</text>
+        <text x="80" y="248" text-anchor="middle" fill="#64748b" font-size="10">Browser / CLI</text>
+
+        <!-- Gitea -->
+        <rect x="30" y="300" width="120" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+        <text x="90" y="323" text-anchor="middle" font-size="16">🌿</text>
+        <text x="90" y="342" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">Gitea</text>
+        <text x="90" y="356" text-anchor="middle" fill="#4ade80" font-size="9">:3001</text>
+
+        <!-- Jenkins -->
+        <rect x="200" y="300" width="120" height="60" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+        <text x="260" y="323" text-anchor="middle" font-size="16">🔧</text>
+        <text x="260" y="342" text-anchor="middle" fill="#c2410c" font-size="11" font-weight="700">Jenkins</text>
+        <text x="260" y="356" text-anchor="middle" fill="#fb923c" font-size="9">:8080</text>
+
+        <!-- Jitsi -->
+        <rect x="750" y="140" width="120" height="60" rx="10" fill="#f0fdf4" stroke="#0d9488" stroke-width="1.5"/>
+        <text x="810" y="163" text-anchor="middle" font-size="16">📹</text>
+        <text x="810" y="182" text-anchor="middle" fill="#0f766e" font-size="11" font-weight="700">Jitsi Meet</text>
+        <text x="810" y="196" text-anchor="middle" fill="#2dd4bf" font-size="9">meet.jit.si / self-hosted</text>
+
+        <!-- MinIO -->
+        <rect x="750" y="240" width="120" height="60" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+        <text x="810" y="263" text-anchor="middle" font-size="16">🗄️</text>
+        <text x="810" y="282" text-anchor="middle" fill="#92400e" font-size="11" font-weight="700">MinIO</text>
+        <text x="810" y="296" text-anchor="middle" fill="#f59e0b" font-size="9">:9000 (S3)</text>
+
+        <!-- Mobile -->
+        <rect x="370" y="20" width="160" height="60" rx="10" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
+        <text x="450" y="43" text-anchor="middle" font-size="16">📱</text>
+        <text x="450" y="62" text-anchor="middle" fill="#7e22ce" font-size="11" font-weight="700">Mobile UI</text>
+        <text x="450" y="76" text-anchor="middle" fill="#a855f7" font-size="9">/mobile/* routes</text>
+
+        <!-- Arrows: Dev → Rails -->
+        <line x1="108" y1="200" x2="338" y2="200" stroke="#4a90d9" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-blue)"/>
+        <!-- Arrows: Rails → Gitea (webhook) -->
+        <line x1="380" y1="260" x2="120" y2="300" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-green)"/>
+        <!-- Arrows: Gitea → Jenkins trigger -->
+        <line x1="150" y1="330" x2="198" y2="330" stroke="#ea580c" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+        <!-- Arrows: Jenkins → Rails callback -->
+        <line x1="260" y1="300" x2="400" y2="262" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-orange)"/>
+        <!-- Arrows: Rails → Jitsi -->
+        <line x1="560" y1="175" x2="748" y2="170" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-teal)"/>
+        <!-- Arrows: Rails → MinIO -->
+        <line x1="560" y1="230" x2="748" y2="270" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-yellow)"/>
+        <!-- Arrows: Mobile → Rails -->
+        <line x1="450" y1="80" x2="450" y2="138" stroke="#9333ea" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+
+        <!-- Arrow markers -->
+        <defs>
+          <marker id="arr-blue"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#4a90d9"/></marker>
+          <marker id="arr-green"  markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#16a34a"/></marker>
+          <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#ea580c"/></marker>
+          <marker id="arr-teal"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#0d9488"/></marker>
+          <marker id="arr-yellow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#d97706"/></marker>
+          <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#9333ea"/></marker>
+        </defs>
+
+        <!-- Legend -->
+        <text x="340" y="388" fill="#64748b" font-size="9">Dashed = HTTP API call &nbsp; Solid = direct trigger</text>
+      </svg>
+    </div>
+
+    <!-- Stack overview chart -->
+    <div class="chart-wrap">
+      <div class="chart-title">Technology Stack — Role Distribution</div>
+      <canvas id="stackChart"></canvas>
+    </div>
+
+    <!-- ════════════════════════════ CHAPTER 1 — GIT ════════════════════════════ -->
+    <div class="chapter" id="git">
+      <div class="chapter-header">
+        <div class="chapter-icon green">🌿</div>
+        <div>
+          <div class="chapter-num">Chapter 1</div>
+          <div class="chapter-title">Git — Gitea</div>
+        </div>
+      </div>
+
+      <div class="tool-grid">
+        <div class="tool-card green">
+          <div class="tool-logo">🌿</div>
+          <div class="tool-name">Gitea</div>
+          <div class="tool-type">Self-hosted Git Service</div>
+          <p class="tool-desc">A lightweight, self-hosted Git service written in Go. Provides repositories, pull requests, issues, webhooks, and a REST API — all running on-prem with minimal resources.</p>
+        </div>
+        <div class="tool-card blue">
+          <div class="tool-logo">🔗</div>
+          <div class="tool-name">GiteaService</div>
+          <div class="tool-type">Rails Integration Class</div>
+          <p class="tool-desc">A Faraday-based service class in <code>app/services/gitea_service.rb</code> that wraps every Gitea API call — branch creation, PR data, diff fetching, webhook management.</p>
+        </div>
+      </div>
+
+      <h2>What Gitea Does</h2>
+      <p>Gitea acts as the central source control server for all projects. It stores code repositories, accepts pushes from developers, fires webhook events to the Rails app (push, pull_request, release), and exposes a full REST API for programmatic access.</p>
+
+      <h2>How It Connects to Rails</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-body">
+            <div class="step-title">Webhook Registration</div>
+            <div class="step-desc">When a project is linked to a Gitea repo, the app calls <code>GiteaService#create_webhook</code> to register a webhook pointing at <code>/webhooks/gitea</code>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-body">
+            <div class="step-title">Incoming Webhooks</div>
+            <div class="step-desc"><code>WebhooksController#gitea</code> receives push/PR events, verifies the HMAC-SHA256 signature, and updates tickets, branches, and pull requests accordingly.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-body">
+            <div class="step-title">Outgoing API calls</div>
+            <div class="step-desc"><code>CreateBranchJob</code> and <code>SyncPullRequestJob</code> call <code>GiteaService</code> to create branches and pull full PR diff/file/comment data.</div>
+          </div>
+        </div>
+      </div>
+
+      <h2>Configuration</h2>
+      <pre><span class="lang-label">bash (.env)</span><code><span class="c"># .env / credentials / ENV</span>
+<span class="v">GITEA_URL</span>=<span class="s">http://gitea.local:3001</span>
+<span class="v">GITEA_TOKEN</span>=<span class="s">ghp_xxxxxxxxxxxxxxxxxxxx</span>  <span class="c"># user access token</span>
+<span class="v">GITEA_WEBHOOK_SECRET</span>=<span class="s">a_random_secret_string</span>
+</code></pre>
+
+      <h2>GiteaService — Full Implementation</h2>
+      <pre><span class="lang-label">ruby</span><code><span class="k">class</span> <span class="m">GiteaService</span>
+  <span class="m">BASE_URL</span>  = <span class="m">ENV</span>.fetch(<span class="s">"GITEA_URL"</span>,   <span class="s">"http://localhost:3001"</span>)
+  <span class="m">API_TOKEN</span> = <span class="m">ENV</span>.fetch(<span class="s">"GITEA_TOKEN"</span>, <span class="s">""</span>)
+
+  <span class="k">def</span> <span class="m">initialize</span>
+    @conn = <span class="m">Faraday</span>.new(url: <span class="m">BASE_URL</span>) <span class="k">do</span> |f|
+      f.request  :json
+      f.response :json
+      f.headers[<span class="s">"Authorization"</span>] = <span class="s">"token #{API_TOKEN}"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="c"># Create a branch for a ticket</span>
+  <span class="k">def</span> <span class="m">create_branch</span>(repo_owner:, repo_name:, branch_name:, base_branch: <span class="s">"main"</span>)
+    @conn.post(<span class="s">"/api/v1/repos/#{repo_owner}/#{repo_name}/branches"</span>) <span class="k">do</span> |req|
+      req.body = { new_branch_name: branch_name, old_branch_name: base_branch }
+    <span class="k">end</span>.then { |r| r.success? ? r.body : <span class="k">nil</span> }
+  <span class="k">end</span>
+
+  <span class="c"># Fetch PR diff (unified format)</span>
+  <span class="k">def</span> <span class="m">pull_request_diff</span>(repo_owner:, repo_name:, pr_number:)
+    <span class="m">Faraday</span>.get(
+      <span class="s">"#{BASE_URL}/api/v1/repos/#{repo_owner}/#{repo_name}/pulls/#{pr_number}.diff"</span>,
+      {}, { <span class="s">"Authorization"</span> => <span class="s">"token #{API_TOKEN}"</span>, <span class="s">"Accept"</span> => <span class="s">"text/plain"</span> }
+    ).then { |r| r.success? ? r.body : <span class="k">nil</span> }
+  <span class="k">end</span>
+
+  <span class="c"># Verify HMAC-SHA256 webhook signature</span>
+  <span class="k">def</span> <span class="m">self</span>.valid_signature?(payload, signature, secret)
+    expected = <span class="s">"sha256=#{OpenSSL::HMAC.hexdigest('sha256', secret, payload)}"</span>
+    <span class="m">ActiveSupport</span>::<span class="m">SecurityUtils</span>.secure_compare(expected, signature)
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+
+      <h2>Webhook Handler</h2>
+      <pre><span class="lang-label">ruby</span><code><span class="c"># app/controllers/webhooks_controller.rb</span>
+<span class="k">class</span> <span class="m">WebhooksController</span> &lt; <span class="m">ActionController</span>::<span class="m">API</span>
+  skip_before_action :verify_authenticity_token
+
+  <span class="k">def</span> <span class="m">gitea</span>
+    secret = <span class="m">ENV</span>[<span class="s">"GITEA_WEBHOOK_SECRET"</span>]
+    sig    = request.headers[<span class="s">"X-Gitea-Signature"</span>]
+    <span class="k">unless</span> <span class="m">GiteaService</span>.valid_signature?(request.raw_post, sig, secret)
+      <span class="k">return</span> head :unauthorized
+    <span class="k">end</span>
+
+    event   = request.headers[<span class="s">"X-Gitea-Event"</span>]
+    payload = <span class="m">JSON</span>.parse(request.raw_post)
+
+    <span class="k">case</span> event
+    <span class="k">when</span> <span class="s">"push"</span>         <span class="k">then</span> handle_push(payload)
+    <span class="k">when</span> <span class="s">"pull_request"</span> <span class="k">then</span> handle_pull_request(payload)
+    <span class="k">end</span>
+    head :ok
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <p><strong>Install:</strong> Download the Gitea binary from <a href="https://gitea.io/en-us/download" target="_blank">gitea.io</a>, or run via Docker: <code>docker run -p 3001:3000 -v gitea:/data gitea/gitea:latest</code></p>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════ CHAPTER 2 — CI ══════════════════════════════ -->
+    <div class="chapter" id="ci">
+      <div class="chapter-header">
+        <div class="chapter-icon orange">🔧</div>
+        <div>
+          <div class="chapter-num">Chapter 2</div>
+          <div class="chapter-title">CI — Jenkins</div>
+        </div>
+      </div>
+
+      <p>Jenkins is the Continuous Integration server. It watches Gitea via webhook, runs builds and test suites on every commit, then POSTs results back to DevTeam Hub so developers can see CI status alongside their tickets and PRs.</p>
+
+      <div class="tool-grid">
+        <div class="tool-card orange">
+          <div class="tool-logo">🔧</div>
+          <div class="tool-name">Jenkins</div>
+          <div class="tool-type">CI/CD Automation Server</div>
+          <p class="tool-desc">Open-source automation server. Runs pipelines defined as <code>Jenkinsfile</code>, supports parallel stages, test reporting, artifact archiving, and hundreds of plugins.</p>
+        </div>
+        <div class="tool-card blue">
+          <div class="tool-logo">📡</div>
+          <div class="tool-name">JenkinsService</div>
+          <div class="tool-type">Rails Integration Class</div>
+          <p class="tool-desc">Calls the Jenkins REST API to trigger builds, fetch logs, and retrieve test results. Used by <code>CiRun</code> model updates and the CI dashboard.</p>
+        </div>
+      </div>
+
+      <h2>CI Pipeline Flow</h2>
+      <div class="arch-diagram">
+        <svg width="780" height="120" viewBox="0 0 780 120" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+          <defs>
+            <marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#64748b"/></marker>
+          </defs>
+          <!-- steps -->
+          <rect x="10"  y="35" width="120" height="50" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="70"  y="57" text-anchor="middle" font-size="11" font-weight="700" fill="#15803d">git push</text>
+          <text x="70"  y="73" text-anchor="middle" font-size="10" fill="#64748b">Developer</text>
+
+          <rect x="160" y="35" width="120" height="50" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="220" y="57" text-anchor="middle" font-size="11" font-weight="700" fill="#15803d">Gitea</text>
+          <text x="220" y="73" text-anchor="middle" font-size="10" fill="#64748b">fires webhook</text>
+
+          <rect x="310" y="35" width="120" height="50" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+          <text x="370" y="57" text-anchor="middle" font-size="11" font-weight="700" fill="#c2410c">Jenkins</text>
+          <text x="370" y="73" text-anchor="middle" font-size="10" fill="#64748b">runs Jenkinsfile</text>
+
+          <rect x="460" y="35" width="120" height="50" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+          <text x="520" y="57" text-anchor="middle" font-size="11" font-weight="700" fill="#c2410c">Tests pass?</text>
+          <text x="520" y="73" text-anchor="middle" font-size="10" fill="#64748b">RSpec / pytest</text>
+
+          <rect x="610" y="35" width="150" height="50" rx="8" fill="#dbeafe" stroke="#4a90d9" stroke-width="1.5"/>
+          <text x="685" y="57" text-anchor="middle" font-size="11" font-weight="700" fill="#1d4ed8">DevTeam Hub</text>
+          <text x="685" y="73" text-anchor="middle" font-size="10" fill="#64748b">CiRun updated</text>
+
+          <line x1="130" y1="60" x2="158" y2="60" stroke="#64748b" stroke-width="1.5" marker-end="url(#a2)"/>
+          <line x1="280" y1="60" x2="308" y2="60" stroke="#64748b" stroke-width="1.5" marker-end="url(#a2)"/>
+          <line x1="430" y1="60" x2="458" y2="60" stroke="#64748b" stroke-width="1.5" marker-end="url(#a2)"/>
+          <line x1="580" y1="60" x2="608" y2="60" stroke="#64748b" stroke-width="1.5" marker-end="url(#a2)"/>
+        </svg>
+      </div>
+
+      <h2>Jenkinsfile (Rails Project)</h2>
+      <pre><span class="lang-label">groovy</span><code><span class="c">// Jenkinsfile — place in repo root</span>
+pipeline {
+  agent any
+  environment {
+    <span class="v">RAILS_ENV</span> = <span class="s">'test'</span>
+    <span class="v">DEVTEAM_URL</span> = credentials(<span class="s">'devteam-api-url'</span>)
+    <span class="v">DEVTEAM_TOKEN</span> = credentials(<span class="s">'devteam-api-token'</span>)
+  }
+  stages {
+    stage(<span class="s">'Setup'</span>) {
+      steps {
+        sh <span class="s">'bundle install --jobs 4'</span>
+        sh <span class="s">'bin/rails db:create db:migrate'</span>
+      }
+    }
+    stage(<span class="s">'Tests'</span>) {
+      steps {
+        sh <span class="s">'bundle exec rspec --format RspecJunitFormatter --out reports/rspec.xml'</span>
+      }
+      post {
+        always {
+          junit <span class="s">'reports/rspec.xml'</span>
+        }
+      }
+    }
+    stage(<span class="s">'Notify DevTeam'</span>) {
+      steps {
+        script {
+          <span class="k">def</span> result = currentBuild.result ?: <span class="s">'SUCCESS'</span>
+          sh <span class="s">"""
+            curl -X POST ${DEVTEAM_URL}/webhooks/jenkins \\
+              -H 'Content-Type: application/json' \\
+              -H 'X-Jenkins-Token: ${DEVTEAM_TOKEN}' \\
+              -d '{"build_number":"${BUILD_NUMBER}","status":"${result}",
+                   "branch":"${GIT_BRANCH}","commit":"${GIT_COMMIT}"}'
+          """</span>
+        }
+      }
+    }
+  }
+}
+</code></pre>
+
+      <h2>Jenkins Callback Handler in Rails</h2>
+      <pre><span class="lang-label">ruby</span><code><span class="c"># app/controllers/webhooks_controller.rb (jenkins action)</span>
+<span class="k">def</span> <span class="m">jenkins</span>
+  token = request.headers[<span class="s">"X-Jenkins-Token"</span>]
+  <span class="k">return</span> head :unauthorized <span class="k">unless</span> token == <span class="m">ENV</span>[<span class="s">"JENKINS_WEBHOOK_TOKEN"</span>]
+
+  data = <span class="m">JSON</span>.parse(request.raw_post)
+  ci_run = <span class="m">CiRun</span>.find_or_initialize_by(build_number: data[<span class="s">"build_number"</span>])
+  ci_run.update!(
+    status:     data[<span class="s">"status"</span>] == <span class="s">"SUCCESS"</span> ? :passed : :failed,
+    commit_sha: data[<span class="s">"commit"</span>],
+    branch_name: data[<span class="s">"branch"</span>],
+    finished_at: <span class="m">Time</span>.current
+  )
+  head :ok
+<span class="k">end</span>
+</code></pre>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <p><strong>Docker install:</strong> <code>docker run -p 8080:8080 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts-jdk17</code>. First-run unlock password is in <code>/var/jenkins_home/secrets/initialAdminPassword</code>.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 3 — DEPLOYMENTS ══════════════════════ -->
+    <div class="chapter" id="deployments">
+      <div class="chapter-header">
+        <div class="chapter-icon blue">🚀</div>
+        <div>
+          <div class="chapter-num">Chapter 3</div>
+          <div class="chapter-title">Deployments — Kamal</div>
+        </div>
+      </div>
+
+      <p>Kamal (formerly MRSK) is a deployment tool by Basecamp that packages the Rails app into a Docker image and deploys it to one or more remote servers with zero-downtime rolling restarts using Traefik as a reverse proxy.</p>
+
+      <div class="tool-grid">
+        <div class="tool-card blue">
+          <div class="tool-logo">🚀</div>
+          <div class="tool-name">Kamal 2</div>
+          <div class="tool-type">Zero-Downtime Deployer</div>
+          <p class="tool-desc">Ships a Docker image to production servers, health-checks before switching traffic, and rolls back automatically on failure. No Kubernetes needed.</p>
+        </div>
+        <div class="tool-card green">
+          <div class="tool-logo">🔀</div>
+          <div class="tool-name">Traefik</div>
+          <div class="tool-type">Reverse Proxy / Load Balancer</div>
+          <p class="tool-desc">Kamal manages a Traefik instance on the server to route traffic, handle TLS termination, and perform blue/green container swaps.</p>
+        </div>
+      </div>
+
+      <h2>config/deploy.yml</h2>
+      <pre><span class="lang-label">yaml</span><code><span class="c"># config/deploy.yml</span>
+service: devteam-hub
+image: your-registry/devteam-hub
+
+servers:
+  web:
+    - <span class="s">192.168.1.100</span>    <span class="c"># production server IP</span>
+
+registry:
+  server: registry.yourcompany.local
+  username:
+    - <span class="m">KAMAL_REGISTRY_USERNAME</span>
+  password:
+    - <span class="m">KAMAL_REGISTRY_PASSWORD</span>
+
+env:
+  clear:
+    RAILS_ENV: production
+    RAILS_LOG_TO_STDOUT: <span class="s">"true"</span>
+    PORT: <span class="n">3000</span>
+  secret:
+    - RAILS_MASTER_KEY
+    - DATABASE_URL
+    - GITEA_TOKEN
+    - MINIO_ACCESS_KEY
+    - MINIO_SECRET_KEY
+
+volumes:
+  - <span class="s">"devteam_storage:/rails/storage"</span>
+
+proxy:
+  ssl: true
+  host: devteam.yourcompany.local
+</code></pre>
+
+      <h2>Deploy Commands</h2>
+      <pre><span class="lang-label">bash</span><code><span class="c"># First-time setup (provisions Traefik, builds image)</span>
+kamal setup
+
+<span class="c"># Regular deploy</span>
+kamal deploy
+
+<span class="c"># Rollback to previous version</span>
+kamal rollback
+
+<span class="c"># Run a one-off command on server</span>
+kamal app exec -i "bin/rails db:migrate"
+
+<span class="c"># Live logs</span>
+kamal logs -f
+</code></pre>
+
+      <div class="callout success">
+        <span class="callout-icon">✅</span>
+        <p>Kamal is included in Rails 8 by default. The <code>config/deploy.yml</code> and <code>Dockerfile</code> are generated by <code>rails new</code>. Run <code>gem install kamal</code> on your dev machine if deploying from outside the project.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 4 — VIDEO ════════════════════════════ -->
+    <div class="chapter" id="video">
+      <div class="chapter-header">
+        <div class="chapter-icon teal">📹</div>
+        <div>
+          <div class="chapter-num">Chapter 4</div>
+          <div class="chapter-title">Video Calls — Jitsi Meet</div>
+        </div>
+      </div>
+
+      <p>Jitsi Meet is a fully open-source, self-hostable video conferencing platform. DevTeam Hub embeds Jitsi rooms directly into meeting pages via an iframe. Each meeting generates a unique room name, and developers can join with one click.</p>
+
+      <div class="tool-grid">
+        <div class="tool-card teal">
+          <div class="tool-logo">📹</div>
+          <div class="tool-name">Jitsi Meet</div>
+          <div class="tool-type">Video Conferencing</div>
+          <p class="tool-desc">WebRTC-based video calls. Can use the public <code>meet.jit.si</code> server for free, or deploy your own Jitsi instance on any Linux server.</p>
+        </div>
+        <div class="tool-card blue">
+          <div class="tool-logo">🔧</div>
+          <div class="tool-name">Jitsi External API</div>
+          <div class="tool-type">JavaScript SDK</div>
+          <p class="tool-desc">The <code>external_api.js</code> library allows embedding a Jitsi conference in any webpage with full event handling — join/leave, recording, chat.</p>
+        </div>
+      </div>
+
+      <h2>Meeting Model — jitsi_url</h2>
+      <pre><span class="lang-label">ruby</span><code><span class="c"># app/models/meeting.rb</span>
+<span class="k">class</span> <span class="m">Meeting</span> &lt; <span class="m">ApplicationRecord</span>
+  <span class="k">def</span> <span class="m">jitsi_url</span>
+    <span class="s">"https://meet.jit.si/#{jitsi_room}"</span> <span class="k">if</span> jitsi_room.present?
+  <span class="k">end</span>
+
+  before_create <span class="k">do</span>
+    self.jitsi_room ||= <span class="s">"devteam-#{SecureRandom.hex(6)}"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+
+      <h2>Embedded Jitsi Room (ERB)</h2>
+      <pre><span class="lang-label">erb</span><code>&lt;%<span class="c"># app/views/meetings/show.html.erb</span> %&gt;
+&lt;div id=<span class="s">"jitsi-container"</span> style=<span class="s">"height:580px;border-radius:12px;overflow:hidden"</span>&gt;&lt;/div&gt;
+
+&lt;script src=<span class="s">"https://meet.jit.si/external_api.js"</span>&gt;&lt;/script&gt;
+&lt;script&gt;
+  const api = new JitsiMeetExternalAPI(<span class="s">"meet.jit.si"</span>, {
+    roomName:   <span class="s">"&lt;%= @meeting.jitsi_room %&gt;"</span>,
+    parentNode: document.getElementById(<span class="s">"jitsi-container"</span>),
+    userInfo:   { displayName: <span class="s">"&lt;%= current_user.display_name %&gt;"</span> },
+    configOverwrite: { startWithAudioMuted: true },
+    interfaceConfigOverwrite: {
+      TOOLBAR_BUTTONS: [<span class="s">'microphone'</span>, <span class="s">'camera'</span>, <span class="s">'chat'</span>, <span class="s">'recording'</span>, <span class="s">'hangup'</span>]
+    }
+  });
+
+  api.addEventListener(<span class="s">'videoConferenceLeft'</span>, () =&gt; {
+    fetch(<span class="s">"&lt;%= end_meeting_meeting_path(@meeting) %&gt;"</span>,
+      { method: <span class="s">'POST'</span>, headers: { <span class="s">'X-CSRF-Token'</span>: document.querySelector(<span class="s">'[name="csrf-token"]'</span>).content }});
+  });
+&lt;/script&gt;
+</code></pre>
+
+      <h2>Self-hosted Jitsi (Docker Compose)</h2>
+      <pre><span class="lang-label">bash</span><code><span class="c"># Clone and configure Jitsi Docker</span>
+git clone https://github.com/jitsi/docker-jitsi-meet
+cd docker-jitsi-meet
+cp env.example .env
+<span class="c"># Generate secrets</span>
+./gen-passwords.sh
+<span class="c"># Point your DNS: video.yourcompany.local → server IP</span>
+docker compose up -d
+</code></pre>
+
+      <p>Then update your Meeting model to use <code>"video.yourcompany.local"</code> instead of <code>"meet.jit.si"</code>.</p>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 5 — S3 / MINIO ═══════════════════════ -->
+    <div class="chapter" id="s3">
+      <div class="chapter-header">
+        <div class="chapter-icon yellow">🗄️</div>
+        <div>
+          <div class="chapter-num">Chapter 5</div>
+          <div class="chapter-title">On-Prem S3 — MinIO</div>
+        </div>
+      </div>
+
+      <p>MinIO is a high-performance, S3-compatible object storage server you can run entirely on-prem. Rails Active Storage supports it out of the box as an S3 provider — no AWS account needed.</p>
+
+      <div class="tool-grid">
+        <div class="tool-card orange">
+          <div class="tool-logo">🗄️</div>
+          <div class="tool-name">MinIO</div>
+          <div class="tool-type">S3-Compatible Object Storage</div>
+          <p class="tool-desc">Runs on Linux, Windows, or macOS. Exposes the full AWS S3 API — presigned URLs, multipart uploads, lifecycle policies, bucket policies, and a web UI on port 9001.</p>
+        </div>
+        <div class="tool-card green">
+          <div class="tool-logo">📎</div>
+          <div class="tool-name">Active Storage</div>
+          <div class="tool-type">Rails File Attachment Layer</div>
+          <p class="tool-desc">Rails built-in. Attach files to any model, serve via redirect or direct URL. Switch backend (local disk → MinIO → AWS S3) by changing one config file.</p>
+        </div>
+      </div>
+
+      <h2>Step 1 — Run MinIO</h2>
+      <pre><span class="lang-label">bash (Docker)</span><code><span class="c"># Run MinIO with Docker</span>
+docker run -d \
+  --name minio \
+  -p 9000:9000 \
+  -p 9001:9001 \
+  -e <span class="v">MINIO_ROOT_USER</span>=<span class="s">minioadmin</span> \
+  -e <span class="v">MINIO_ROOT_PASSWORD</span>=<span class="s">minioadmin123</span> \
+  -v minio_data:/data \
+  quay.io/minio/minio server /data --console-address <span class="s">":9001"</span>
+</code></pre>
+
+      <p>Open <code>http://localhost:9001</code>, log in, and create a bucket named <code>devteam-storage</code>.</p>
+
+      <h2>Step 2 — Gemfile</h2>
+      <pre><span class="lang-label">ruby</span><code><span class="c"># Gemfile</span>
+gem <span class="s">"aws-sdk-s3"</span>, require: false  <span class="c"># used by Active Storage S3 service</span>
+</code></pre>
+
+      <h2>Step 3 — storage.yml</h2>
+      <pre><span class="lang-label">yaml</span><code><span class="c"># config/storage.yml</span>
+minio:
+  service: S3
+  access_key_id:     &lt;%= ENV["MINIO_ACCESS_KEY"] %&gt;
+  secret_access_key: &lt;%= ENV["MINIO_SECRET_KEY"] %&gt;
+  region:   us-east-1          <span class="c"># MinIO ignores region but needs a value</span>
+  bucket:   devteam-storage
+  endpoint: <span class="s">"http://minio.local:9000"</span>
+  force_path_style: true       <span class="c"># required for MinIO (no virtual-hosted-style)</span>
+</code></pre>
+
+      <h2>Step 4 — environments/production.rb</h2>
+      <pre><span class="lang-label">ruby</span><code>config.active_storage.service = :minio
+</code></pre>
+
+      <h2>Step 5 — Environment Variables</h2>
+      <pre><span class="lang-label">bash</span><code><span class="v">MINIO_ACCESS_KEY</span>=<span class="s">minioadmin</span>
+<span class="v">MINIO_SECRET_KEY</span>=<span class="s">minioadmin123</span>
+<span class="v">MINIO_ENDPOINT</span>=<span class="s">http://minio.local:9000</span>
+<span class="v">MINIO_BUCKET</span>=<span class="s">devteam-storage</span>
+</code></pre>
+
+      <h2>Using Active Storage in a Model</h2>
+      <pre><span class="lang-label">ruby</span><code><span class="k">class</span> <span class="m">Document</span> &lt; <span class="m">ApplicationRecord</span>
+  has_one_attached :file           <span class="c"># single file</span>
+  has_many_attached :attachments   <span class="c"># multiple files</span>
+<span class="k">end</span>
+
+<span class="c"># In a form:</span>
+<span class="c"># &lt;%= f.file_field :file %&gt;</span>
+
+<span class="c"># Generate a presigned download URL (works with MinIO):</span>
+<span class="k">def</span> <span class="m">download_url</span>
+  rails_blob_url(file, disposition: <span class="s">"attachment"</span>) <span class="k">if</span> file.attached?
+<span class="k">end</span>
+</code></pre>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <p><strong>CORS for direct uploads:</strong> Configure MinIO bucket CORS policy to allow <code>PUT</code> from your Rails app domain if using Active Storage direct uploads.</p>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-wrap">
+        <div class="chart-title">Storage Backend Comparison</div>
+        <canvas id="storageChart"></canvas>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 6 — WINDOWS SERVER ═══════════════════ -->
+    <div class="chapter" id="windows">
+      <div class="chapter-header">
+        <div class="chapter-icon gray">🪟</div>
+        <div>
+          <div class="chapter-num">Chapter 6</div>
+          <div class="chapter-title">Running on Windows Server</div>
+        </div>
+      </div>
+
+      <p>Running the full stack on Windows Server is best achieved via Docker Desktop (WSL2 backend) or Docker Engine on Windows Server 2019/2022. All services — Rails, Gitea, Jenkins, MinIO, Jitsi — run as Docker containers managed by Docker Compose.</p>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <p><strong>Recommended:</strong> Windows Server 2022 with Docker Engine (no Desktop license required for server SKUs). Enable Hyper-V and WSL2 features for best performance.</p>
+      </div>
+
+      <h2>Enable Docker on Windows Server 2022</h2>
+      <pre><span class="lang-label">powershell</span><code><span class="c"># Run as Administrator</span>
+<span class="c"># Enable required Windows features</span>
+<span class="m">Install-WindowsFeature</span> -Name Hyper-V, Containers -IncludeManagementTools -Restart
+
+<span class="c"># Install Docker Engine</span>
+<span class="m">Invoke-WebRequest</span> -UseBasicParsing <span class="s">"https://get.docker.com"</span> -o get-docker.ps1
+<span class="m">.\get-docker.ps1</span>
+
+<span class="c"># Or via winget</span>
+winget install Docker.DockerDesktop
+
+<span class="c"># Start Docker service</span>
+<span class="m">Start-Service</span> docker
+<span class="m">Set-Service</span> -Name docker -StartupType Automatic
+</code></pre>
+
+      <h2>Full Stack docker-compose.windows.yml</h2>
+      <pre><span class="lang-label">yaml</span><code>version: <span class="s">"3.9"</span>
+
+services:
+
+  <span class="c"># ── Rails App ─────────────────────────────────────────────────────────────</span>
+  web:
+    build: .
+    image: devteam-hub:latest
+    ports: [<span class="s">"5000:3000"</span>]
+    environment:
+      RAILS_ENV:          production
+      RAILS_MASTER_KEY:   ${RAILS_MASTER_KEY}
+      MINIO_ACCESS_KEY:   ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY:   ${MINIO_SECRET_KEY}
+      GITEA_URL:          http://gitea:3000
+      GITEA_TOKEN:        ${GITEA_TOKEN}
+      JENKINS_URL:        http://jenkins:8080
+    volumes:
+      - rails_storage:/rails/storage
+    depends_on: [gitea, minio]
+    restart: unless-stopped
+
+  <span class="c"># ── Gitea ─────────────────────────────────────────────────────────────────</span>
+  gitea:
+    image: gitea/gitea:latest
+    ports: [<span class="s">"3001:3000"</span>, <span class="s">"222:22"</span>]
+    volumes:
+      - gitea_data:/data
+    restart: unless-stopped
+
+  <span class="c"># ── Jenkins ───────────────────────────────────────────────────────────────</span>
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    ports: [<span class="s">"8080:8080"</span>]
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    restart: unless-stopped
+
+  <span class="c"># ── MinIO (S3) ────────────────────────────────────────────────────────────</span>
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9001"
+    ports: [<span class="s">"9000:9000"</span>, <span class="s">"9001:9001"</span>]
+    environment:
+      MINIO_ROOT_USER:     ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+  <span class="c"># ── Jitsi (optional — self-hosted video) ──────────────────────────────────</span>
+  jitsi-web:
+    image: jitsi/web:stable
+    ports: [<span class="s">"8443:443"</span>]
+    env_file: .jitsi.env
+    volumes:
+      - jitsi_config:/config
+    restart: unless-stopped
+
+volumes:
+  rails_storage:
+  gitea_data:
+  jenkins_home:
+  minio_data:
+  jitsi_config:
+</code></pre>
+
+      <h2>Start Everything</h2>
+      <pre><span class="lang-label">powershell</span><code><span class="c"># Create .env file with secrets</span>
+@<span class="s">"
+RAILS_MASTER_KEY=your_master_key_here
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=supersecret123
+GITEA_TOKEN=your_gitea_token
+"</span>@ | <span class="m">Set-Content</span> .env
+
+<span class="c"># Build and start</span>
+docker compose -f docker-compose.windows.yml up -d --build
+
+<span class="c"># Run migrations</span>
+docker compose exec web bin/rails db:migrate
+
+<span class="c"># Check logs</span>
+docker compose logs -f web
+</code></pre>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <p><strong>IIS Reverse Proxy (optional):</strong> Install the <em>Application Request Routing</em> module in IIS and configure a reverse proxy from <code>port 80/443</code> to <code>localhost:5000</code> for production SSL termination via Windows certificates.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 7 — DOCKER ════════════════════════════ -->
+    <div class="chapter" id="docker">
+      <div class="chapter-header">
+        <div class="chapter-icon blue">🐳</div>
+        <div>
+          <div class="chapter-num">Chapter 7</div>
+          <div class="chapter-title">Docker Setup — Rails App</div>
+        </div>
+      </div>
+
+      <h2>Production Dockerfile (Rails)</h2>
+      <pre><span class="lang-label">dockerfile</span><code><span class="c"># ── Stage 1: Build ─────────────────────────────────────────────────────────</span>
+FROM ruby:3.4.5-slim AS build
+
+WORKDIR /rails
+
+<span class="c"># Install build dependencies</span>
+RUN apt-get update -qq &amp;&amp; apt-get install -y \
+    build-essential git libsqlite3-dev curl nodejs npm &amp;&amp; \
+    npm install -g yarn &amp;&amp; rm -rf /var/lib/apt/lists/*
+
+COPY Gemfile Gemfile.lock ./
+RUN bundle config set --local deployment true &amp;&amp; \
+    bundle config set --local without "development test" &amp;&amp; \
+    bundle install --jobs 4
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+
+<span class="c"># Precompile assets &amp; JS</span>
+RUN npm run build &amp;&amp; npm run build:css
+RUN SECRET_KEY_BASE_DUMMY=1 bin/rails assets:precompile
+
+<span class="c"># ── Stage 2: Runtime ───────────────────────────────────────────────────────</span>
+FROM ruby:3.4.5-slim AS runtime
+
+WORKDIR /rails
+
+RUN apt-get update -qq &amp;&amp; apt-get install -y libsqlite3-0 curl &amp;&amp; \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /usr/local/bundle /usr/local/bundle
+COPY --from=build /rails /rails
+
+<span class="c"># Non-root user for security</span>
+RUN useradd -m -s /bin/bash rails &amp;&amp; chown -R rails:rails /rails
+USER rails
+
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s \
+  CMD curl -f http://localhost:3000/up || exit 1
+
+ENTRYPOINT ["./bin/docker-entrypoint"]
+CMD ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]
+</code></pre>
+
+      <h2>bin/docker-entrypoint</h2>
+      <pre><span class="lang-label">bash</span><code>#!/usr/bin/env bash
+set -e
+
+<span class="c"># Run migrations on startup</span>
+if [ "$RAILS_ENV" = "production" ]; then
+  bundle exec rails db:migrate 2&gt;/dev/null || true
+fi
+
+exec "${@}"
+</code></pre>
+
+      <h2>Development docker-compose.yml</h2>
+      <pre><span class="lang-label">yaml</span><code>version: <span class="s">"3.9"</span>
+services:
+  web:
+    build:
+      context: .
+      target: build          <span class="c"># use build stage for dev (has npm etc.)</span>
+    command: bin/rails server -b 0.0.0.0 -p 3000
+    ports: [<span class="s">"5000:3000"</span>]
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
+    environment:
+      RAILS_ENV:   development
+      GITEA_URL:   http://gitea:3000
+      MINIO_ENDPOINT: http://minio:9000
+    depends_on: [minio, gitea]
+
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9001"
+    ports: [<span class="s">"9000:9000"</span>, <span class="s">"9001:9001"</span>]
+    volumes: [minio_data:/data]
+    environment:
+      MINIO_ROOT_USER: devteam
+      MINIO_ROOT_PASSWORD: devteam123
+
+  gitea:
+    image: gitea/gitea:latest
+    ports: [<span class="s">"3001:3000"</span>, <span class="s">"222:22"</span>]
+    volumes: [gitea_data:/data]
+
+volumes:
+  bundle_cache:
+  minio_data:
+  gitea_data:
+</code></pre>
+    </div>
+
+    <!-- ═════════════════════════ CHAPTER 8 — ASP.NET DOCKER ════════════════════ -->
+    <div class="chapter" id="docker-aspnet">
+      <div class="chapter-header">
+        <div class="chapter-icon purple">🔷</div>
+        <div>
+          <div class="chapter-num">Chapter 8</div>
+          <div class="chapter-title">ASP.NET Project — Dockerfile</div>
+        </div>
+      </div>
+
+      <p>If you have a companion ASP.NET application (e.g. a Windows service, print server, or API), here is a production-ready multi-stage Dockerfile for both ASP.NET Core Web API and a Worker Service, plus how to connect it to MinIO and the DevTeam Hub API.</p>
+
+      <h2>ASP.NET Core Web API Dockerfile</h2>
+      <pre><span class="lang-label">dockerfile</span><code><span class="c"># ── Stage 1: Restore &amp; Build ───────────────────────────────────────────────</span>
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+<span class="c"># Copy csproj and restore</span>
+COPY ["MyApi/MyApi.csproj", "MyApi/"]
+RUN dotnet restore "MyApi/MyApi.csproj"
+
+<span class="c"># Copy all source and build</span>
+COPY . .
+WORKDIR /src/MyApi
+RUN dotnet build -c Release -o /app/build
+
+<span class="c"># ── Stage 2: Publish ──────────────────────────────────────────────────────</span>
+FROM build AS publish
+RUN dotnet publish -c Release -o /app/publish \
+    /p:UseAppHost=false
+
+<span class="c"># ── Stage 3: Runtime ──────────────────────────────────────────────────────</span>
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+
+<span class="c"># Non-root user</span>
+RUN adduser --disabled-password --gecos "" appuser
+USER appuser
+
+COPY --from=publish /app/publish .
+
+EXPOSE 8080
+EXPOSE 8081
+
+HEALTHCHECK --interval=30s --timeout=10s CMD \
+  curl -f http://localhost:8080/health || exit 1
+
+ENTRYPOINT ["dotnet", "MyApi.dll"]
+</code></pre>
+
+      <h2>ASP.NET Worker Service Dockerfile (Windows Service)</h2>
+      <pre><span class="lang-label">dockerfile</span><code><span class="c"># Suitable for a print server, background processor, or Windows Service</span>
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY ["PrintServer/PrintServer.csproj", "PrintServer/"]
+RUN dotnet restore "PrintServer/PrintServer.csproj"
+COPY . .
+WORKDIR /src/PrintServer
+RUN dotnet publish -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "PrintServer.dll"]
+</code></pre>
+
+      <h2>Connecting ASP.NET to MinIO (AWSSDK.S3)</h2>
+      <pre><span class="lang-label">csharp</span><code><span class="c">// Program.cs</span>
+<span class="k">using</span> <span class="m">Amazon.S3</span>;
+
+builder.Services.AddSingleton&lt;<span class="m">IAmazonS3</span>&gt;(_ =&gt;
+{
+    <span class="k">var</span> config = <span class="k">new</span> <span class="m">AmazonS3Config</span>
+    {
+        ServiceURL       = <span class="m">Environment</span>.GetEnvironmentVariable(<span class="s">"MINIO_ENDPOINT"</span>),
+        ForcePathStyle   = <span class="k">true</span>,   <span class="c">// required for MinIO</span>
+        UseHttp          = <span class="k">true</span>
+    };
+    <span class="k">return new</span> <span class="m">AmazonS3Client</span>(
+        <span class="m">Environment</span>.GetEnvironmentVariable(<span class="s">"MINIO_ACCESS_KEY"</span>),
+        <span class="m">Environment</span>.GetEnvironmentVariable(<span class="s">"MINIO_SECRET_KEY"</span>),
+        config);
+});
+</code></pre>
+
+      <pre><span class="lang-label">csharp</span><code><span class="c">// FileService.cs — upload a file to MinIO</span>
+<span class="k">public class</span> <span class="m">FileService</span>(<span class="m">IAmazonS3</span> s3)
+{
+    <span class="k">public async Task</span>&lt;<span class="k">string</span>&gt; UploadAsync(<span class="m">Stream</span> stream, <span class="k">string</span> key)
+    {
+        <span class="k">await</span> s3.PutObjectAsync(<span class="k">new</span> <span class="m">PutObjectRequest</span>
+        {
+            BucketName  = <span class="s">"devteam-storage"</span>,
+            Key         = key,
+            InputStream = stream,
+            ContentType = <span class="s">"application/octet-stream"</span>
+        });
+        <span class="k">return</span> <span class="s">$"http://minio.local:9000/devteam-storage/{key}"</span>;
+    }
+}
+</code></pre>
+
+      <h2>Connecting ASP.NET to DevTeam Hub API</h2>
+      <pre><span class="lang-label">csharp</span><code><span class="c">// DevTeamClient.cs — call the DevTeam Hub REST API</span>
+<span class="k">public class</span> <span class="m">DevTeamClient</span>(<span class="m">HttpClient</span> http)
+{
+    <span class="k">public async Task</span> UpdateTicketAsync(<span class="k">int</span> ticketId, <span class="k">string</span> status)
+    {
+        <span class="k">var</span> payload = <span class="m">JsonSerializer</span>.Serialize(<span class="k">new</span> { ticket = <span class="k">new</span> { status } });
+        http.DefaultRequestHeaders.Add(<span class="s">"X-Api-Token"</span>,
+            <span class="m">Environment</span>.GetEnvironmentVariable(<span class="s">"DEVTEAM_API_TOKEN"</span>));
+        <span class="k">await</span> http.PutAsync(
+            <span class="s">$"/api/v1/tickets/{ticketId}"</span>,
+            <span class="k">new</span> <span class="m">StringContent</span>(payload, <span class="m">Encoding</span>.UTF8, <span class="s">"application/json"</span>));
+    }
+}
+
+<span class="c">// Register in Program.cs</span>
+builder.Services.AddHttpClient&lt;<span class="m">DevTeamClient</span>&gt;(c =&gt;
+    c.BaseAddress = <span class="k">new</span> <span class="m">Uri</span>(<span class="m">Environment</span>.GetEnvironmentVariable(<span class="s">"DEVTEAM_URL"</span>)));
+</code></pre>
+
+      <h2>docker-compose snippet — side by side with Rails</h2>
+      <pre><span class="lang-label">yaml</span><code>services:
+  web:            <span class="c"># Rails app (see Chapter 7)</span>
+    build: .
+    ports: [<span class="s">"5000:3000"</span>]
+
+  my-api:         <span class="c"># ASP.NET Core API</span>
+    build:
+      context: ./MyApi
+      dockerfile: Dockerfile
+    ports: [<span class="s">"8080:8080"</span>]
+    environment:
+      MINIO_ENDPOINT:   http://minio:9000
+      MINIO_ACCESS_KEY: devteam
+      MINIO_SECRET_KEY: devteam123
+      DEVTEAM_URL:      http://web:3000
+      DEVTEAM_API_TOKEN: ${DEVTEAM_API_TOKEN}
+    depends_on: [web, minio]
+
+  print-server:   <span class="c"># ASP.NET Worker Service</span>
+    build:
+      context: ./PrintServer
+      dockerfile: Dockerfile
+    environment:
+      MINIO_ENDPOINT:   http://minio:9000
+    depends_on: [minio]
+</code></pre>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 9 — AUTOMATED TESTING ════════════════ -->
+    <div class="chapter" id="testing-overview">
+      <div class="chapter-header">
+        <div class="chapter-icon" style="background:#fef9c3">🧪</div>
+        <div>
+          <div class="chapter-num">Chapter 9</div>
+          <div class="chapter-title">Automated Testing Strategy</div>
+        </div>
+      </div>
+
+      <p>DevTeam Hub manages projects across multiple technology stacks. This chapter recommends a consistent <strong>Behaviour-Driven Development (BDD)</strong> approach using Cucumber-style feature files (Gherkin) for every stack, so product and QA teams can read and write tests in plain English regardless of the underlying technology.</p>
+
+      <div class="tool-grid">
+        <div class="tool-card green">
+          <div class="tool-logo">💎</div>
+          <div class="tool-name">Cucumber + Capybara</div>
+          <div class="tool-type">Rails / Ruby</div>
+          <p class="tool-desc">Native Cucumber for Ruby. Capybara drives a real browser via the Selenium or Playwright driver. Already present in this project's <code>features/</code> directory.</p>
+        </div>
+        <div class="tool-card purple">
+          <div class="tool-logo">🔷</div>
+          <div class="tool-name">SpecFlow + Playwright</div>
+          <div class="tool-type">ASP.NET Core (.NET 6+)</div>
+          <p class="tool-desc">SpecFlow translates <code>.feature</code> files into xUnit/NUnit tests. Microsoft.Playwright provides fast, reliable browser automation across Chromium, Firefox and WebKit.</p>
+        </div>
+        <div class="tool-card orange">
+          <div class="tool-logo">🪟</div>
+          <div class="tool-name">SpecFlow + Selenium</div>
+          <div class="tool-type">Legacy .NET (4.x / .NET Framework)</div>
+          <p class="tool-desc">SpecFlow works on .NET Framework 4.6.1+. Selenium WebDriver is the standard browser automation library for legacy stacks — no modern async runtime needed.</p>
+        </div>
+        <div class="tool-card blue">
+          <div class="tool-logo">🟡</div>
+          <div class="tool-name">Cucumber.js + Playwright</div>
+          <div class="tool-type">Bun / Node.js</div>
+          <p class="tool-desc">Cucumber.js brings Gherkin feature files to the JavaScript ecosystem. Paired with Playwright's Node.js API it gives the fastest cross-browser headless tests for any Bun or Node app.</p>
+        </div>
+      </div>
+
+      <h2>Testing Pyramid at a Glance</h2>
+      <div class="arch-diagram">
+        <svg width="600" height="260" viewBox="0 0 600 260" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+          <!-- Unit tests base -->
+          <polygon points="300,240 60,240 540,240" fill="#dbeafe" stroke="#4a90d9" stroke-width="1.5"/>
+          <polygon points="300,240 60,240 300,160 540,240" fill="#dbeafe" stroke="#4a90d9" stroke-width="1.5"/>
+          <text x="300" y="228" text-anchor="middle" font-size="13" font-weight="700" fill="#1d4ed8">Unit Tests</text>
+          <text x="300" y="244" text-anchor="middle" font-size="10" fill="#64748b">Fast · many · isolated logic</text>
+          <!-- Integration middle -->
+          <polygon points="300,160 130,160 470,160" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+          <polygon points="300,160 130,160 300,90 470,160" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="300" y="148" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">Integration / API Tests</text>
+          <text x="300" y="164" text-anchor="middle" font-size="10" fill="#64748b">Medium · services &amp; controllers</text>
+          <!-- E2E top -->
+          <polygon points="300,90 200,90 400,90" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+          <polygon points="300,90 200,90 300,20 400,90" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+          <text x="300" y="76" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">E2E / UI Tests</text>
+          <text x="300" y="90" text-anchor="middle" font-size="10" fill="#64748b">Slow · few · real browser</text>
+          <!-- Labels right -->
+          <text x="550" y="232" font-size="10" fill="#94a3b8">RSpec / xUnit</text>
+          <text x="550" y="152" font-size="10" fill="#94a3b8">Cucumber + API</text>
+          <text x="550" y="82"  font-size="10" fill="#94a3b8">Playwright / Selenium</text>
+          <!-- arrows -->
+          <line x1="540" y1="228" x2="548" y2="228" stroke="#94a3b8" stroke-width="1"/>
+          <line x1="470" y1="148" x2="548" y2="148" stroke="#94a3b8" stroke-width="1"/>
+          <line x1="400" y1="78"  x2="548" y2="78"  stroke="#94a3b8" stroke-width="1"/>
+        </svg>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <p>All four stacks share the <strong>same Gherkin <code>.feature</code> file syntax</strong>. You can keep feature files in a central <code>features/</code> folder and run them with the appropriate runner per project. This lets product managers write scenarios once and every tech team runs them.</p>
+      </div>
+    </div>
+
+    <!-- ── Rails / Ruby ───────────────────────────────────────────────────────── -->
+    <div class="chapter" id="testing-rails">
+      <div class="chapter-header">
+        <div class="chapter-icon green">💎</div>
+        <div>
+          <div class="chapter-num">Chapter 9a</div>
+          <div class="chapter-title">Rails — Cucumber + Capybara + Playwright</div>
+        </div>
+      </div>
+
+      <p>This project already ships with Cucumber. The recommended driver upgrade is <strong>capybara-playwright-driver</strong> (or <code>selenium-webdriver</code> if you prefer). Tests live in <code>features/</code> with step definitions in <code>features/step_definitions/</code>.</p>
+
+      <h2>Gemfile Setup</h2>
+      <pre><span class="lang-label">ruby</span><code><span class="c"># Gemfile — already present, add playwright driver optionally</span>
+group :test <span class="k">do</span>
+  gem <span class="s">"cucumber-rails"</span>, require: <span class="k">false</span>
+  gem <span class="s">"capybara"</span>
+  gem <span class="s">"selenium-webdriver"</span>          <span class="c"># Chrome/Firefox headless</span>
+  gem <span class="s">"cuprite"</span>                      <span class="c"># alternative: Ferrum/CDP driver</span>
+  gem <span class="s">"database_cleaner-active_record"</span>
+  gem <span class="s">"factory_bot_rails"</span>
+end
+</code></pre>
+
+      <h2>features/support/env.rb — Capybara config</h2>
+      <pre><span class="lang-label">ruby</span><code>require <span class="s">"capybara/cucumber"</span>
+
+<span class="m">Capybara</span>.register_driver :chrome_headless <span class="k">do</span> |app|
+  options = <span class="m">Selenium</span>::<span class="m">WebDriver</span>::<span class="m">Chrome</span>::<span class="m">Options</span>.new
+  options.add_argument(<span class="s">"--headless=new"</span>)
+  options.add_argument(<span class="s">"--no-sandbox"</span>)
+  options.add_argument(<span class="s">"--disable-dev-shm-usage"</span>)
+  <span class="m">Capybara</span>::<span class="m">Selenium</span>::<span class="m">Driver</span>.new(app, browser: :chrome, options: options)
+<span class="k">end</span>
+
+<span class="m">Capybara</span>.default_driver    = :rack_test      <span class="c"># fast for non-JS</span>
+<span class="m">Capybara</span>.javascript_driver = :chrome_headless <span class="c"># JS-heavy scenarios</span>
+<span class="m">Capybara</span>.default_max_wait_time = 5
+</code></pre>
+
+      <h2>Feature File — Ticket Management</h2>
+      <pre><span class="lang-label">gherkin</span><code><span class="c"># features/ticket_management.feature</span>
+<span class="k">Feature:</span> Ticket Management
+  As a developer on a project
+  I want to create and manage tickets
+  So that work is tracked and visible to the team
+
+  <span class="k">Background:</span>
+    Given I am logged in as <span class="s">"alice@example.com"</span>
+    And there is a project called <span class="s">"Alpha"</span>
+
+  <span class="k">Scenario:</span> Create a new ticket
+    Given I am on the Alpha project tickets page
+    When I click <span class="s">"New Ticket"</span>
+    And I fill in <span class="s">"Title"</span> with <span class="s">"Fix login bug"</span>
+    And I select <span class="s">"High"</span> from <span class="s">"Priority"</span>
+    And I press <span class="s">"Create Ticket"</span>
+    Then I should see <span class="s">"Fix login bug"</span> in the tickets list
+    And the ticket status should be <span class="s">"open"</span>
+
+  <span class="k">Scenario:</span> Move ticket to In Progress
+    Given there is a ticket <span class="s">"Fix login bug"</span> in project <span class="s">"Alpha"</span>
+    When I visit the ticket page for <span class="s">"Fix login bug"</span>
+    And I click <span class="s">"Start Work"</span>
+    Then the ticket status should be <span class="s">"in_progress"</span>
+    And I should see a Gitea branch was created
+</code></pre>
+
+      <h2>Step Definitions</h2>
+      <pre><span class="lang-label">ruby</span><code><span class="c"># features/step_definitions/ticket_steps.rb</span>
+Given(<span class="s">/^I am logged in as "([^"]*)"$/</span>) <span class="k">do</span> |email|
+  user = <span class="m">FactoryBot</span>.create(:user, email: email)
+  visit new_user_session_path
+  fill_in <span class="s">"Email"</span>, with: email
+  fill_in <span class="s">"Password"</span>, with: <span class="s">"password"</span>
+  click_button <span class="s">"Log in"</span>
+<span class="k">end</span>
+
+Given(<span class="s">/^I am on the (\w+) project tickets page$/</span>) <span class="k">do</span> |name|
+  project = <span class="m">Project</span>.find_by!(name: name)
+  visit project_tickets_path(project)
+<span class="k">end</span>
+
+When(<span class="s">/^I click "([^"]*)"$/</span>) <span class="k">do</span> |text|
+  click_on text
+<span class="k">end</span>
+
+When(<span class="s">/^I fill in "([^"]*)" with "([^"]*)"$/</span>) <span class="k">do</span> |field, value|
+  fill_in field, with: value
+<span class="k">end</span>
+
+Then(<span class="s">/^the ticket status should be "([^"]*)"$/</span>) <span class="k">do</span> |status|
+  ticket = <span class="m">Ticket</span>.last
+  expect(ticket.status).to eq(status)
+<span class="k">end</span>
+</code></pre>
+
+      <h2>Running Tests</h2>
+      <pre><span class="lang-label">bash</span><code><span class="c"># Run all features</span>
+bundle exec cucumber
+
+<span class="c"># Run a specific feature file</span>
+bundle exec cucumber features/ticket_management.feature
+
+<span class="c"># Run only scenarios tagged @focus</span>
+bundle exec cucumber --tags @focus
+
+<span class="c"># Run headless CI mode (no browser window)</span>
+<span class="v">HEADLESS</span>=true bundle exec cucumber
+
+<span class="c"># Generate HTML report</span>
+bundle exec cucumber --format html --out reports/cucumber.html
+</code></pre>
+    </div>
+
+    <!-- ── ASP.NET Core ────────────────────────────────────────────────────────── -->
+    <div class="chapter" id="testing-dotnet">
+      <div class="chapter-header">
+        <div class="chapter-icon purple">🔷</div>
+        <div>
+          <div class="chapter-num">Chapter 9b</div>
+          <div class="chapter-title">ASP.NET Core — SpecFlow + Playwright (.NET 6/7/8)</div>
+        </div>
+      </div>
+
+      <p><strong>SpecFlow</strong> is the .NET port of Cucumber. It parses the same Gherkin <code>.feature</code> files and generates xUnit/NUnit test cases. <strong>Microsoft.Playwright</strong> (the official .NET library) drives the browser with async/await support and full .NET 6+ compatibility.</p>
+
+      <h2>NuGet Packages</h2>
+      <pre><span class="lang-label">xml (MyApi.Tests.csproj)</span><code>&lt;ItemGroup&gt;
+  &lt;PackageReference Include=<span class="s">"SpecFlow"</span>                   Version=<span class="s">"3.9.74"</span> /&gt;
+  &lt;PackageReference Include=<span class="s">"SpecFlow.xUnit"</span>              Version=<span class="s">"3.9.74"</span> /&gt;
+  &lt;PackageReference Include=<span class="s">"SpecFlow.Plus.LivingDocPlugin"</span> Version=<span class="s">"3.9.57"</span> /&gt;
+  &lt;PackageReference Include=<span class="s">"Microsoft.Playwright"</span>        Version=<span class="s">"1.44.0"</span> /&gt;
+  &lt;PackageReference Include=<span class="s">"Microsoft.Playwright.MSTest"</span>  Version=<span class="s">"1.44.0"</span> /&gt;
+  &lt;PackageReference Include=<span class="s">"xunit"</span>                        Version=<span class="s">"2.9.0"</span>  /&gt;
+  &lt;PackageReference Include=<span class="s">"xunit.runner.visualstudio"</span>    Version=<span class="s">"2.8.2"</span>  /&gt;
+  &lt;PackageReference Include=<span class="s">"Microsoft.AspNetCore.Mvc.Testing"</span> Version=<span class="s">"8.0.0"</span> /&gt;
+&lt;/ItemGroup&gt;
+</code></pre>
+
+      <h2>One-time Playwright browser install</h2>
+      <pre><span class="lang-label">bash</span><code><span class="c"># After restoring NuGet packages, install browser binaries</span>
+dotnet tool install --global Microsoft.Playwright.CLI
+pwsh bin/Debug/net8.0/playwright.ps1 install chromium firefox
+</code></pre>
+
+      <h2>Feature File — Create Ticket</h2>
+      <pre><span class="lang-label">gherkin</span><code><span class="c"># Features/TicketManagement.feature</span>
+<span class="k">Feature:</span> Ticket Management
+  As a developer
+  I want to create tickets in DevTeam Hub API
+  So that work items are tracked
+
+  <span class="k">Background:</span>
+    Given I have a valid API token for user <span class="s">"alice@example.com"</span>
+    And a project with slug <span class="s">"alpha"</span> exists
+
+  <span class="k">Scenario:</span> Create a ticket via the REST API
+    When I POST to <span class="s">"/api/v1/projects/alpha/tickets"</span> with:
+      <span class="s""""""
+      {
+        "ticket": {
+          "title": "Fix login bug",
+          "priority": "high"
+        }
+      }
+      """</span>
+    Then the response status should be <span class="n">201</span>
+    And the response JSON should include <span class="s">"Fix login bug"</span>
+
+  <span class="k">Scenario:</span> View ticket list in browser
+    Given I am on the DevTeam Hub login page
+    When I log in with <span class="s">"alice@example.com"</span> and password <span class="s">"password"</span>
+    And I navigate to project <span class="s">"alpha"</span> tickets
+    Then I should see <span class="s">"Fix login bug"</span> on the page
+</code></pre>
+
+      <h2>Step Definitions — API scenario</h2>
+      <pre><span class="lang-label">csharp</span><code><span class="c">// StepDefinitions/TicketSteps.cs</span>
+[<span class="m">Binding</span>]
+<span class="k">public class</span> <span class="m">TicketSteps</span>(<span class="m">ScenarioContext</span> ctx, <span class="m">HttpClient</span> http)
+{
+    [<span class="m">Given</span>(<span class="s">@"I have a valid API token for user (.*)"</span>)]
+    <span class="k">public void</span> GivenApiToken(<span class="k">string</span> email)
+    {
+        <span class="k">var</span> token = TestFixture.GetTokenForEmail(email);
+        http.DefaultRequestHeaders.Add(<span class="s">"X-Api-Token"</span>, token);
+    }
+
+    [<span class="m">When</span>(<span class="s">@"I POST to (.*) with:"</span>)]
+    <span class="k">public async Task</span> WhenIPost(<span class="k">string</span> path, <span class="k">string</span> body)
+    {
+        <span class="k">var</span> content = <span class="k">new</span> <span class="m">StringContent</span>(body, <span class="m">Encoding</span>.UTF8, <span class="s">"application/json"</span>);
+        ctx[<span class="s">"response"</span>] = <span class="k">await</span> http.PostAsync(path, content);
+    }
+
+    [<span class="m">Then</span>(<span class="s">@"the response status should be (.*)"</span>)]
+    <span class="k">public void</span> ThenStatus(<span class="k">int</span> expected)
+    {
+        <span class="k">var</span> resp = (<span class="m">HttpResponseMessage</span>)ctx[<span class="s">"response"</span>];
+        Assert.Equal((<span class="m">HttpStatusCode</span>)expected, resp.StatusCode);
+    }
+}
+</code></pre>
+
+      <h2>Step Definitions — Browser (Playwright) scenario</h2>
+      <pre><span class="lang-label">csharp</span><code><span class="c">// StepDefinitions/BrowserSteps.cs</span>
+[<span class="m">Binding</span>]
+<span class="k">public class</span> <span class="m">BrowserSteps</span> : <span class="m">IAsyncLifetime</span>
+{
+    <span class="k">private</span> <span class="m">IPlaywright</span> _pw  = <span class="k">null</span>!;
+    <span class="k">private</span> <span class="m">IBrowser</span>    _browser = <span class="k">null</span>!;
+    <span class="k">private</span> <span class="m">IPage</span>       _page = <span class="k">null</span>!;
+
+    <span class="k">public async Task</span> InitializeAsync()
+    {
+        _pw      = <span class="k">await</span> <span class="m">Playwright</span>.CreateAsync();
+        _browser = <span class="k">await</span> _pw.Chromium.LaunchAsync(<span class="k">new</span> { Headless = <span class="k">true</span> });
+        _page    = <span class="k">await</span> _browser.NewPageAsync();
+    }
+
+    [<span class="m">Given</span>(<span class="s">@"I am on the DevTeam Hub login page"</span>)]
+    <span class="k">public async Task</span> GivenOnLoginPage()
+        => <span class="k">await</span> _page.GotoAsync(<span class="s">"http://localhost:5000/users/sign_in"</span>);
+
+    [<span class="m">When</span>(<span class="s">@"I log in with (.*) and password (.*)"</span>)]
+    <span class="k">public async Task</span> WhenILogIn(<span class="k">string</span> email, <span class="k">string</span> password)
+    {
+        <span class="k">await</span> _page.FillAsync(<span class="s">"input[name='user[email]']"</span>, email);
+        <span class="k">await</span> _page.FillAsync(<span class="s">"input[name='user[password]']"</span>, password);
+        <span class="k">await</span> _page.ClickAsync(<span class="s">"input[type='submit']"</span>);
+    }
+
+    [<span class="m">Then</span>(<span class="s">@"I should see (.*) on the page"</span>)]
+    <span class="k">public async Task</span> ThenIShouldSee(<span class="k">string</span> text)
+    {
+        <span class="k">await</span> <span class="m">Expect</span>(_page.GetByText(text)).ToBeVisibleAsync();
+    }
+
+    <span class="k">public async Task</span> DisposeAsync()
+    {
+        <span class="k">await</span> _browser.CloseAsync();
+        _pw.Dispose();
+    }
+}
+</code></pre>
+
+      <h2>Run Tests</h2>
+      <pre><span class="lang-label">bash</span><code><span class="c"># Run all SpecFlow scenarios</span>
+dotnet test
+
+<span class="c"># Filter by tag</span>
+dotnet test --filter "Category=smoke"
+
+<span class="c"># Generate SpecFlow LivingDoc HTML report</span>
+dotnet tool run specflow livingdoc test-assembly bin/Debug/net8.0/MyApi.Tests.dll
+</code></pre>
+    </div>
+
+    <!-- ── Legacy .NET Framework ───────────────────────────────────────────────── -->
+    <div class="chapter" id="testing-legacy-dotnet">
+      <div class="chapter-header">
+        <div class="chapter-icon orange">🪟</div>
+        <div>
+          <div class="chapter-num">Chapter 9c</div>
+          <div class="chapter-title">Legacy .NET Framework — SpecFlow + Selenium WebDriver</div>
+        </div>
+      </div>
+
+      <p>For projects still on .NET Framework 4.6–4.8 (classic ASP.NET MVC, Web Forms, WCF), <strong>SpecFlow 3.x</strong> with <strong>Selenium WebDriver</strong> is the recommended stack. It integrates with NUnit or MSTest and works without any modern runtime dependencies.</p>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <p>Use <strong>SpecFlow 3.x</strong> (not 4.x) — SpecFlow 4 requires .NET 6+. Use <strong>Selenium 4.x</strong> with the built-in browser driver manager so you don't need to manage ChromeDriver versions manually.</p>
+      </div>
+
+      <h2>NuGet Packages (packages.config / SDK style)</h2>
+      <pre><span class="lang-label">xml</span><code>&lt;packages&gt;
+  &lt;package id=<span class="s">"SpecFlow"</span>              version=<span class="s">"3.9.74"</span>  targetFramework=<span class="s">"net48"</span> /&gt;
+  &lt;package id=<span class="s">"SpecFlow.NUnit"</span>         version=<span class="s">"3.9.74"</span>  targetFramework=<span class="s">"net48"</span> /&gt;
+  &lt;package id=<span class="s">"SpecFlow.Tools.MsBuild.Generation"</span> version=<span class="s">"3.9.74"</span> /&gt;
+  &lt;package id=<span class="s">"Selenium.WebDriver"</span>     version=<span class="s">"4.21.0"</span>  targetFramework=<span class="s">"net48"</span> /&gt;
+  &lt;package id=<span class="s">"Selenium.Support"</span>        version=<span class="s">"4.21.0"</span>  targetFramework=<span class="s">"net48"</span> /&gt;
+  &lt;package id=<span class="s">"Selenium.WebDriver.ChromeDriver"</span> version=<span class="s">"125.0.0"</span> /&gt;
+  &lt;package id=<span class="s">"NUnit"</span>                   version=<span class="s">"3.14.0"</span>  targetFramework=<span class="s">"net48"</span> /&gt;
+  &lt;package id=<span class="s">"NUnit3TestAdapter"</span>        version=<span class="s">"4.5.0"</span>   /&gt;
+&lt;/packages&gt;
+</code></pre>
+
+      <h2>Feature File — Dashboard Login (WebForms / MVC app)</h2>
+      <pre><span class="lang-label">gherkin</span><code><span class="c"># Features/Dashboard.feature</span>
+<span class="k">Feature:</span> Dashboard
+  As an internal user
+  I want to log in and see my dashboard
+  So I can access my daily work items
+
+  <span class="k">Scenario:</span> Successful login
+    Given I open the application at <span class="s">"http://intranet.local/login"</span>
+    When I enter username <span class="s">"alice"</span> and password <span class="s">"secret"</span>
+    And I click the Login button
+    Then I should be redirected to the dashboard
+    And the page title should contain <span class="s">"Dashboard"</span>
+
+  <span class="k">Scenario Outline:</span> Invalid login attempts
+    Given I open the application at <span class="s">"http://intranet.local/login"</span>
+    When I enter username <span class="s">"&lt;user&gt;"</span> and password <span class="s">"&lt;pass&gt;"</span>
+    And I click the Login button
+    Then I should see an error <span class="s">"&lt;error&gt;"</span>
+
+    <span class="k">Examples:</span>
+      | user  | pass    | error                   |
+      | alice | wrong   | Invalid password        |
+      | ghost | secret  | User not found          |
+      | alice |         | Password cannot be blank |
+</code></pre>
+
+      <h2>Browser Setup Hook</h2>
+      <pre><span class="lang-label">csharp</span><code><span class="c">// Support/BrowserHooks.cs</span>
+[<span class="m">Binding</span>]
+<span class="k">public class</span> <span class="m">BrowserHooks</span>
+{
+    <span class="k">private static</span> <span class="m">IWebDriver</span> _driver;
+
+    [<span class="m">BeforeScenario</span>]
+    <span class="k">public static void</span> BeforeScenario()
+    {
+        <span class="k">var</span> options = <span class="k">new</span> <span class="m">ChromeOptions</span>();
+        options.AddArgument(<span class="s">"--headless=new"</span>);
+        options.AddArgument(<span class="s">"--no-sandbox"</span>);
+        options.AddArgument(<span class="s">"--disable-dev-shm-usage"</span>);
+        _driver = <span class="k">new</span> <span class="m">ChromeDriver</span>(options);
+        _driver.Manage().Timeouts().ImplicitWait = <span class="m">TimeSpan</span>.FromSeconds(10);
+        <span class="m">ScenarioContext</span>.Current[<span class="s">"driver"</span>] = _driver;
+    }
+
+    [<span class="m">AfterScenario</span>]
+    <span class="k">public static void</span> AfterScenario() => _driver?.Quit();
+}
+</code></pre>
+
+      <h2>Step Definitions</h2>
+      <pre><span class="lang-label">csharp</span><code><span class="c">// StepDefinitions/LoginSteps.cs</span>
+[<span class="m">Binding</span>]
+<span class="k">public class</span> <span class="m">LoginSteps</span>
+{
+    <span class="k">private readonly</span> <span class="m">IWebDriver</span> _driver;
+
+    <span class="k">public</span> LoginSteps(<span class="m">ScenarioContext</span> ctx)
+        => _driver = (<span class="m">IWebDriver</span>)ctx[<span class="s">"driver"</span>];
+
+    [<span class="m">Given</span>(<span class="s">@"I open the application at (.*)"</span>)]
+    <span class="k">public void</span> GivenIOpenAt(<span class="k">string</span> url) => _driver.Navigate().GoToUrl(url);
+
+    [<span class="m">When</span>(<span class="s">@"I enter username (.*) and password (.*)"</span>)]
+    <span class="k">public void</span> WhenIEnter(<span class="k">string</span> user, <span class="k">string</span> pass)
+    {
+        _driver.FindElement(<span class="m">By</span>.Id(<span class="s">"Username"</span>)).SendKeys(user);
+        _driver.FindElement(<span class="m">By</span>.Id(<span class="s">"Password"</span>)).SendKeys(pass);
+    }
+
+    [<span class="m">When</span>(<span class="s">@"I click the Login button"</span>)]
+    <span class="k">public void</span> WhenIClickLogin()
+        => _driver.FindElement(<span class="m">By</span>.CssSelector(<span class="s">"button[type=submit]"</span>)).Click();
+
+    [<span class="m">Then</span>(<span class="s">@"I should be redirected to the dashboard"</span>)]
+    <span class="k">public void</span> ThenDashboard()
+        => Assert.That(_driver.Url, Does.Contain(<span class="s">"/dashboard"</span>));
+
+    [<span class="m">Then</span>(<span class="s">@"the page title should contain (.*)"</span>)]
+    <span class="k">public void</span> ThenTitle(<span class="k">string</span> expected)
+        => Assert.That(_driver.Title, Does.Contain(expected));
+
+    [<span class="m">Then</span>(<span class="s">@"I should see an error (.*)"</span>)]
+    <span class="k">public void</span> ThenError(<span class="k">string</span> msg)
+    {
+        <span class="k">var</span> err = _driver.FindElement(<span class="m">By</span>.ClassName(<span class="s">"alert-danger"</span>));
+        Assert.That(err.Text, Does.Contain(msg));
+    }
+}
+</code></pre>
+
+      <h2>Run Tests</h2>
+      <pre><span class="lang-label">bash</span><code><span class="c"># MSBuild + NUnit runner</span>
+msbuild MyLegacyApp.Tests.sln /p:Configuration=Release
+dotnet vstest bin\Release\MyLegacyApp.Tests.dll
+
+<span class="c"># Or from Visual Studio: Test Explorer → Run All</span>
+<span class="c"># SpecFlow generates a .feature.cs file for every .feature automatically</span>
+</code></pre>
+    </div>
+
+    <!-- ── Bun / Node.js ──────────────────────────────────────────────────────── -->
+    <div class="chapter" id="testing-bun">
+      <div class="chapter-header">
+        <div class="chapter-icon" style="background:#fef9c3">🟡</div>
+        <div>
+          <div class="chapter-num">Chapter 9d</div>
+          <div class="chapter-title">Bun / Node.js — Cucumber.js + Playwright</div>
+        </div>
+      </div>
+
+      <p><strong>Cucumber.js</strong> is the official JavaScript implementation of Cucumber. It runs natively in both Node.js and Bun (Bun has built-in Node compatibility). <strong>Playwright</strong>'s Node.js API provides the browser automation layer — it supports Chromium, Firefox and WebKit and is significantly faster than Selenium for JS runtimes.</p>
+
+      <h2>Project Setup (Bun)</h2>
+      <pre><span class="lang-label">bash</span><code><span class="c"># Initialise test project (Bun)</span>
+bun init -y
+bun add -d @cucumber/cucumber @playwright/test playwright
+
+<span class="c"># Install Playwright browsers (one-time)</span>
+bunx playwright install chromium firefox
+
+<span class="c"># Or with npm (Node.js)</span>
+npm install --save-dev @cucumber/cucumber @playwright/test playwright
+npx playwright install
+</code></pre>
+
+      <h2>Project Structure</h2>
+      <pre><span class="lang-label">text</span><code>my-app-e2e/
+├── features/
+│   ├── ticket_management.feature   <span class="c"># Gherkin — shared with other stacks!</span>
+│   └── dashboard.feature
+├── step_definitions/
+│   ├── ticket_steps.js
+│   └── shared_hooks.js
+├── support/
+│   └── world.js                    <span class="c"># Playwright browser context</span>
+└── cucumber.json
+</code></pre>
+
+      <h2>cucumber.json</h2>
+      <pre><span class="lang-label">json</span><code>{
+  "default": {
+    "paths": [<span class="s">"features/**/*.feature"</span>],
+    "require": [<span class="s">"support/**/*.js"</span>, <span class="s">"step_definitions/**/*.js"</span>],
+    "format": [<span class="s">"progress"</span>, <span class="s">"html:reports/cucumber.html"</span>],
+    "parallel": <span class="n">4</span>
+  }
+}
+</code></pre>
+
+      <h2>support/world.js — Playwright context</h2>
+      <pre><span class="lang-label">javascript</span><code><span class="k">import</span> { <span class="m">setWorldConstructor</span>, <span class="m">Before</span>, <span class="m">After</span> } <span class="k">from</span> <span class="s">'@cucumber/cucumber'</span>;
+<span class="k">import</span> { chromium } <span class="k">from</span> <span class="s">'playwright'</span>;
+
+<span class="k">class</span> <span class="m">PlaywrightWorld</span> {
+  async openBrowser() {
+    this.browser = <span class="k">await</span> chromium.launch({ headless: <span class="k">true</span> });
+    this.context = <span class="k">await</span> this.browser.newContext();
+    this.page    = <span class="k">await</span> this.context.newPage();
+  }
+
+  async closeBrowser() {
+    <span class="k">await</span> this.browser?.close();
+  }
+}
+
+<span class="m">setWorldConstructor</span>(<span class="m">PlaywrightWorld</span>);
+
+<span class="m">Before</span>(<span class="k">async function</span>() { <span class="k">await</span> this.openBrowser(); });
+<span class="m">After</span>(<span class="k">async function</span>() {
+  <span class="k">if</span> (this.page &amp;&amp; process.env.<span class="v">SCREENSHOT_ON_FAIL</span>) {
+    <span class="k">await</span> this.page.screenshot({ path: <span class="s">`reports/fail-${Date.now()}.png`</span> });
+  }
+  <span class="k">await</span> this.closeBrowser();
+});
+</code></pre>
+
+      <h2>Feature File — Ticket Management (shared Gherkin)</h2>
+      <pre><span class="lang-label">gherkin</span><code><span class="c"># features/ticket_management.feature  ← identical to Rails version</span>
+<span class="k">Feature:</span> Ticket Management
+  As a developer on a project
+  I want to create and manage tickets
+  So that work is tracked and visible to the team
+
+  <span class="k">Scenario:</span> Create a new ticket through the UI
+    Given I am on the DevTeam Hub login page
+    When I log in as <span class="s">"alice@example.com"</span> with password <span class="s">"password"</span>
+    And I navigate to project <span class="s">"Alpha"</span> tickets
+    And I click <span class="s">"New Ticket"</span>
+    And I fill in <span class="s">"Title"</span> with <span class="s">"Fix login bug"</span>
+    And I press <span class="s">"Create Ticket"</span>
+    Then I should see <span class="s">"Fix login bug"</span> on the page
+
+  <span class="k">Scenario:</span> Mobile ticket list renders correctly
+    Given I open the mobile view at <span class="s">"/mobile/tickets"</span>
+    Then the bottom navigation should show 6 tabs
+    And the <span class="s">"Tickets"</span> tab should be active
+</code></pre>
+
+      <h2>Step Definitions</h2>
+      <pre><span class="lang-label">javascript</span><code><span class="c">// step_definitions/ticket_steps.js</span>
+<span class="k">import</span> { Given, When, Then } <span class="k">from</span> <span class="s">'@cucumber/cucumber'</span>;
+<span class="k">import</span> { expect } <span class="k">from</span> <span class="s">'@playwright/test'</span>;
+
+<span class="k">const</span> <span class="v">BASE</span> = process.env.<span class="v">APP_URL</span> ?? <span class="s">'http://localhost:5000'</span>;
+
+<span class="m">Given</span>(<span class="s">'I am on the DevTeam Hub login page'</span>, <span class="k">async function</span>() {
+  <span class="k">await</span> this.page.goto(<span class="s">`${BASE}/users/sign_in`</span>);
+});
+
+<span class="m">When</span>(<span class="s">'I log in as {string} with password {string}'</span>, <span class="k">async function</span>(email, password) {
+  <span class="k">await</span> this.page.fill(<span class="s">"input[name='user[email]']"</span>, email);
+  <span class="k">await</span> this.page.fill(<span class="s">"input[name='user[password]']"</span>, password);
+  <span class="k">await</span> this.page.click(<span class="s">"input[type='submit']"</span>);
+  <span class="k">await</span> this.page.waitForURL(<span class="s">/dashboard|root/</span>);
+});
+
+<span class="m">When</span>(<span class="s">'I navigate to project {string} tickets'</span>, <span class="k">async function</span>(name) {
+  <span class="k">await</span> this.page.goto(<span class="s">`${BASE}/projects`</span>);
+  <span class="k">await</span> this.page.getByText(name).click();
+  <span class="k">await</span> this.page.getByRole(<span class="s">'link'</span>, { name: <span class="s">'Tickets'</span> }).click();
+});
+
+<span class="m">When</span>(<span class="s">'I click {string}'</span>, <span class="k">async function</span>(text) {
+  <span class="k">await</span> this.page.getByRole(<span class="s">'button'</span>, { name: text })
+    .or(this.page.getByRole(<span class="s">'link'</span>, { name: text })).click();
+});
+
+<span class="m">When</span>(<span class="s">'I fill in {string} with {string}'</span>, <span class="k">async function</span>(label, value) {
+  <span class="k">await</span> this.page.getByLabel(label).fill(value);
+});
+
+<span class="m">Then</span>(<span class="s">'I should see {string} on the page'</span>, <span class="k">async function</span>(text) {
+  <span class="k">await</span> expect(this.page.getByText(text)).toBeVisible();
+});
+
+<span class="m">Then</span>(<span class="s">'the bottom navigation should show {int} tabs'</span>, <span class="k">async function</span>(count) {
+  <span class="k">const</span> tabs = <span class="k">await</span> this.page.locator(<span class="s">'.nav-tab'</span>).count();
+  expect(tabs).toBe(count);
+});
+
+<span class="m">Then</span>(<span class="s">'the {string} tab should be active'</span>, <span class="k">async function</span>(label) {
+  <span class="k">await</span> expect(
+    this.page.locator(<span class="s">'.nav-tab.is-active'</span>, { hasText: label })
+  ).toBeVisible();
+});
+</code></pre>
+
+      <h2>package.json — test scripts</h2>
+      <pre><span class="lang-label">json</span><code>{
+  <span class="s">"scripts"</span>: {
+    <span class="s">"test"</span>:           <span class="s">"cucumber-js"</span>,
+    <span class="s">"test:headed"</span>:    <span class="s">"HEADLESS=false cucumber-js"</span>,
+    <span class="s">"test:smoke"</span>:     <span class="s">"cucumber-js --tags @smoke"</span>,
+    <span class="s">"test:parallel"</span>:  <span class="s">"cucumber-js --parallel 4"</span>,
+    <span class="s">"test:ci"</span>:        <span class="s">"SCREENSHOT_ON_FAIL=1 cucumber-js --format junit:reports/results.xml"</span>
+  }
+}
+</code></pre>
+
+      <h2>Running in CI (Jenkins)</h2>
+      <pre><span class="lang-label">groovy (Jenkinsfile)</span><code>stage(<span class="s">'E2E Tests — Bun/Node'</span>) {
+  steps {
+    sh <span class="s">'bun install'</span>
+    sh <span class="s">'bunx playwright install --with-deps chromium'</span>
+    sh <span class="s">'APP_URL=http://web:5000 bun run test:ci'</span>
+  }
+  post {
+    always {
+      junit <span class="s">'reports/results.xml'</span>
+      publishHTML([allowMissing: false, keepAll: true,
+        reportDir: <span class="s">'reports'</span>, reportFiles: <span class="s">'cucumber.html'</span>,
+        reportName: <span class="s">'Cucumber E2E Report'</span>])
+    }
+  }
+}
+</code></pre>
+
+      <div class="callout success">
+        <span class="callout-icon">✅</span>
+        <p><strong>Bun tip:</strong> Bun runs Cucumber.js ~40% faster than Node.js on cold starts due to its native JS runtime. Use <code>bunx cucumber-js</code> as a drop-in replacement for <code>npx cucumber-js</code>. No config changes needed.</p>
+      </div>
+
+      <!-- Comparison chart -->
+      <div class="chart-wrap">
+        <div class="chart-title">Testing Tool Comparison by Stack</div>
+        <canvas id="testingChart"></canvas>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 11 — ERROR MONITORING ══════════════════════ -->
+    <div class="chapter" id="monitoring">
+      <div class="chapter-header">
+        <div class="chapter-icon red">🚨</div>
+        <div>
+          <div class="chapter-num">Chapter 11</div>
+          <div class="chapter-title">Exception Monitoring — Self-hosted Sentry</div>
+        </div>
+      </div>
+
+      <p>Exception monitoring catches unhandled errors in running production applications, capturing the full stack trace, request context, user info and environment, then notifies the team instantly. For an on-prem stack we need a <strong>self-hosted solution</strong> with no data leaving the network.</p>
+
+      <div class="tool-grid">
+        <div class="tool-card red">
+          <div class="tool-logo">🚨</div>
+          <div class="tool-name">Sentry (self-hosted)</div>
+          <div class="tool-type">Primary Recommendation · All Stacks</div>
+          <p class="tool-desc">The industry-standard error monitoring platform. The open-source <code>getsentry/self-hosted</code> Docker Compose stack runs entirely on-prem. Supports Rails, .NET, Node.js/Bun with official SDKs. Full web UI, issue grouping, release tracking, alerting and performance tracing.</p>
+        </div>
+        <div class="tool-card orange">
+          <div class="tool-logo">🪲</div>
+          <div class="tool-name">Errbit</div>
+          <div class="tool-type">Lightweight · Airbrake-compatible · Rails</div>
+          <p class="tool-desc">A self-hosted, open-source Airbrake-compatible error catcher written in Rails. Minimal footprint (~256 MB RAM). Uses the standard <code>airbrake</code> gem — drop-in replacement if you already use Airbrake SaaS.</p>
+        </div>
+        <div class="tool-card blue">
+          <div class="tool-logo">💡</div>
+          <div class="tool-name">GlitchTip</div>
+          <div class="tool-type">Sentry-Compatible · Lower Resource Use</div>
+          <p class="tool-desc">A Sentry-protocol-compatible server written in Django. Lighter than self-hosted Sentry (~512 MB vs ~3 GB RAM). All Sentry SDKs work against it without modification — just point <code>SENTRY_DSN</code> at your GlitchTip instance.</p>
+        </div>
+      </div>
+
+      <h2>On-Prem Comparison</h2>
+      <table>
+        <thead>
+          <tr><th>Tool</th><th>RAM (min)</th><th>SDK Compatibility</th><th>Multi-stack</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Sentry self-hosted</strong></td><td>3 GB+</td><td>Official Sentry SDKs</td><td><span class="badge badge-green">Yes</span></td><td>Teams with multiple stacks &amp; high volume</td></tr>
+          <tr><td><strong>GlitchTip</strong></td><td>512 MB</td><td>All Sentry SDKs</td><td><span class="badge badge-green">Yes</span></td><td>Smaller teams wanting lighter footprint</td></tr>
+          <tr><td><strong>Errbit</strong></td><td>256 MB</td><td>Airbrake gem / API</td><td><span class="badge badge-orange">Ruby only</span></td><td>Ruby-only shops already using Airbrake</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Deploy Sentry Self-Hosted (Docker)</h2>
+      <pre><span class="lang-label">bash</span><code><span class="c"># Requirements: 4 CPU, 8 GB RAM, 20 GB disk</span>
+git clone https://github.com/getsentry/self-hosted.git sentry
+cd sentry
+
+<span class="c"># Interactive installer — sets secrets, prompts for admin email/password</span>
+./install.sh
+
+<span class="c"># Start all services (Redis, Postgres, Kafka, Sentry web + worker)</span>
+docker compose up -d
+
+<span class="c"># Web UI: http://sentry.yourcompany.local:9000</span>
+<span class="c"># Create one Project per stack → each gets its own DSN string</span>
+</code></pre>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <p><strong>Windows Server:</strong> The Sentry installer requires a Linux shell. Run it inside WSL2: <code>wsl bash install.sh</code>. Docker Desktop (WSL2 backend) handles all containers.</p>
+      </div>
+
+      <h2>Rails Integration</h2>
+      <pre><span class="lang-label">ruby (Gemfile)</span><code>gem <span class="s">"sentry-ruby"</span>
+gem <span class="s">"sentry-rails"</span>
+gem <span class="s">"sentry-sidekiq"</span>   <span class="c"># add if using Sidekiq / Solid Queue workers</span>
+</code></pre>
+
+      <pre><span class="lang-label">ruby</span><code><span class="c"># config/initializers/sentry.rb</span>
+<span class="m">Sentry</span>.init <span class="k">do</span> |config|
+  config.dsn = <span class="m">ENV</span>[<span class="s">"SENTRY_DSN"</span>]           <span class="c"># from your Sentry project page</span>
+  config.breadcrumbs_logger   = [:active_support_logger, :http_logger]
+  config.traces_sample_rate   = <span class="n">0.1</span>          <span class="c"># 10% of requests for perf tracing</span>
+  config.send_default_pii     = <span class="k">false</span>         <span class="c"># never send passwords / tokens</span>
+  config.environment          = <span class="m">Rails</span>.env
+  config.ignore_environments  = %w[development test]
+<span class="k">end</span>
+</code></pre>
+
+      <pre><span class="lang-label">ruby (ApplicationController)</span><code><span class="k">class</span> <span class="m">ApplicationController</span> &lt; <span class="m">ActionController</span>::<span class="m">Base</span>
+  before_action :set_sentry_context
+
+  <span class="k">private
+
+  def</span> <span class="m">set_sentry_context</span>
+    <span class="k">return unless</span> current_user
+    <span class="m">Sentry</span>.set_user(id: current_user.id, email: current_user.email)
+    <span class="m">Sentry</span>.set_tags(environment: <span class="m">Rails</span>.env, version: <span class="m">ENV</span>[<span class="s">"APP_VERSION"</span>])
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+
+      <h2>ASP.NET Core (.NET 6/7/8) Integration</h2>
+      <pre><span class="lang-label">xml (MyApi.csproj)</span><code>&lt;PackageReference Include=<span class="s">"Sentry.AspNetCore"</span> Version=<span class="s">"4.12.1"</span> /&gt;
+</code></pre>
+
+      <pre><span class="lang-label">csharp (Program.cs)</span><code>builder.WebHost.UseSentry(options =&gt;
+{
+    options.Dsn              = <span class="m">Environment</span>.GetEnvironmentVariable(<span class="s">"SENTRY_DSN"</span>);
+    options.TracesSampleRate = 0.1;
+    options.Debug            = builder.Environment.IsDevelopment();
+    options.AttachStacktrace = <span class="k">true</span>;
+    options.SendDefaultPii   = <span class="k">false</span>;  <span class="c">// do not send passwords / request bodies</span>
+    options.Release          = <span class="m">Assembly</span>.GetEntryAssembly()?
+                                        .GetName().Version?.ToString();
+});
+</code></pre>
+
+      <h2>Legacy .NET Framework 4.x Integration</h2>
+      <pre><span class="lang-label">xml (packages.config)</span><code>&lt;package id=<span class="s">"Sentry"</span>         version=<span class="s">"4.12.1"</span> targetFramework=<span class="s">"net48"</span> /&gt;
+</code></pre>
+
+      <pre><span class="lang-label">csharp (Global.asax.cs)</span><code><span class="k">public class</span> <span class="m">MvcApplication</span> : <span class="m">HttpApplication</span>
+{
+    <span class="k">private</span> <span class="m">IDisposable</span> _sentry;
+
+    <span class="k">protected void</span> Application_Start()
+    {
+        _sentry = <span class="m">SentrySdk</span>.Init(options =&gt;
+        {
+            options.Dsn              = <span class="m">ConfigurationManager</span>.AppSettings[<span class="s">"SentryDsn"</span>];
+            options.AttachStacktrace = <span class="k">true</span>;
+            options.TracesSampleRate = 0.05;
+        });
+    }
+
+    <span class="c">// Catch any unhandled exception at the ASP.NET pipeline level</span>
+    <span class="k">protected void</span> Application_Error()
+        => <span class="m">SentrySdk</span>.CaptureException(Server.GetLastError());
+
+    <span class="k">protected void</span> Application_End() => _sentry?.Dispose();
+}
+</code></pre>
+
+      <h2>Node.js / Bun Integration</h2>
+      <pre><span class="lang-label">bash</span><code><span class="c"># npm</span>
+npm install @sentry/node @sentry/profiling-node
+
+<span class="c"># Bun (drop-in)</span>
+bun add @sentry/node @sentry/profiling-node
+</code></pre>
+
+      <pre><span class="lang-label">javascript (instrument.js — import FIRST)</span><code><span class="k">import</span> * <span class="k">as</span> <span class="m">Sentry</span> <span class="k">from</span> <span class="s">"@sentry/node"</span>;
+<span class="k">import</span> { nodeProfilingIntegration } <span class="k">from</span> <span class="s">"@sentry/profiling-node"</span>;
+
+<span class="m">Sentry</span>.init({
+  dsn:                process.env.<span class="v">SENTRY_DSN</span>,
+  environment:        process.env.<span class="v">NODE_ENV</span> ?? <span class="s">"production"</span>,
+  tracesSampleRate:   0.1,
+  profilesSampleRate: 0.1,
+  integrations:       [nodeProfilingIntegration()],
+  sendDefaultPii:     false,  <span class="c">// never forward user passwords</span>
+});
+</code></pre>
+
+      <pre><span class="lang-label">javascript (Express / Hono — register error handler last)</span><code><span class="c">// Must be added AFTER all routes</span>
+app.use(<span class="m">Sentry</span>.expressErrorHandler());
+
+<span class="c">// Manually capture anywhere in code:</span>
+<span class="k">try</span> {
+  <span class="k">await</span> riskyOperation();
+} <span class="k">catch</span> (err) {
+  <span class="m">Sentry</span>.captureException(err, {
+    user: { id: req.user?.id, email: req.user?.email },
+    tags: { feature: <span class="s">"ticket-sync"</span> },
+  });
+  <span class="k">throw</span> err;
+}
+</code></pre>
+
+      <h2>Sentry DSN per project</h2>
+      <pre><span class="lang-label">bash (.env)</span><code><span class="c"># Each Sentry Project (create one per app) has its own DSN</span>
+<span class="v">SENTRY_DSN</span>=<span class="s">https://&lt;public_key&gt;@sentry.yourcompany.local/&lt;project_id&gt;</span>
+
+<span class="c"># Example — Rails app uses project 1, ASP.NET uses project 2, Node uses project 3</span>
+<span class="c"># The host is your self-hosted Sentry or GlitchTip URL — no data leaves on-prem</span>
+</code></pre>
+
+      <div class="callout success">
+        <span class="callout-icon">✅</span>
+        <p><strong>Alert routing:</strong> In Sentry go to <em>Settings → Integrations → Slack</em> (or Email). Create an Alert Rule: <em>"When a new issue is first seen → notify #dev-alerts"</em>. Add a second rule: <em>"When an issue occurs &gt; 10 times in 1 hour → page on-call"</em>.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 11b — ERRBIT / GLITCHTIP ══════════════════════ -->
+    <div class="chapter" id="monitoring-errbit">
+      <div class="chapter-header">
+        <div class="chapter-icon orange">🪲</div>
+        <div>
+          <div class="chapter-num">Chapter 11b</div>
+          <div class="chapter-title">Lightweight Alternatives — Errbit &amp; GlitchTip</div>
+        </div>
+      </div>
+
+      <p>If Sentry's resource requirements (3 GB RAM, Kafka, Redis, Postgres) are too heavy for your server, these two lighter options are full on-prem alternatives.</p>
+
+      <h2>Option A — Errbit (Airbrake-compatible, ~256 MB RAM)</h2>
+      <pre><span class="lang-label">yaml (docker-compose.errbit.yml)</span><code>version: <span class="s">"3.9"</span>
+services:
+  errbit:
+    image: errbit/errbit:latest
+    ports: [<span class="s">"8081:8080"</span>]
+    environment:
+      MONGO_URL:        mongodb://mongo:27017/errbit
+      ERRBIT_HOST:      errbit.yourcompany.local
+      RACK_ENV:         production
+      SECRET_KEY_BASE:  <span class="s">${ERRBIT_SECRET}</span>
+    depends_on: [mongo]
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:6
+    volumes: [errbit_db:/data/db]
+    restart: unless-stopped
+
+volumes:
+  errbit_db:
+</code></pre>
+
+      <pre><span class="lang-label">bash</span><code>docker compose -f docker-compose.errbit.yml up -d
+
+<span class="c"># Bootstrap admin user</span>
+docker compose exec errbit bundle exec rake errbit:bootstrap
+</code></pre>
+
+      <pre><span class="lang-label">ruby (config/initializers/airbrake.rb)</span><code><span class="m">Airbrake</span>.configure <span class="k">do</span> |config|
+  config.host        = <span class="s">"http://errbit.yourcompany.local:8081"</span>
+  config.project_id  = <span class="n">1</span>                        <span class="c"># from Errbit project page</span>
+  config.project_key = <span class="m">ENV</span>[<span class="s">"ERRBIT_API_KEY"</span>]   <span class="c"># from Errbit project page</span>
+  config.environment = <span class="m">Rails</span>.env
+  config.ignore_environments = %w[development test]
+<span class="k">end</span>
+</code></pre>
+
+      <h2>Option B — GlitchTip (Sentry-compatible, ~512 MB RAM)</h2>
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <p>GlitchTip speaks the Sentry wire protocol. Use <strong>any official Sentry SDK unchanged</strong> — just point <code>SENTRY_DSN</code> at your GlitchTip server. No SDK code changes required.</p>
+      </div>
+
+      <pre><span class="lang-label">yaml (docker-compose.glitchtip.yml)</span><code>version: <span class="s">"3.9"</span>
+x-environment: &amp;env
+  SECRET_KEY:        <span class="s">${GLITCHTIP_SECRET}</span>
+  DATABASE_URL:      postgresql://postgres:postgres@postgres/postgres
+  REDIS_URL:         redis://redis:6379/0
+  GLITCHTIP_DOMAIN:  <span class="s">"https://glitchtip.yourcompany.local"</span>
+  EMAIL_URL:         <span class="s">"smtp://mailhost:25"</span>
+
+services:
+  web:
+    image: glitchtip/glitchtip
+    ports: [<span class="s">"8082:8080"</span>]
+    environment: *env
+    depends_on: [postgres, redis]
+    restart: unless-stopped
+
+  worker:
+    image: glitchtip/glitchtip
+    command: ./bin/run-celery-with-beat.sh
+    environment: *env
+    depends_on: [postgres, redis]
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    environment: { POSTGRES_PASSWORD: postgres }
+    volumes: [glitchtip_pg:/var/lib/postgresql/data]
+
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  glitchtip_pg:
+</code></pre>
+
+      <pre><span class="lang-label">bash</span><code>docker compose -f docker-compose.glitchtip.yml up -d
+
+<span class="c"># Create admin user</span>
+docker compose exec web python manage.py createsuperuser
+
+<span class="c"># Open http://glitchtip.yourcompany.local:8082</span>
+<span class="c"># Create an Organisation → create a Project per stack → copy the DSN</span>
+<span class="c"># Paste DSN into SENTRY_DSN env var — all existing Sentry SDK code works as-is</span>
+</code></pre>
+
+      <div class="chart-wrap">
+        <div class="chart-title">Error Monitoring — On-Prem Resource &amp; Feature Comparison</div>
+        <canvas id="monitoringChart"></canvas>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 12 — ENV VARS ══════════════════════════ -->
+    <!-- ══════════════════════════ CHAPTER 9 — ENV VARS ══════════════════════════ -->
+    <div class="chapter" id="env-vars">
+      <div class="chapter-header">
+        <div class="chapter-icon gray">🔑</div>
+        <div>
+          <div class="chapter-num">Chapter 12</div>
+          <div class="chapter-title">Environment Variables Reference</div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Service</th><th>Example</th><th>Required</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>GITEA_URL</code></td><td>Gitea</td><td><code>http://gitea.local:3001</code></td><td><span class="badge badge-red">Required</span></td></tr>
+          <tr><td><code>GITEA_TOKEN</code></td><td>Gitea</td><td><code>ghp_xxxxxx</code></td><td><span class="badge badge-red">Required</span></td></tr>
+          <tr><td><code>GITEA_WEBHOOK_SECRET</code></td><td>Gitea</td><td><code>random_string</code></td><td><span class="badge badge-red">Required</span></td></tr>
+          <tr><td><code>JENKINS_URL</code></td><td>Jenkins</td><td><code>http://jenkins.local:8080</code></td><td><span class="badge badge-orange">Optional</span></td></tr>
+          <tr><td><code>JENKINS_WEBHOOK_TOKEN</code></td><td>Jenkins</td><td><code>random_token</code></td><td><span class="badge badge-orange">Optional</span></td></tr>
+          <tr><td><code>MINIO_ENDPOINT</code></td><td>MinIO</td><td><code>http://minio.local:9000</code></td><td><span class="badge badge-red">Required</span></td></tr>
+          <tr><td><code>MINIO_ACCESS_KEY</code></td><td>MinIO</td><td><code>minioadmin</code></td><td><span class="badge badge-red">Required</span></td></tr>
+          <tr><td><code>MINIO_SECRET_KEY</code></td><td>MinIO</td><td><code>supersecret</code></td><td><span class="badge badge-red">Required</span></td></tr>
+          <tr><td><code>RAILS_MASTER_KEY</code></td><td>Rails</td><td>from <code>config/master.key</code></td><td><span class="badge badge-red">Required</span></td></tr>
+          <tr><td><code>SECRET_KEY_BASE</code></td><td>Rails</td><td>64-char hex string</td><td><span class="badge badge-red">Required</span></td></tr>
+          <tr><td><code>JITSI_HOST</code></td><td>Jitsi</td><td><code>meet.jit.si</code></td><td><span class="badge badge-green">Has default</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 14 — CODE REVIEW ════════════════════════════ -->
+    <div class="chapter" id="code-review">
+      <div class="chapter-header">
+        <div class="chapter-icon" style="background:rgba(11,122,117,0.12);color:#0b7a75;">🔍</div>
+        <div>
+          <div class="chapter-num">Chapter 14</div>
+          <div class="chapter-title">Code Review &amp; Approval — SonarQube + Ollama AI</div>
+        </div>
+      </div>
+
+      <p>Automated code review in CI using <strong>SonarQube Community Edition</strong> for deterministic static analysis and Quality Gates, plus <strong>Ollama</strong> with open-source LLMs for AI-assisted review suggestions. Both run fully on-premises.</p>
+
+      <h2>Why This Stack</h2>
+      <table>
+        <thead><tr><th>Tool</th><th>Role</th><th>On-Prem</th><th>Cost</th></tr></thead>
+        <tbody>
+          <tr><td><strong>SonarQube CE</strong></td><td>Static analysis, Quality Gates, OWASP SAST, code smells, duplication</td><td>✅ Docker</td><td>Free</td></tr>
+          <tr><td><strong>Ollama</strong></td><td>AI review (logic bugs, design, naming, architecture)</td><td>✅ Docker</td><td>Free</td></tr>
+          <tr><td><strong>SonarLint</strong></td><td>IDE integration (VS Code, Visual Studio)</td><td>✅ Local</td><td>Free</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Language Coverage</h2>
+      <table>
+        <thead><tr><th>Project</th><th>Languages Analysed</th></tr></thead>
+        <tbody>
+          <tr><td>Print Server / TDI</td><td>C#, VB.NET</td></tr>
+          <tr><td>TDI2</td><td>C#, JavaScript, SQL, Razor</td></tr>
+          <tr><td>Digital Internet Services</td><td>TypeScript, JavaScript</td></tr>
+          <tr><td>Work Management System</td><td>TypeScript, JavaScript</td></tr>
+          <tr><td>DevTeam Hub</td><td>Ruby, JavaScript, HTML, CSS</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Docker Compose</h2>
+      <pre><code>version: "3.8"
+services:
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    ports:
+      - "9100:9000"
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    restart: unless-stopped
+    mem_limit: 2g
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
+  ollama_models:</code></pre>
+
+      <h2>Jenkins Pipeline Integration</h2>
+      <pre><code>stage('SonarQube Analysis') {
+  steps {
+    sh """
+      docker run --rm --network host \\
+        -e SONAR_HOST_URL=http://sonarqube:9100 \\
+        -e SONAR_TOKEN=\${SONAR_TOKEN} \\
+        -v \${WORKSPACE}:/usr/src \\
+        sonarsource/sonar-scanner-cli \\
+        -Dsonar.projectBaseDir=/usr/src
+    """
+  }
+}
+
+stage('AI Review') {
+  steps {
+    sh 'ruby ci/ai_review.rb main'
+  }
+}</code></pre>
+
+      <h2>Quality Gate Thresholds</h2>
+      <table>
+        <thead><tr><th>Metric</th><th>Condition</th><th>Threshold</th></tr></thead>
+        <tbody>
+          <tr><td>New Code Coverage</td><td>less than</td><td><strong>70%</strong></td></tr>
+          <tr><td>New Duplicated Lines</td><td>greater than</td><td><strong>3%</strong></td></tr>
+          <tr><td>New Bugs</td><td>greater than</td><td><strong>0</strong></td></tr>
+          <tr><td>New Vulnerabilities</td><td>greater than</td><td><strong>0</strong></td></tr>
+          <tr><td>New Security Hotspots Reviewed</td><td>less than</td><td><strong>100%</strong></td></tr>
+        </tbody>
+      </table>
+
+      <div class="chart-wrap">
+        <div class="chart-title">Code Review Tools — Feature Comparison</div>
+        <canvas id="codeReviewChart"></canvas>
+      </div>
+
+      <p><strong>Full recommendation document:</strong> <a href="code_review_tools_recommendation.html">Code Review &amp; Approval Tools — Recommendation &amp; Implementation Guide</a></p>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 15 — UNIFIED LOGGING ════════════════════════════ -->
+    <div class="chapter" id="logging">
+      <div class="chapter-header">
+        <div class="chapter-icon" style="background:rgba(74,144,217,0.12);color:#4a90d9;">📋</div>
+        <div>
+          <div class="chapter-num">Chapter 15</div>
+          <div class="chapter-title">Unified Logging — Grafana Loki + Promtail</div>
+        </div>
+      </div>
+
+      <p>All five managed projects ship logs in a <strong>unified JSON format</strong> to a self-hosted <strong>Grafana Loki</strong> cluster, visualised through <strong>Grafana</strong> dashboards.</p>
+
+      <div class="chart-wrap">
+        <div class="chart-title">Logging Stack Comparison</div>
+        <canvas id="loggingChart"></canvas>
+      </div>
+
+      <h3>Architecture</h3>
+      <pre>┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│  Rails App   │   │  ASP.NET     │   │  NestJS /    │
+│  (lograge)   │   │  (Serilog)   │   │  Next.js     │
+│  JSON stdout │   │  JSON file   │   │  (Pino)      │
+└──────┬───────┘   └──────┬───────┘   └──────┬───────┘
+       │                  │                  │
+       ▼                  ▼                  ▼
+ ┌──────────────────────────────────────────────────┐
+ │              Promtail  (log shipper)             │
+ │    Docker SD  ·  File tailing  ·  Label parsing  │
+ └────────────────────────┬─────────────────────────┘
+                          │ HTTP push
+                          ▼
+              ┌──────────────────────┐
+              │    Grafana Loki      │
+              │    :3100 (TSDB)      │
+              │   720 h retention    │
+              └──────────┬───────────┘
+                         │
+                         ▼
+              ┌──────────────────────┐
+              │    Grafana :3200     │
+              │  Dashboards & Alerts │
+              └──────────────────────┘</pre>
+
+      <h3>Unified JSON Schema</h3>
+      <pre>{
+  "timestamp":      "2026-06-15T10:23:45.123Z",
+  "level":          "info|warn|error|fatal|debug",
+  "service":        "devteam-hub",
+  "environment":    "production",
+  "host":           "srv-rail-01",
+  "correlation_id": "req-abc123",
+  "message":        "Ticket #42 created",
+  "context":        { "user_id": 5, "controller": "TicketsController" }
+}</pre>
+
+      <h3>Docker Services</h3>
+      <table>
+        <thead><tr><th>Service</th><th>Image</th><th>Port</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>Loki</td><td><code>grafana/loki:3.4</code></td><td><code>3100</code></td><td>Log storage &amp; query engine (LogQL)</td></tr>
+          <tr><td>Promtail</td><td><code>grafana/promtail:3.4</code></td><td>—</td><td>Tail files &amp; Docker containers, ship to Loki</td></tr>
+          <tr><td>Grafana</td><td><code>grafana/grafana:11.6</code></td><td><code>3200</code></td><td>Dashboards, alerts, log exploration</td></tr>
+        </tbody>
+      </table>
+
+      <h3>API Endpoints</h3>
+      <table>
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>GET</code></td><td><code>/api/v1/logs</code></td><td>Query logs (filter by service, level, time range)</td></tr>
+          <tr><td><code>GET</code></td><td><code>/api/v1/logs/services</code></td><td>List available services</td></tr>
+          <tr><td><code>POST</code></td><td><code>/api/v1/logs/push</code></td><td>Push log entries to Loki</td></tr>
+          <tr><td><code>GET</code></td><td><code>/api/v1/logs/stats</code></td><td>Error/warn counts &amp; volume per service (24 h)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>CLI Commands</h3>
+      <pre>dt logs                                # recent logs (all services)
+dt logs --service devteam-hub --level error  # filter by service and level
+dt logs --from "2h ago" --query timeout      # time range + text search
+dt logs services                             # list available services
+dt logs stats                                # 24 h error/warn summary
+dt logs-push --service tdi2 --message "Deploy ok"  # push entry</pre>
+
+      <h3>Per-Stack Configuration</h3>
+      <table>
+        <thead><tr><th>Stack</th><th>Library</th><th>Format</th></tr></thead>
+        <tbody>
+          <tr><td>Rails 8 (DevTeam Hub)</td><td><code>lograge</code> + JSON formatter</td><td>JSON to STDOUT</td></tr>
+          <tr><td>ASP.NET Core 10 (TDI2)</td><td><code>Serilog</code> + Serilog.Sinks.Grafana.Loki</td><td>JSON to file + HTTP push</td></tr>
+          <tr><td>.NET 4.8 (Print Server / TDI)</td><td><code>NLog</code> + NLog.Loki</td><td>JSON to file</td></tr>
+          <tr><td>NestJS (Digital Internet)</td><td><code>pino</code> + pino-loki</td><td>JSON to STDOUT + HTTP push</td></tr>
+          <tr><td>Next.js 16 (Work Mgmt)</td><td><code>pino</code> + pino-loki</td><td>JSON to STDOUT + HTTP push</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong>Full recommendation document:</strong> <a href="unified_logging_recommendation.html">Unified Logging — Recommendation &amp; Implementation Guide</a></p>
+    </div>
+
+    <!-- ══════════════════════════ CHAPTER 10 — PORTS ════════════════════════════ -->
+    <div class="chapter" id="ports">
+      <div class="chapter-header">
+        <div class="chapter-icon gray">🔌</div>
+        <div>
+          <div class="chapter-num">Chapter 13</div>
+          <div class="chapter-title">Port Reference</div>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="chart-title">Services & Ports at a Glance</div>
+        <canvas id="portsChart"></canvas>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Service</th><th>Port</th><th>Protocol</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Rails (DevTeam Hub)</td><td><code>5000</code></td><td>HTTP</td><td>External-facing; put behind Traefik/Nginx/IIS</td></tr>
+          <tr><td>Gitea Web</td><td><code>3001</code></td><td>HTTP</td><td>Web UI + API</td></tr>
+          <tr><td>Gitea SSH</td><td><code>222</code></td><td>SSH</td><td>Git push/pull</td></tr>
+          <tr><td>Jenkins</td><td><code>8080</code></td><td>HTTP</td><td>Web UI + REST API</td></tr>
+          <tr><td>MinIO API</td><td><code>9000</code></td><td>HTTP (S3)</td><td>S3-compatible endpoint</td></tr>
+          <tr><td>MinIO Console</td><td><code>9001</code></td><td>HTTP</td><td>Admin web UI</td></tr>
+          <tr><td>Jitsi HTTPS</td><td><code>8443</code></td><td>HTTPS/WSS</td><td>Video &amp; signalling</td></tr>
+          <tr><td>ASP.NET API</td><td><code>8080</code></td><td>HTTP</td><td>Adjust if running alongside Jenkins</td></tr>
+          <tr><td>SonarQube</td><td><code>9100</code></td><td>HTTP</td><td>Code review &amp; Quality Gate dashboard</td></tr>
+          <tr><td>Ollama (AI Review)</td><td><code>11434</code></td><td>HTTP</td><td>Local LLM API for AI code review</td></tr>
+          <tr><td>Grafana Loki</td><td><code>3100</code></td><td>HTTP</td><td>Log aggregation — LogQL query &amp; push API</td></tr>
+          <tr><td>Grafana (Logs)</td><td><code>3200</code></td><td>HTTP</td><td>Log dashboards &amp; alerting UI</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<footer>
+  <strong style="color:#94a3b8;">DevTeam Hub</strong> — Infrastructure Guide · Generated May 2026 ·
+  <a href="#overview">Back to top</a>
+</footer>
+
+<script>
+  // Stack chart
+  new Chart(document.getElementById('stackChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Ruby on Rails', 'Gitea (Git)', 'Jenkins (CI)', 'Jitsi (Video)', 'MinIO (Storage)', 'Docker / Infra'],
+      datasets: [{
+        data: [35, 15, 15, 10, 15, 10],
+        backgroundColor: ['#4a90d9','#27ae60','#e67e22','#0d9488','#f59e0b','#8e44ad'],
+        borderWidth: 2, borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'right', labels: { font: { family: 'Inter', size: 12 }, padding: 16 } }
+      }
+    }
+  });
+
+  // Storage comparison chart
+  new Chart(document.getElementById('storageChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Setup Effort', 'Cost', 'On-Prem Control', 'S3 Compatibility', 'Performance'],
+      datasets: [
+        { label: 'MinIO (On-prem)', data: [6, 2, 10, 10, 9], backgroundColor: 'rgba(245,158,11,0.8)', borderRadius: 6 },
+        { label: 'AWS S3',          data: [3, 8, 2,  10, 10], backgroundColor: 'rgba(74,144,217,0.8)',  borderRadius: 6 },
+        { label: 'Local Disk',      data: [1, 1, 10, 0,  7],  backgroundColor: 'rgba(100,116,139,0.6)', borderRadius: 6 }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { min: 0, max: 10, ticks: { font: { family: 'Inter' } } },
+        x: { ticks: { font: { family: 'Inter' } } }
+      },
+      plugins: { legend: { labels: { font: { family: 'Inter' } } } }
+    }
+  });
+
+  // Monitoring resource comparison chart
+  new Chart(document.getElementById('monitoringChart'), {
+    type: 'bar',
+    data: {
+      labels: ['RAM Required', 'Disk Required (GB)', 'Setup Effort (1-10)', 'Features (1-10)', 'Multi-stack Support'],
+      datasets: [
+        { label: 'Sentry self-hosted', data: [8, 9, 7, 10, 10], backgroundColor: 'rgba(231,76,60,0.8)',   borderRadius: 5 },
+        { label: 'GlitchTip',         data: [3, 4, 5, 7,  10], backgroundColor: 'rgba(74,144,217,0.8)',  borderRadius: 5 },
+        { label: 'Errbit',            data: [1, 2, 3, 5,  4],  backgroundColor: 'rgba(230,126,34,0.8)', borderRadius: 5 }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { min: 0, max: 10, ticks: { font: { family: 'Inter' } },
+             title: { display: true, text: 'Relative score (RAM/Disk normalised to 10)', font: { family: 'Inter', size: 11 } } },
+        x: { ticks: { font: { family: 'Inter' } } }
+      },
+      plugins: { legend: { labels: { font: { family: 'Inter' } } } }
+    }
+  });
+
+  // Testing comparison chart
+  new Chart(document.getElementById('testingChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Setup Speed', 'Execution Speed', 'Browser Support', 'Gherkin Native', 'CI Integration'],
+      datasets: [
+        { label: 'Rails (Cucumber+Capybara)',      data: [8, 7, 8, 10, 10], backgroundColor: 'rgba(39,174,96,0.8)',   borderRadius: 5 },
+        { label: 'ASP.NET Core (SpecFlow+Playwright)', data: [6, 9, 10, 10, 9], backgroundColor: 'rgba(142,68,173,0.8)', borderRadius: 5 },
+        { label: 'Legacy .NET (SpecFlow+Selenium)', data: [5, 5, 8,  10, 8], backgroundColor: 'rgba(230,126,34,0.8)', borderRadius: 5 },
+        { label: 'Bun/Node (Cucumber.js+Playwright)', data: [9, 10, 10, 10, 10], backgroundColor: 'rgba(74,144,217,0.8)',  borderRadius: 5 }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { min: 0, max: 10, ticks: { font: { family: 'Inter' } } },
+        x: { ticks: { font: { family: 'Inter' } } }
+      },
+      plugins: { legend: { labels: { font: { family: 'Inter', size: 11 } } } }
+    }
+  });
+
+  // Ports chart
+  new Chart(document.getElementById('portsChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Rails\n:5000', 'Gitea\n:3001', 'Jenkins\n:8080', 'MinIO S3\n:9000', 'MinIO UI\n:9001', 'Jitsi\n:8443', 'SonarQube\n:9100', 'Ollama\n:11434', 'Loki\n:3100', 'Grafana Logs\n:3200'],
+      datasets: [{
+        label: 'Port number',
+        data: [5000, 3001, 8080, 9000, 9001, 8443, 9100, 11434, 3100, 3200],
+        backgroundColor: ['#4a90d9','#27ae60','#e67e22','#f59e0b','#f59e0b','#0d9488','#0b7a75','#8e44ad','#2563eb','#2563eb'],
+        borderRadius: 8
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { family: 'Inter' } } },
+        y: { ticks: { font: { family: 'Inter', size: 11 } } }
+      }
+    }
+  });
+
+  // Code Review tools comparison chart
+  new Chart(document.getElementById('codeReviewChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Language Coverage', 'On-Prem Deploy', 'Quality Gates', 'Security (SAST)', 'Dashboard', 'Gitea Integration', 'Jenkins Plugin', 'Price (10=free)'],
+      datasets: [
+        {
+          label: 'SonarQube CE',
+          data: [10, 10, 10, 9, 10, 8, 10, 10],
+          backgroundColor: 'rgba(11,122,117,0.15)',
+          borderColor: '#0b7a75',
+          borderWidth: 2,
+          pointBackgroundColor: '#0b7a75'
+        },
+        {
+          label: 'MegaLinter',
+          data: [9, 10, 4, 7, 2, 9, 8, 10],
+          backgroundColor: 'rgba(230,126,34,0.1)',
+          borderColor: '#e67e22',
+          borderWidth: 2,
+          pointBackgroundColor: '#e67e22'
+        },
+        {
+          label: 'Semgrep OSS',
+          data: [7, 10, 4, 10, 2, 5, 7, 10],
+          backgroundColor: 'rgba(142,68,173,0.1)',
+          borderColor: '#8e44ad',
+          borderWidth: 2,
+          pointBackgroundColor: '#8e44ad'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 11 } } } },
+      scales: {
+        r: {
+          min: 0, max: 10,
+          ticks: { stepSize: 2, font: { family: 'Inter' } },
+          grid: { color: 'rgba(18,37,43,0.08)' },
+          angleLines: { color: 'rgba(18,37,43,0.08)' },
+          pointLabels: { font: { family: 'Inter', size: 11 } }
+        }
+      }
+    }
+  });
+
+  // Logging stack comparison chart
+  new Chart(document.getElementById('loggingChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Ease of Deploy', 'RAM Efficiency', 'Query Power', 'Multi-Language', 'Dashboard', 'On-Prem Ready', 'CI Integration', 'Price (10=free)'],
+      datasets: [
+        {
+          label: 'Grafana Loki',
+          data: [9, 10, 8, 9, 10, 10, 9, 10],
+          backgroundColor: 'rgba(37,99,235,0.15)',
+          borderColor: '#2563eb',
+          borderWidth: 2,
+          pointBackgroundColor: '#2563eb'
+        },
+        {
+          label: 'ELK Stack',
+          data: [4, 3, 10, 9, 9, 8, 8, 7],
+          backgroundColor: 'rgba(230,126,34,0.1)',
+          borderColor: '#e67e22',
+          borderWidth: 2,
+          pointBackgroundColor: '#e67e22'
+        },
+        {
+          label: 'Graylog',
+          data: [5, 5, 8, 7, 7, 8, 6, 9],
+          backgroundColor: 'rgba(142,68,173,0.1)',
+          borderColor: '#8e44ad',
+          borderWidth: 2,
+          pointBackgroundColor: '#8e44ad'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 11 } } } },
+      scales: {
+        r: {
+          min: 0, max: 10,
+          ticks: { stepSize: 2, font: { family: 'Inter' } },
+          grid: { color: 'rgba(18,37,43,0.08)' },
+          angleLines: { color: 'rgba(18,37,43,0.08)' },
+          pointLabels: { font: { family: 'Inter', size: 11 } }
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>

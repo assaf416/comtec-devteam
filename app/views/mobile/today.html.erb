@@ -1,0 +1,159 @@
+<% content_for(:page_title) { t('today.title') + " — #{current_user.display_name}" } %>
+
+<%# ── Next meeting hero ──────────────────────────────────────────────────── %>
+<% if @next_meeting %>
+  <div class="video-card mb-4">
+    <p class="video-meta"><%= t('mobile.today.up_next') %></p>
+    <p class="video-title"><%= @next_meeting.title %></p>
+    <p class="video-meta mb-3">
+      <%= @next_meeting.scheduled_at.strftime("%H:%M") %>
+      <% if @next_meeting.project %>
+        · <%= @next_meeting.project.name %>
+      <% end %>
+    </p>
+    <% if @next_meeting.jitsi_room.present? %>
+      <%= link_to join_meeting_path(@next_meeting), data: { turbo_method: :post },
+            class: "button is-white is-small is-rounded" do %>
+        <%= t('mobile.today.join_now') %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
+<%# ── Stats grid ─────────────────────────────────────────────────────────── %>
+<div class="mobile-stat-grid">
+  <%= link_to mobile_tickets_path, class: "mobile-stat #{@summary[:active_tickets] > 0 ? 'is-warning' : ''}" do %>
+    <div class="stat-value"><%= @summary[:active_tickets] %></div>
+    <div class="stat-label"><%= t('mobile.today.stat_tickets') %></div>
+  <% end %>
+
+  <%= link_to mobile_meetings_path, class: "mobile-stat #{@summary[:meetings_today] > 0 ? 'is-info' : ''}" do %>
+    <div class="stat-value"><%= @summary[:meetings_today] %></div>
+    <div class="stat-label"><%= t('mobile.today.stat_meetings') %></div>
+  <% end %>
+
+  <%= link_to mobile_video_calls_path, class: "mobile-stat #{@summary[:failing_builds] > 0 ? 'is-danger' : ''}" do %>
+    <div class="stat-value"><%= @summary[:ci_runs_today] %></div>
+    <div class="stat-label"><%= t('mobile.today.stat_ci') %></div>
+  <% end %>
+
+  <%= link_to mobile_projects_path, class: "mobile-stat #{@summary[:deploys_today] > 0 ? 'is-success' : ''}" do %>
+    <div class="stat-value"><%= @summary[:deploys_today] %></div>
+    <div class="stat-label"><%= t('mobile.today.stat_deploys') %></div>
+  <% end %>
+
+  <%= link_to mobile_tickets_path, class: "mobile-stat" do %>
+    <div class="stat-value"><%= @summary[:open_prs] %></div>
+    <div class="stat-label"><%= t('mobile.today.stat_prs') %></div>
+  <% end %>
+
+  <%= link_to mobile_messages_path, class: "mobile-stat" do %>
+    <div class="stat-value">💬</div>
+    <div class="stat-label"><%= t('mobile.today.stat_chat') %></div>
+  <% end %>
+</div>
+
+<%# ── My tickets ─────────────────────────────────────────────────────────── %>
+<% if @my_active_tickets.any? %>
+  <p class="mobile-section-title"><%= t('mobile.today.my_open_tickets') %></p>
+  <div class="box p-0" style="overflow:hidden;">
+    <% @my_active_tickets.first(5).each do |ticket| %>
+      <%
+        dot_class = case ticket.priority.to_s
+                    when "critical" then "dot-critical"
+                    when "high"     then "dot-high"
+                    when "medium"   then "dot-medium"
+                    when "low"      then "dot-low"
+                    else "dot-default"
+                    end
+      %>
+      <%= link_to mobile_ticket_path(ticket), class: "ticket-item px-3" do %>
+        <span class="ticket-dot <%= dot_class %>"></span>
+        <div style="flex:1;overflow:hidden;">
+          <div class="ticket-title"><%= ticket.title.truncate(48) %></div>
+          <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+            <%= render "tickets/people", ticket: ticket, size: 20 %>
+            <%= render "tickets/progress_badges", ticket: ticket %>
+          </div>
+        </div>
+        <div>
+          <span class="tag is-light is-small"><%= ticket.status.humanize %></span>
+        </div>
+      <% end %>
+    <% end %>
+    <% if @my_active_tickets.size > 5 %>
+      <%= link_to mobile_tickets_path, class: "is-block has-text-centered has-text-link p-2", style: "font-size:0.8rem;" do %>
+        <%= t('mobile.today.more_tickets', count: @my_active_tickets.size - 5) %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
+<%# ── Meetings today ──────────────────────────────────────────────────────── %>
+<% if @meetings_today.any? %>
+  <p class="mobile-section-title"><%= t('mobile.today.meetings_today') %></p>
+  <% @meetings_today.each do |m| %>
+    <div class="meeting-slot">
+      <div class="meeting-time-col"><%= m.scheduled_at.strftime("%H:%M") %></div>
+      <div class="meeting-bar"></div>
+      <div class="meeting-info">
+        <div class="meeting-title"><%= m.title %></div>
+        <div class="meeting-meta">
+          <%= m.project&.name %>
+          <% if m.jitsi_room.present? %>
+            · <%= link_to t('mobile.meetings.join'), join_meeting_path(m), data: { turbo_method: :post }, class: "has-text-link" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<%# ── Failing builds ──────────────────────────────────────────────────────── %>
+<% if @my_failing_builds.any? %>
+  <p class="mobile-section-title"><%= t('mobile.today.failing_builds') %></p>
+  <% @my_failing_builds.each do |run| %>
+    <div class="mobile-card">
+      <div class="mobile-card-body">
+        <div style="font-weight:700;font-size:0.85rem;color:#e53e3e;">
+          <%= run.project&.name %> · <%= run.build_number %>
+        </div>
+        <div class="mobile-card-meta"><%= run.created_at.strftime("%H:%M") %></div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<%# ── Recent PRs ──────────────────────────────────────────────────────────── %>
+<% if @recent_prs.any? %>
+  <p class="mobile-section-title"><%= t('mobile.today.open_prs') %></p>
+  <div class="box p-0" style="overflow:hidden;">
+    <% @recent_prs.each do |pr| %>
+      <%= link_to pull_request_path(pr), class: "ticket-item px-3" do %>
+        <span class="ticket-dot dot-default"></span>
+        <div>
+          <div class="ticket-title">#<%= pr.pr_number %> <%= pr.title.truncate(40) %></div>
+          <div class="ticket-project"><%= pr.project.name %></div>
+        </div>
+        <span class="tag is-link is-light is-small"><%= pr.status %></span>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
+<%# ── Quick links ─────────────────────────────────────────────────────────── %>
+<p class="mobile-section-title"><%= t('mobile.today.quick_links') %></p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+  <%= link_to dashboard_path, class: "button is-light is-small is-fullwidth" do %>
+    <%= t('mobile.today.desktop_view') %>
+  <% end %>
+  <%= link_to today_path, class: "button is-light is-small is-fullwidth" do %>
+    <%= t('mobile.today.full_today') %>
+  <% end %>
+  <%= link_to projects_path, class: "button is-light is-small is-fullwidth" do %>
+    <%= t('mobile.today.all_projects') %>
+  <% end %>
+  <%= link_to meetings_path, class: "button is-light is-small is-fullwidth" do %>
+    <%= t('mobile.today.all_meetings') %>
+  <% end %>
+</div>

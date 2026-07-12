@@ -1,0 +1,73 @@
+<% content_for :title, "Releases" %>
+<%
+  status_badge = { "pending" => "bg-secondary", "in_progress" => "bg-info text-dark",
+                   "succeeded" => "bg-success", "failed" => "bg-danger", "rolled_back" => "bg-dark" }
+%>
+
+<div class="level mb-3">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-1">🗓️ Releases</h1>
+      <p class="text-muted fs-7 mb-0">What's live in each environment — and one-click rollback to the previous good release.</p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to "🚀 Deploy", deploy_path, class: "btn btn-primary btn-sm" %>
+  </div>
+</div>
+
+<%# ── Live per environment ─────────────────────────────────────────────────── %>
+<div class="row g-3">
+  <% @environments.each do |env| %>
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <strong><i class="bi bi-broadcast me-2"></i><%= env.capitalize %></strong>
+          <span class="badge bg-secondary"><%= @live[env].size %> live</span>
+        </div>
+        <% if @live[env].any? %>
+          <table class="table table-hover align-middle mb-0 fs-7">
+            <thead><tr><th>Project</th><th>Version</th><th>Deployed</th><th class="text-end">Rollback</th></tr></thead>
+            <tbody>
+              <% @live[env].each do |d| %>
+                <tr>
+                  <td class="fw-semibold"><%= d.project.name %></td>
+                  <td><code><%= d.version %></code></td>
+                  <td class="text-muted"><%= (d.deployed_at || d.created_at).strftime("%b %-d") %> · <%= d.deployed_by&.display_name || "—" %></td>
+                  <td class="text-end">
+                    <%= button_to "↩︎ Roll back", rollback_release_path(d), method: :post,
+                          class: "btn btn-sm btn-outline-danger py-0",
+                          form_class: "d-inline",
+                          data: { turbo_confirm: "Roll back #{env}/#{d.project.name} from #{d.version} to the previous successful release?" } %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <div class="card-body text-muted fs-7">Nothing live in <%= env %> yet.</div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%# ── Timeline ─────────────────────────────────────────────────────────────── %>
+<div class="card shadow-sm mt-3">
+  <div class="card-header"><strong><i class="bi bi-clock-history me-2"></i>Release timeline</strong></div>
+  <table class="table table-hover align-middle mb-0 fs-7">
+    <thead><tr><th>When</th><th>Project</th><th>Env</th><th>Version</th><th>By</th><th>Status</th></tr></thead>
+    <tbody>
+      <% @timeline.each do |d| %>
+        <tr>
+          <td class="text-muted text-nowrap"><%= (d.deployed_at || d.created_at).strftime("%b %-d, %H:%M") %></td>
+          <td class="fw-semibold"><%= d.project.name %></td>
+          <td><span class="badge bg-light text-dark border"><%= d.environment %></span></td>
+          <td><code><%= d.version %></code></td>
+          <td class="text-muted"><%= d.deployed_by&.display_name || "—" %></td>
+          <td><span class="badge <%= status_badge.fetch(d.status, "bg-secondary") %>"><%= d.status.humanize %></span></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

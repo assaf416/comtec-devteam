@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writing Specs &amp; Tickets — Agile Best Practices</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f0e8; --panel: #fffdf7; --ink: #12252b; --muted: #5c6f76;
+      --line: #d7d0c2; --teal: #0b7a75; --navy: #17324a; --orange: #d26d18;
+      --red: #b63a34; --green: #1a7a3a;
+      --shadow: 0 18px 44px rgba(18,37,43,0.09); --radius: 18px;
+      --mono: "JetBrains Mono", monospace; --sans: "Manrope", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      margin: 0; color: var(--ink); font-family: var(--sans); line-height: 1.6;
+      background: radial-gradient(900px 420px at 0% 0%, rgba(11,122,117,0.14), transparent),
+                  radial-gradient(760px 340px at 100% 0%, rgba(210,109,24,0.12), transparent), var(--bg);
+    }
+    .shell { max-width: 1100px; margin: 0 auto; padding: 24px 18px 60px; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 20; background: rgba(255,253,247,0.92);
+      border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(8px);
+      box-shadow: var(--shadow); margin-bottom: 16px; display: flex;
+      align-items: center; justify-content: space-between; padding: 10px 22px;
+    }
+    .topbar-logo { font-weight: 800; font-size: 1.15rem; color: var(--teal); display: flex; align-items: center; gap: 8px; }
+    .topbar-logo span { font-size: 1.4rem; }
+    .topbar-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+    .topbar-nav a { color: var(--muted); font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 8px; transition: 0.15s; }
+    .topbar-nav a:hover { background: rgba(11,122,117,0.08); color: var(--teal); }
+
+    .hero { text-align: center; padding: 48px 18px 32px; }
+    .hero h1 { font-size: 2.6rem; font-weight: 800; color: var(--navy); margin: 0 0 10px; }
+    .hero p { font-size: 1.1rem; color: var(--muted); max-width: 640px; margin: 0 auto; }
+
+    .section {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 32px 36px; margin-bottom: 20px; box-shadow: var(--shadow);
+    }
+    .section h2 { font-size: 1.4rem; font-weight: 800; color: var(--navy); margin: 0 0 10px; display: flex; align-items: center; gap: 10px; }
+    .section h2 .icon { font-size: 1.5rem; }
+    .section h3 { font-size: 1.05rem; font-weight: 700; color: var(--teal); margin: 24px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+    .section h4 { font-size: 0.95rem; font-weight: 700; color: var(--orange); margin: 18px 0 6px; }
+    .section p, .section li { line-height: 1.7; }
+    .section ul, .section ol { padding-left: 22px; }
+
+    code { font-family: var(--mono); font-size: 0.88em; background: rgba(11,122,117,0.07); color: var(--teal); padding: 2px 7px; border-radius: 5px; }
+    pre { background: #1c2833; color: #e8e6df; font-family: var(--mono); font-size: 0.86rem; padding: 18px 22px; border-radius: 12px; overflow-x: auto; margin: 12px 0 16px; line-height: 1.55; }
+    pre code { background: none; padding: 0; color: inherit; }
+
+    .tip { background: rgba(11,122,117,0.06); border-left: 3px solid var(--teal); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .tip strong { color: var(--teal); }
+    .warn { background: rgba(210,109,24,0.06); border-left: 3px solid var(--orange); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .warn strong { color: var(--orange); }
+    .bad { background: rgba(182,58,52,0.06); border-left: 3px solid var(--red); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .bad strong { color: var(--red); }
+
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 8px; }
+    th { text-align: left; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 8px 12px; border-bottom: 2px solid var(--line); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 0.92rem; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+
+    .example-card {
+      background: rgba(11,122,117,0.03); border: 1px solid rgba(11,122,117,0.15);
+      border-radius: 14px; padding: 22px 26px; margin: 16px 0;
+    }
+    .example-card h4 { margin-top: 0; color: var(--teal); }
+    .example-card .field { display: flex; gap: 8px; margin-bottom: 6px; font-size: 0.92rem; }
+    .example-card .field .label { font-weight: 700; color: var(--navy); min-width: 140px; }
+    .example-card .field .value { color: var(--ink); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } .hero h1 { font-size: 2rem; } }
+
+    .footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 12px; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="topbar-logo"><span>📋</span> Writing Specs &amp; Tickets</div>
+    <nav class="topbar-nav">
+      <a href="#anatomy">Anatomy</a>
+      <a href="#kinds">Ticket Kinds</a>
+      <a href="#user-stories">User Stories</a>
+      <a href="#acceptance">Acceptance Criteria</a>
+      <a href="#examples">Examples</a>
+      <a href="#best-practices">Best Practices</a>
+      <a href="#anti-patterns">Anti-Patterns</a>
+    </nav>
+  </div>
+
+  <div class="hero">
+    <h1>Writing Specs &amp; Tickets</h1>
+    <p>An Agile guide to creating clear, actionable, and well-structured tickets — tailored to the DevTeam Hub ticket model.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Why it matters                                      -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="icon">🎯</span> Why Good Tickets Matter</h2>
+    <p>A well-written ticket is the <strong>contract between the product owner and the development team</strong>. It answers three questions:</p>
+    <ol>
+      <li><strong>What</strong> needs to be done?</li>
+      <li><strong>Why</strong> does it matter?</li>
+      <li><strong>How</strong> will we know it's done?</li>
+    </ol>
+    <p>Poorly written tickets cause context switching, rework, scope creep, and frustration. Good tickets are the single best investment you can make in team velocity.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Anatomy of a Ticket                                 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="anatomy">
+    <h2><span class="icon">🧬</span> Anatomy of a Ticket</h2>
+    <p>Every ticket in DevTeam Hub has these fields. Understanding each one ensures nothing is left ambiguous.</p>
+
+    <table>
+      <thead><tr><th>Field</th><th>Purpose</th><th>Tips</th></tr></thead>
+      <tbody>
+        <tr><td><code>title</code></td><td>One-line summary of the work</td><td>Start with a verb. Be specific. Max ~80 chars.</td></tr>
+        <tr><td><code>description</code></td><td>Full specification of the work</td><td>Include context, requirements, and acceptance criteria.</td></tr>
+        <tr><td><code>kind</code></td><td>Type of work</td><td>story, meta_story, bug_fix, spike, hotfix</td></tr>
+        <tr><td><code>level</code></td><td>Complexity level</td><td>trivial, simple, moderate, complex, expert</td></tr>
+        <tr><td><code>status</code></td><td>Current workflow state</td><td>backlog → open → in_progress → in_review → testing → done</td></tr>
+        <tr><td><code>priority</code></td><td>Business urgency</td><td>low, medium, high, critical</td></tr>
+        <tr><td><code>story_points</code></td><td>Relative effort estimate</td><td>Fibonacci: 1, 2, 3, 5, 8, 13, 21</td></tr>
+        <tr><td><code>dev_estimate_hours</code></td><td>Developer time estimate</td><td>Hours of focused dev work</td></tr>
+        <tr><td><code>tester_estimate_hours</code></td><td>QA time estimate</td><td>Hours for testing + writing test cases</td></tr>
+        <tr><td><code>actual_hours</code></td><td>Time actually spent</td><td>Free-form: "2d 4h" or "16"</td></tr>
+        <tr><td><code>assignee</code></td><td>Developer responsible</td><td>Assign when sprint planning, not before.</td></tr>
+        <tr><td><code>owner</code></td><td>Reporter / product owner</td><td>The person who can answer questions.</td></tr>
+        <tr><td><code>sprint</code></td><td>Which sprint this belongs to</td><td>Only assign to current or next sprint.</td></tr>
+        <tr><td><code>milestone</code></td><td>Release or feature group</td><td>Group related tickets for release tracking.</td></tr>
+        <tr><td><code>how_to_reproduce</code></td><td>Bug reproduction steps</td><td>Required for bug_fix and hotfix tickets.</td></tr>
+        <tr><td><code>test_plan</code></td><td>How to verify the work</td><td>Describe manual and automated test scenarios.</td></tr>
+        <tr><td><code>tags</code></td><td>Labels for filtering</td><td>e.g. "performance", "auth", "frontend"</td></tr>
+        <tr><td><code>attachments</code></td><td>Supporting files</td><td>Screenshots, specs, design mockups.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Ticket Kinds                                        -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="kinds">
+    <h2><span class="icon">🏷️</span> Ticket Kinds</h2>
+
+    <h3>Story</h3>
+    <p>A user-facing feature or capability. The most common ticket type. Always written from the user's perspective.</p>
+    <pre><code>As a [type of user], I want [goal], so that [benefit].</code></pre>
+
+    <h3>Meta Story (Epic)</h3>
+    <p>A large body of work that is broken down into multiple stories. Meta stories are <strong>never assigned directly</strong> — they track progress across child tickets.</p>
+
+    <h3>Bug Fix</h3>
+    <p>A defect in existing functionality. Must include <code>how_to_reproduce</code> steps. Priority should reflect user impact, not developer effort.</p>
+
+    <h3>Hotfix</h3>
+    <p>A critical production bug requiring immediate attention. Bypasses normal sprint flow. Branch pattern: <code>hotfix/T-&lt;id&gt;-&lt;slug&gt;</code>.</p>
+
+    <h3>Spike</h3>
+    <p>A time-boxed research task. The deliverable is <strong>knowledge, not code</strong>. Always set a time limit (e.g., 4h). The outcome should be documented in the ticket description.</p>
+
+    <div class="tip">
+      <strong>💡 Rule of thumb:</strong> If you can't demo it, it's a spike. If you can demo it, it's a story.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- User Stories                                        -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="user-stories">
+    <h2><span class="icon">📝</span> Writing User Stories</h2>
+
+    <h3>The Format</h3>
+    <pre><code>As a [persona],
+I want [action/feature],
+so that [value/outcome].</code></pre>
+
+    <h3>The INVEST Criteria</h3>
+    <p>Every good user story is:</p>
+    <table>
+      <thead><tr><th>Letter</th><th>Criteria</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><strong>I</strong></td><td>Independent</td><td>Can be developed and delivered without depending on other stories.</td></tr>
+        <tr><td><strong>N</strong></td><td>Negotiable</td><td>Details can be discussed — it's not a rigid contract.</td></tr>
+        <tr><td><strong>V</strong></td><td>Valuable</td><td>Delivers something meaningful to the user or business.</td></tr>
+        <tr><td><strong>E</strong></td><td>Estimable</td><td>The team can reasonably estimate the effort.</td></tr>
+        <tr><td><strong>S</strong></td><td>Small</td><td>Can be completed in one sprint (ideally 1–3 days of work).</td></tr>
+        <tr><td><strong>T</strong></td><td>Testable</td><td>Has clear criteria to verify completion.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Story Splitting Strategies</h3>
+    <p>If a story is too large (>8 story points), split it using one of these approaches:</p>
+    <ul>
+      <li><strong>By workflow step</strong> — Create, Read, Update, Delete as separate stories.</li>
+      <li><strong>By business rule</strong> — Happy path first, then edge cases.</li>
+      <li><strong>By data variation</strong> — Support one format first, then add others.</li>
+      <li><strong>By interface</strong> — API first, then UI.</li>
+      <li><strong>By operation</strong> — Simplest version first, then enhancements.</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Acceptance Criteria                                 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="acceptance">
+    <h2><span class="icon">✅</span> Writing Acceptance Criteria</h2>
+    <p>Acceptance criteria go in the <code>description</code> field. They define <strong>when the story is done</strong>.</p>
+
+    <h3>Given-When-Then Format</h3>
+    <pre><code>Given [precondition],
+When  [action],
+Then  [expected result].</code></pre>
+
+    <h3>Checklist Format</h3>
+    <p>For simpler stories, a checklist is acceptable:</p>
+    <pre><code>Acceptance Criteria:
+- [ ] User can see the login form on /login
+- [ ] Email and password fields are validated
+- [ ] Invalid credentials show an error message
+- [ ] Successful login redirects to /dashboard
+- [ ] Session persists across page reloads</code></pre>
+
+    <div class="tip">
+      <strong>💡 Tip:</strong> Acceptance criteria should be verifiable by QA without asking the developer. If a tester can't verify it from the description alone, it's not specific enough.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Concrete Examples                                   -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="examples">
+    <h2><span class="icon">📚</span> Examples Using Our Ticket Model</h2>
+
+    <h3>Example 1: Story</h3>
+    <div class="example-card">
+      <h4>🎫 T-42: Add password reset flow to login page</h4>
+      <div class="field"><span class="label">Kind:</span><span class="value">story</span></div>
+      <div class="field"><span class="label">Level:</span><span class="value">moderate</span></div>
+      <div class="field"><span class="label">Priority:</span><span class="value">high</span></div>
+      <div class="field"><span class="label">Story Points:</span><span class="value">5</span></div>
+      <div class="field"><span class="label">Dev Estimate:</span><span class="value">6h</span></div>
+      <div class="field"><span class="label">QA Estimate:</span><span class="value">2h</span></div>
+      <div class="field"><span class="label">Sprint:</span><span class="value">Sprint 12</span></div>
+      <div class="field"><span class="label">Assignee:</span><span class="value">Jane Smith</span></div>
+      <div class="field"><span class="label">Owner:</span><span class="value">Product Manager</span></div>
+      <div class="field"><span class="label">Tags:</span><span class="value">auth, frontend</span></div>
+      <div class="field"><span class="label">Description:</span></div>
+      <pre><code>As a registered user,
+I want to reset my password via email,
+so that I can regain access to my account when I forget my password.
+
+## Acceptance Criteria
+
+Given I am on the login page,
+When I click "Forgot password?",
+Then I see a form asking for my email address.
+
+Given I enter a valid registered email,
+When I submit the form,
+Then I receive a password reset email within 2 minutes.
+
+Given I click the reset link in the email,
+When I enter a new password (min 8 chars),
+Then my password is updated and I am redirected to login.
+
+Given I enter an unregistered email,
+When I submit the form,
+Then I see a generic "If this email exists..." message (no info leakage).
+
+## Technical Notes
+- Use Devise's recoverable module
+- Reset token expires after 2 hours
+- Rate-limit to 3 requests per email per hour</code></pre>
+      <div class="field"><span class="label">Test Plan:</span></div>
+      <pre><code>1. Verify reset link appears on login page
+2. Submit valid email → check email delivery
+3. Submit invalid email → verify generic message (no enumeration)
+4. Click reset link → change password → login with new password
+5. Click expired link → verify error message
+6. Try resetting 4 times → verify rate limit response</code></pre>
+    </div>
+
+    <h3>Example 2: Bug Fix</h3>
+    <div class="example-card">
+      <h4>🐛 T-67: Fix crash when uploading CSV with Unicode characters</h4>
+      <div class="field"><span class="label">Kind:</span><span class="value">bug_fix</span></div>
+      <div class="field"><span class="label">Level:</span><span class="value">simple</span></div>
+      <div class="field"><span class="label">Priority:</span><span class="value">critical</span></div>
+      <div class="field"><span class="label">Story Points:</span><span class="value">2</span></div>
+      <div class="field"><span class="label">Dev Estimate:</span><span class="value">2h</span></div>
+      <div class="field"><span class="label">QA Estimate:</span><span class="value">1h</span></div>
+      <div class="field"><span class="label">Tags:</span><span class="value">import, encoding, backend</span></div>
+      <div class="field"><span class="label">Description:</span></div>
+      <pre><code>## Problem
+Uploading a CSV file containing Hebrew or emoji characters causes a 500 error.
+The import page crashes with an Encoding::InvalidByteSequenceError.
+
+## Expected Behavior
+CSV files with any valid UTF-8 content should import successfully.
+
+## Impact
+Blocks 3 customers who use Hebrew names in their data.</code></pre>
+      <div class="field"><span class="label">How to Reproduce:</span></div>
+      <pre><code>1. Go to /imports/new
+2. Upload the attached file: test_hebrew.csv
+3. Click "Import"
+4. Observe: 500 error page
+5. Expected: Import succeeds, 12 records created</code></pre>
+      <div class="field"><span class="label">Test Plan:</span></div>
+      <pre><code>1. Upload CSV with ASCII only → passes
+2. Upload CSV with Hebrew characters → passes
+3. Upload CSV with emoji → passes
+4. Upload CSV with mixed encodings (Windows-1255) → graceful error message
+5. Verify existing import specs still pass</code></pre>
+    </div>
+
+    <h3>Example 3: Spike</h3>
+    <div class="example-card">
+      <h4>🔬 T-88: Evaluate Redis vs Memcached for session storage</h4>
+      <div class="field"><span class="label">Kind:</span><span class="value">spike</span></div>
+      <div class="field"><span class="label">Level:</span><span class="value">moderate</span></div>
+      <div class="field"><span class="label">Priority:</span><span class="value">medium</span></div>
+      <div class="field"><span class="label">Story Points:</span><span class="value">3</span></div>
+      <div class="field"><span class="label">Dev Estimate:</span><span class="value">4h (time-boxed)</span></div>
+      <div class="field"><span class="label">QA Estimate:</span><span class="value">0h</span></div>
+      <div class="field"><span class="label">Tags:</span><span class="value">infrastructure, performance</span></div>
+      <div class="field"><span class="label">Description:</span></div>
+      <pre><code>## Goal
+Determine whether Redis or Memcached is better suited for our session
+storage needs. Time-boxed to 4 hours.
+
+## Questions to Answer
+1. Which has lower latency for our session read pattern?
+2. Which is easier to deploy with our current Docker setup?
+3. What is the memory footprint for ~500 concurrent sessions?
+4. Does Redis persistence add meaningful value for sessions?
+
+## Deliverable
+A summary in the ticket description with a recommendation and rationale.
+No code changes expected.</code></pre>
+    </div>
+
+    <h3>Example 4: Hotfix</h3>
+    <div class="example-card">
+      <h4>🚨 T-91: Hotfix — Payment webhook returning 404 in production</h4>
+      <div class="field"><span class="label">Kind:</span><span class="value">hotfix</span></div>
+      <div class="field"><span class="label">Level:</span><span class="value">simple</span></div>
+      <div class="field"><span class="label">Priority:</span><span class="value">critical</span></div>
+      <div class="field"><span class="label">Story Points:</span><span class="value">1</span></div>
+      <div class="field"><span class="label">Dev Estimate:</span><span class="value">1h</span></div>
+      <div class="field"><span class="label">Tags:</span><span class="value">payments, production</span></div>
+      <div class="field"><span class="label">Description:</span></div>
+      <pre><code>## Incident
+Production payment webhooks from Stripe are returning 404 since deploy v2.14.
+Revenue impact: all new subscriptions are failing.
+
+## Root Cause (suspected)
+Route was renamed from /webhooks/stripe to /api/webhooks/stripe but
+Stripe dashboard was not updated.
+
+## Fix
+Update routes.rb to accept both old and new paths.
+Update Stripe dashboard webhook URL after deploy.</code></pre>
+      <div class="field"><span class="label">How to Reproduce:</span></div>
+      <pre><code>1. Send a test webhook from Stripe dashboard to /webhooks/stripe
+2. Observe: 404 response
+3. Send to /api/webhooks/stripe → 200 OK</code></pre>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Best Practices                                      -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="best-practices">
+    <h2><span class="icon">⭐</span> Best Practices</h2>
+
+    <h3>Writing Titles</h3>
+    <div class="grid-2">
+      <div class="tip">
+        <strong>✅ Good titles:</strong>
+        <ul>
+          <li>Add password reset flow to login page</li>
+          <li>Fix CSV import crash with Unicode characters</li>
+          <li>Show sprint velocity chart on dashboard</li>
+          <li>Evaluate Redis vs Memcached for sessions</li>
+        </ul>
+      </div>
+      <div class="bad">
+        <strong>❌ Bad titles:</strong>
+        <ul>
+          <li>Login page</li>
+          <li>Bug fix</li>
+          <li>Improve performance</li>
+          <li>Update stuff</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Description Guidelines</h3>
+    <ol>
+      <li><strong>Start with context</strong> — Why are we doing this? What's the user problem?</li>
+      <li><strong>Be specific</strong> — "Users report slow load times" → "Dashboard takes 8s to load with >100 tickets"</li>
+      <li><strong>Include acceptance criteria</strong> — Every story needs them. No exceptions.</li>
+      <li><strong>Add technical notes</strong> — Architecture decisions, API contracts, database changes.</li>
+      <li><strong>Attach mockups</strong> — A screenshot or wireframe is worth a thousand words.</li>
+    </ol>
+
+    <h3>Workflow Best Practices</h3>
+    <table>
+      <thead><tr><th>Status</th><th>Who moves it</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td><code>backlog</code></td><td>Product Owner</td><td>When the ticket is created but not yet prioritized</td></tr>
+        <tr><td><code>open</code></td><td>Product Owner</td><td>After sprint planning — ready to be picked up</td></tr>
+        <tr><td><code>in_progress</code></td><td>Developer</td><td>When work begins (<code>dt ticket checkout</code> does this automatically)</td></tr>
+        <tr><td><code>in_review</code></td><td>Developer</td><td>When PR is submitted (<code>dt ticket commit</code> does this)</td></tr>
+        <tr><td><code>testing</code></td><td>Reviewer</td><td>After code review passes, QA begins testing</td></tr>
+        <tr><td><code>done</code></td><td>QA / Developer</td><td>When all acceptance criteria pass</td></tr>
+        <tr><td><code>blocked</code></td><td>Anyone</td><td>When external dependency prevents progress</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Definition of Done (DoD)</h3>
+    <p>A ticket is <strong>done</strong> when:</p>
+    <ul>
+      <li>All acceptance criteria are met</li>
+      <li>Code has been reviewed and approved</li>
+      <li>Automated tests are written and passing</li>
+      <li>No regressions in existing test suite</li>
+      <li><code>actual_hours</code> is filled in</li>
+      <li>Documentation is updated (if applicable)</li>
+    </ul>
+
+    <h3>Definition of Ready (DoR)</h3>
+    <p>A ticket is <strong>ready for sprint</strong> when:</p>
+    <ul>
+      <li>Title is clear and actionable</li>
+      <li>Description includes acceptance criteria</li>
+      <li>Story points are estimated</li>
+      <li>Dependencies are identified and resolved</li>
+      <li>Mockups/designs are attached (for UI work)</li>
+      <li>Test plan is drafted</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Anti-Patterns                                       -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="anti-patterns">
+    <h2><span class="icon">🚫</span> Common Anti-Patterns</h2>
+
+    <div class="grid-2">
+      <div class="bad">
+        <strong>❌ The Vague Ticket</strong>
+        <p>"Make the app faster" — No acceptance criteria, no definition of done, no way to know when you're finished.</p>
+      </div>
+      <div class="tip">
+        <strong>✅ Instead</strong>
+        <p>"Reduce dashboard load time from 8s to under 2s for accounts with 100+ tickets. Measure with PageSpeed Insights."</p>
+      </div>
+
+      <div class="bad">
+        <strong>❌ The Kitchen Sink</strong>
+        <p>"Build the entire reporting module" — Too large to estimate, too complex for one sprint, impossible to review.</p>
+      </div>
+      <div class="tip">
+        <strong>✅ Instead</strong>
+        <p>Create a meta_story and split into: "Show ticket count by status chart", "Add CSV export for sprint report", etc.</p>
+      </div>
+
+      <div class="bad">
+        <strong>❌ The Solution Disguised as a Story</strong>
+        <p>"Add a Redis cache to the User model" — Describes implementation, not the user problem.</p>
+      </div>
+      <div class="tip">
+        <strong>✅ Instead</strong>
+        <p>"As a user, I want the profile page to load in under 1 second." Let the developer choose the implementation.</p>
+      </div>
+
+      <div class="bad">
+        <strong>❌ The Missing Bug Report</strong>
+        <p>"Login doesn't work" — No reproduction steps, no expected vs actual behavior, no environment info.</p>
+      </div>
+      <div class="tip">
+        <strong>✅ Instead</strong>
+        <p>Fill in <code>how_to_reproduce</code> with numbered steps, browser/OS, and attach a screenshot.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Ticket Template                                     -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="templates">
+    <h2><span class="icon">📄</span> Quick Templates</h2>
+
+    <h3>Story Template</h3>
+    <pre><code>Title: [Verb] [feature] [context]
+Kind:  story
+Level: [trivial|simple|moderate|complex|expert]
+
+## User Story
+As a [persona],
+I want [action],
+so that [benefit].
+
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
+
+## Technical Notes
+- [Architecture decisions, API changes, DB migrations]
+
+## Test Plan
+1. [Test scenario 1]
+2. [Test scenario 2]</code></pre>
+
+    <h3>Bug Report Template</h3>
+    <pre><code>Title: Fix [symptom] when [action]
+Kind:  bug_fix
+
+## Problem
+[What's broken and who is affected]
+
+## Expected Behavior
+[What should happen]
+
+## How to Reproduce
+1. Go to [page]
+2. Do [action]
+3. Observe: [actual result]
+4. Expected: [expected result]
+
+## Environment
+- Browser: [Chrome 120 / Safari 17]
+- OS: [macOS 14 / Windows 11]
+
+## Test Plan
+1. [Verify fix for reported case]
+2. [Verify no regression]</code></pre>
+  </div>
+
+  <div class="footer">
+    DevTeam Hub — Writing Specs &amp; Tickets Guide — May 2026
+  </div>
+</div>
+</body>
+</html>

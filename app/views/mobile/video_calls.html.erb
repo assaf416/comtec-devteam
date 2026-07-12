@@ -1,0 +1,97 @@
+<% content_for(:page_title) { t('mobile.nav.video') } %>
+
+<%# ── Active now ──────────────────────────────────────────────────────────── %>
+<% if @active_video.any? %>
+  <p class="mobile-section-title" style="color:#e53e3e;"><%= t('mobile.video_calls.live_now') %></p>
+  <% @active_video.each do |m| %>
+    <div class="video-card">
+      <p class="video-meta"><%= t('mobile.video_calls.in_progress_label') %> · <%= m.project&.name %></p>
+      <p class="video-title"><%= m.title %></p>
+      <p class="video-meta mb-3">
+        <%= t('mobile.video_calls.started') %> <%= m.scheduled_at.strftime("%H:%M") %>
+        <% if m.organizer %>· <%= t('mobile.video_calls.host_label') %> <%= m.organizer.display_name %><% end %>
+      </p>
+      <% if m.jitsi_room.present? %>
+        <%= link_to join_meeting_path(m), method: :post,
+              class: "button is-white is-rounded is-small",
+              data: { turbo_method: :post } do %>
+          <%= t('mobile.video_calls.join_meeting') %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
+
+<%# ── Upcoming ────────────────────────────────────────────────────────────── %>
+<% upcoming_scheduled = @upcoming_video.reject { |m| m.status.to_s == 'in_progress' } %>
+<% if upcoming_scheduled.any? %>
+  <p class="mobile-section-title"><%= t('mobile.video_calls.upcoming') %></p>
+
+  <% upcoming_scheduled.each do |m| %>
+    <%
+      mins_away = ((m.scheduled_at - Time.current) / 60).round
+      soon      = mins_away <= 15
+    %>
+    <div class="mobile-card <%= soon ? 'is-warning-light' : '' %>" style="<%= soon ? 'border-left: 3px solid #d97706;' : '' %>">
+      <div class="mobile-card-header">
+        <div style="width:36px;height:36px;border-radius:8px;
+             background:<%= soon ? '#fef3c7' : '#ebf8ff' %>;
+             display:flex;align-items:center;justify-content:center;
+             font-size:1.2rem;flex-shrink:0;">
+          📹
+        </div>
+        <div style="flex:1;overflow:hidden;">
+          <div style="font-weight:700;font-size:0.9rem;"><%= m.title %></div>
+          <div class="mobile-card-meta">
+            <%= m.scheduled_at.strftime("%a, %b %-d · %H:%M") %>
+            <% if m.project %>· <%= m.project.name %><% end %>
+          </div>
+          <% if soon %>
+            <span class="tag is-warning is-light is-rounded is-small mt-1">
+              <%= t('mobile.video_calls.in_minutes', count: mins_away) %>
+            </span>
+          <% end %>
+        </div>
+        <div style="flex-shrink:0;">
+          <% if m.organizer == current_user %>
+          <span class="tag is-info is-light is-rounded is-small"><%= t('mobile.video_calls.host') %></span>
+          <% end %>
+        </div>
+      </div>
+      <div class="mobile-card-body" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <% if m.jitsi_room.present? %>
+          <%= link_to join_meeting_path(m), data: { turbo_method: :post },
+                class: "button is-link is-small is-rounded" do %>
+            <%= t('mobile.video_calls.join') %>
+          <% end %>
+          <%= link_to m.jitsi_url, target: "_blank", rel: "noopener",
+                class: "button is-light is-small is-rounded" do %>
+            <%= t('mobile.video_calls.jitsi_link') %>
+          <% end %>
+        <% end %>
+        <%= link_to meeting_path(m), class: "button is-light is-small is-rounded" do %>
+          <%= t('mobile.video_calls.details') %>
+        <% end %>
+        <%= link_to invite_meeting_path(m), data: { turbo_method: :post }, class: "button is-light is-small is-rounded" do %>
+          <%= t('mobile.video_calls.invite') %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<% if @upcoming_video.empty? %>
+  <div class="has-text-centered py-6" style="color:#bbb;">
+    <p style="font-size:3rem;">📹</p>
+    <p style="color:#8a93a2;"><%= t('mobile.video_calls.no_upcoming') %></p>
+    <%= link_to new_meeting_path, class: "button is-primary is-rounded mt-3" do %>
+      <%= t('mobile.video_calls.schedule') %>
+    <% end %>
+  </div>
+<% end %>
+
+<div class="mt-4" style="text-align:right;">
+  <%= link_to new_meeting_path, class: "button is-primary is-rounded is-small" do %>
+    <%= t('mobile.video_calls.new_meeting') %>
+  <% end %>
+</div>

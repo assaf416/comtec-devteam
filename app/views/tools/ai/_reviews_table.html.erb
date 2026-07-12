@@ -1,0 +1,37 @@
+<% if reviews.any? %>
+  <div class="card">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th><%= t("ai.col.kind") %></th>
+          <th><%= t("ai.col.subject") %></th>
+          <th><%= t("ai.col.verdict") %></th>
+          <th><%= t("ai.col.score") %></th>
+          <th><%= t("ai.col.status") %></th>
+          <th><%= t("ai.col.when") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% reviews.each do |review| %>
+          <tr style="cursor:pointer;" onclick="window.location='<%= tools_ai_review_path(review) %>'">
+            <td><span class="badge bg-light text-dark"><%= review.kind_label %></span></td>
+            <td class="fs-7"><%= review.title.truncate(60) %></td>
+            <td>
+              <% if review.verdict.present? %>
+                <span class="badge <%= review.verdict_badge_class %>"><%= review.verdict.humanize %></span>
+              <% else %>—<% end %>
+            </td>
+            <td class="fs-7"><%= review.score || "—" %></td>
+            <td>
+              <% status_class = { "completed" => "bg-success", "running" => "bg-info", "failed" => "bg-danger", "pending" => "bg-secondary" }[review.status] %>
+              <span class="badge <%= status_class %>"><%= review.status.humanize %></span>
+            </td>
+            <td class="text-muted fs-7"><%= time_ago_in_words(review.created_at) %> ago</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="text-muted"><%= t("ai.none_yet") %></p>
+<% end %>

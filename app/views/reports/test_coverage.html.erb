@@ -1,0 +1,62 @@
+<% content_for :title, "Test Coverage" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <h1 class="fw-bold mb-0">Test Coverage</h1>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number"><%= @total_tests %></div><div class="stat-label">Total Tests</div></div></div>
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number text-success"><%= @passed_tests %></div><div class="stat-label">Passed</div></div></div>
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number text-danger"><%= @failed_tests %></div><div class="stat-label">Failed</div></div></div>
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number text-info"><%= @overall_pass_rate %>%</div><div class="stat-label">Overall Pass Rate</div></div></div>
+</div>
+
+<div class="row">
+  <div class="col-8">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Coverage Trend (Last 30 Entries)</h3>
+      <%= line_chart @coverage_trend, suffix: "%", min: 0, max: 100, height: "280px" %>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Result Mix</h3>
+      <%= pie_chart({ "Passed" => @passed_tests, "Failed" => @failed_tests, "Skipped" => @skipped_tests }, height: "280px") %>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3 mb-3">
+  <h3 class="subfw-bold">Suite Pass Rate</h3>
+  <%= column_chart @suite_pass_rates, suffix: "%", min: 0, max: 100, height: "300px" %>
+</div>
+
+<div class="card p-3">
+  <h3 class="subfw-bold">Suite Details</h3>
+  <table class="table table-hover w-100 fs-7">
+    <thead>
+      <tr>
+        <th><%= t('table_headers.suite') %></th>
+        <th><%= t('table_headers.total') %></th>
+        <th><%= t('table_headers.passed') %></th>
+        <th><%= t('table_headers.failed') %></th>
+        <th><%= t('table_headers.skipped') %></th>
+        <th><%= t('table_headers.pass_rate') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @suite_breakdown.each do |suite_name, row| %>
+        <tr>
+          <td><%= suite_name %></td>
+          <td><%= row[:total] %></td>
+          <td class="text-success"><%= row[:passed] %></td>
+          <td class="text-danger"><%= row[:failed] %></td>
+          <td class="text-muted"><%= row[:skipped] %></td>
+          <td><strong><%= @suite_pass_rates[suite_name] %>%</strong></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

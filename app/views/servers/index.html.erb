@@ -1,0 +1,40 @@
+<% content_for :title, "Servers" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-1">🖥️ Servers</h1>
+      <p class="text-muted fs-7 mb-0">Remote machines reporting OS telemetry via heartbeat (a server = a distinct IP).</p>
+    </div>
+  </div>
+</div>
+
+<% if @servers.any? %>
+  <div class="card">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr><th>Server</th><th>IP</th><th>OS</th><th>CPU</th><th>Memory</th><th>Disk</th><th>Errors</th><th>Health</th><th>Last seen</th></tr>
+      </thead>
+      <tbody>
+        <% @servers.each do |s| %>
+          <tr style="cursor:pointer;" onclick="window.location='<%= server_path(ip: s.ip_address) %>'">
+            <td class="fw-semibold"><%= s.server_name.presence || s.ip_address %></td>
+            <td class="fs-7 text-muted"><code><%= s.ip_address %></code></td>
+            <td class="fs-7"><%= s.server_os %></td>
+            <td style="min-width:90px;"><%= render "servers/meter", value: s.cpu %></td>
+            <td style="min-width:90px;"><%= render "servers/meter", value: s.mem %></td>
+            <td style="min-width:90px;"><%= render "servers/meter", value: s.disk %></td>
+            <td><%= s.error_count.to_i.positive? ? content_tag(:span, s.error_count, class: "badge bg-danger") : "—" %></td>
+            <td><span class="badge <%= s.health_badge_class %>"><%= s.health.humanize %></span></td>
+            <td class="fs-7 text-muted"><%= time_ago_in_words(s.recorded_at) %> ago</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <div class="card p-5 text-center text-muted">
+    <p class="mb-1">No servers reporting yet.</p>
+    <p class="fs-7 mb-0">Remote machines post telemetry to <code>POST /api/v1/heartbeats</code>.</p>
+  </div>
+<% end %>

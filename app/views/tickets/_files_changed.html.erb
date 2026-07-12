@@ -1,0 +1,25 @@
+<%# Files created/changed across this ticket's pull request(s). locals: ticket %>
+<% files = ticket.pull_requests.to_a.flat_map(&:changed_files).compact.uniq.sort %>
+<% if files.any? %>
+  <div class="card p-3 mb-3" id="files-changed">
+    <h3 class="subfw-bold">📁 Files Changed <span class="text-muted fs-7">(<%= files.size %>)</span></h3>
+    <p class="text-muted fs-7">Files created or changed during this ticket's lifetime (from its pull requests).</p>
+    <ul class="list-unstyled mb-0">
+      <% files.each do |file| %>
+        <% is_feature = file.to_s.end_with?(".feature") %>
+        <% is_test    = is_feature || file.to_s.match?(/spec|test|_test\.|_spec\./) %>
+        <li class="d-flex align-items-center gap-2 py-1" style="border-bottom:1px solid #f5f5f5;">
+          <span><%= is_feature ? "🧪" : (is_test ? "✅" : "📄") %></span>
+          <code class="fs-7"><%= file %></code>
+          <% if is_test && !is_feature %><span class="badge bg-light text-dark border">test</span><% end %>
+          <span class="ms-auto">
+            <% if is_feature %>
+              <%= link_to "🧪 Update test", edit_cucumber_test_path(ticket_id: ticket.id, path: file),
+                    class: "btn btn-sm btn-outline-primary" %>
+            <% end %>
+          </span>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

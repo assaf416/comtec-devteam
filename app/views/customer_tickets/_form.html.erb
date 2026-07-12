@@ -1,0 +1,55 @@
+<%= form_with(model: [@customer, customer_ticket], class: "card p-3 mb-3") do |f| %>
+  <% if customer_ticket.errors.any? %>
+    <div class="alert alert-danger is-light">
+      <ul><% customer_ticket.errors.full_messages.each do |m| %><li><%= m %></li><% end %></ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= f.label :title, class: "label" %>
+    <div class=""><%= f.text_field :title, class: "input", required: true %></div>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :body, "Message / Description", class: "label" %>
+    <div class=""><%= f.text_area :body, class: "textarea", rows: 8, placeholder: "Describe the issue or request in detail..." %></div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="mb-3">
+        <%= f.label :priority, class: "label" %>
+        <div class="">
+          <div class="select w-100">
+            <%= f.select :priority, CustomerTicket.priorities.keys.map { |p| [p.humanize, p] } %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="mb-3">
+        <%= f.label :status, class: "label" %>
+        <div class="">
+          <div class="select w-100">
+            <%= f.select :status, CustomerTicket.statuses.keys.map { |s| [s.humanize, s] } %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="mb-3">
+        <%= f.label :assigned_to_id, "Assign To", class: "label" %>
+        <div class="">
+          <div class="select w-100">
+            <%= f.select :assigned_to_id, User.order(:name).map { |u| [u.display_name, u.id] }, { include_blank: "— Unassigned —" } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 align-items-end">
+    <div class=""><%= f.submit customer_ticket.new_record? ? "Submit Ticket" : "Update Ticket", class: "btn btn-primary" %></div>
+    <div class=""><%= link_to "Cancel", customer_customer_tickets_path(@customer), class: "btn btn-secondary" %></div>
+  </div>
+<% end %>

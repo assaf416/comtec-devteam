@@ -1,0 +1,47 @@
+<% content_for :title, "Notification ##{@notification.id}" %>
+
+<div class="level">
+  <div class="level-left">
+    <h1 class="fw-bold">Notification #<%= @notification.id %></h1>
+  </div>
+  <div class="level-right d-flex gap-2">
+    <%= link_to t("common.actions.edit"), edit_notification_path(@notification), class: "btn btn-secondary is-light" %>
+    <%= link_to "Back", notifications_path, class: "btn btn-secondary is-light" %>
+  </div>
+</div>
+
+<div class="card p-3 mb-3">
+  <div class="row">
+    <div class="col-6">
+      <p class="text-muted fs-7 mb-1">Status</p>
+      <% if @notification.read? %>
+        <span class="badge bg-secondary is-light">Read</span>
+      <% else %>
+        <span class="badge bg-warning text-dark">Unread</span>
+      <% end %>
+    </div>
+    <div class="col-6 text-end">
+      <p class="text-muted fs-7 mb-1">Created</p>
+      <p class="mb-0"><%= @notification.created_at.strftime("%Y-%m-%d %H:%M:%S") %></p>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3 mb-3">
+  <p class="text-muted fs-7 mb-1">Message</p>
+  <p class="mb-0"><%= @notification.message_text %></p>
+</div>
+
+<% if @notification.error_text.present? %>
+  <div class="card p-3 mb-3 border border-danger-subtle">
+    <p class="text-muted fs-7 mb-1">Error Message</p>
+    <pre class="mb-0" style="white-space: pre-wrap;"><%= @notification.error_text %></pre>
+  </div>
+<% end %>
+
+<% if @notification.backtrace_text.present? %>
+  <div class="card p-3">
+    <p class="text-muted fs-7 mb-1">Backtrace</p>
+    <pre class="mb-0" style="max-height: 420px; overflow: auto; white-space: pre-wrap;"><%= @notification.backtrace_text %></pre>
+  </div>
+<% end %>

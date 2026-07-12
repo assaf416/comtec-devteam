@@ -1,0 +1,70 @@
+<% content_for :title, "Documents – #{@project.name}" %>
+
+<div class="level">
+  <div class="level-left"><h1 class="fw-bold">Documents — <%= @project.name %></h1></div>
+  <div class="level-right d-flex gap-2">
+    <%= link_to templates_project_documents_path(@project), class: "btn btn-outline-warning btn-sm" do %>
+      <i class="bi bi-file-earmark-code me-1"></i>Templates
+      <% count = @project.documents.templates.count %>
+      <% if count > 0 %><span class="badge bg-warning text-dark ms-1"><%= count %></span><% end %>
+    <% end %>
+    <%= link_to t("buttons.new_document"), new_project_document_path(@project), class: "btn btn-primary" %>
+  </div>
+</div>
+
+<%= render "documents/ai_generate", project: @project %>
+
+<%# Type filter tabs %>
+<div class="nav nav-tabs">
+  <ul>
+    <li class="<%= params[:doc_type].blank? ? 'is-active' : '' %>">
+      <%= link_to "All", project_documents_path(@project) %>
+    </li>
+    <% Document.doc_types.keys.each do |dtype| %>
+      <li class="<%= params[:doc_type] == dtype ? 'is-active' : '' %>">
+        <%= link_to t("documents.types.#{dtype}"), project_documents_path(@project, doc_type: dtype) %>
+      </li>
+    <% end %>
+  </ul>
+</div>
+
+<% if @documents.any? %>
+  <div class="row">
+    <% @documents.each do |doc| %>
+      <div class="col-6">
+        <div class="card p-3 mb-3">
+          <div class="level">
+            <div class="level-left">
+              <div>
+                <p class="fw-bold fs-6 mb-0">
+                  <%= link_to doc.title, document_path(doc) %>
+                  <% if doc.template %>
+                    <span class="badge bg-light text-muted border ms-1 fw-normal" style="font-size:.7em">
+                      <i class="bi bi-copy me-1"></i>From template
+                    </span>
+                  <% end %>
+                </p>
+                <p class="fs-7 text-muted mb-0">
+                  <%= t("documents.types.#{doc.doc_type}") %> · v<%= doc.version_number.presence || '1.0' %>
+                  · by <%= doc.author&.display_name || 'Unknown' %>
+                  · <%= doc.updated_at.strftime('%d/%m/%Y') %>
+                </p>
+              </div>
+            </div>
+            <div class="level-right">
+              <%= link_to t("common.actions.edit"), edit_document_path(doc), class: "btn btn-secondary btn-sm is-light" %>
+            </div>
+          </div>
+          <p class="fs-7 mb-0 mt-1"><%= doc.summary&.truncate(150) %></p>
+          <% if doc.tag_list.any? %>
+            <div class="d-flex flex-wrap gap-1 mt-2">
+              <% doc.tag_list.each do |tag| %><span class="badge bg-light text-dark is-small"><%= tag %></span><% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="alert alert-light">No documents yet. <strong><%= link_to "Create the first one", new_project_document_path(@project) %></strong></div>
+<% end %>

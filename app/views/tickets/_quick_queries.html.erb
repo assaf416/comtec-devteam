@@ -1,0 +1,24 @@
+<%# Common ticket-query links. Shown on the tickets index (all) and the filtered
+    list pages. Active state is derived from the current action. %>
+<div class="btn-group btn-group-sm mb-3 flex-wrap" role="group" aria-label="<%= t('sidebar.tickets_label') %>">
+  <%= link_to all_tickets_path,
+        class: "btn #{action_name == 'all' ? 'btn-primary' : 'btn-outline-secondary'}" do %>
+    🎫 <%= t('sidebar.tickets.all_tickets') %>
+  <% end %>
+  <%= link_to my_tickets_path,
+        class: "btn #{action_name == 'mine' ? 'btn-primary' : 'btn-outline-secondary'}" do %>
+    🙋 <%= t('sidebar.tickets.my_tickets') %>
+  <% end %>
+  <%= link_to late_tickets_path,
+        class: "btn #{action_name == 'late' ? 'btn-primary' : 'btn-outline-secondary'}" do %>
+    ⏰ <%= t('sidebar.tickets.late') %>
+  <% end %>
+  <%= link_to backlog_tickets_path,
+        class: "btn #{action_name == 'backlog_list' ? 'btn-primary' : 'btn-outline-secondary'}" do %>
+    📥 <%= t('sidebar.tickets.backlog') %>
+  <% end %>
+  <%= link_to current_sprint_tickets_path,
+        class: "btn #{action_name == 'current_sprint' ? 'btn-primary' : 'btn-outline-secondary'}" do %>
+    🏃 <%= t('sidebar.tickets.current_sprint') %>
+  <% end %>
+</div>

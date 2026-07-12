@@ -1,0 +1,72 @@
+<% is_story = @type == "feature_request"
+   label    = is_story ? "Stories & Feature Requests" : "Support Tickets"
+   icon     = is_story ? "💡" : "🎫"
+   content_for(:title) { label }
+%>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="fw-bold mb-0"><%= icon %> <%= label %></h1>
+  <%= link_to "＋ #{is_story ? t('buttons.new_story') : t('buttons.new_ticket')}",
+              new_customer_portal_ticket_path(type: @type),
+              class: "btn btn-primary" %>
+</div>
+
+<%# Type toggle tabs %>
+<div class="nav nav-tabs mb-4">
+  <ul>
+    <li class="<%= @type == 'support' ? 'is-active' : '' %>">
+      <%= link_to "🎫 Support Tickets", customer_portal_tickets_path(type: "support") %>
+    </li>
+    <li class="<%= @type == 'feature_request' ? 'is-active' : '' %>">
+      <%= link_to "💡 Stories / Feature Requests", customer_portal_tickets_path(type: "feature_request") %>
+    </li>
+  </ul>
+</div>
+
+<%# Status filter buttons %>
+<div class="btn btn-secondarys mb-4">
+  <%= link_to "All",                customer_portal_tickets_path(type: @type),                          class: "btn btn-secondary btn-sm #{@status.nil? ? 'is-primary' : 'is-light'}" %>
+  <%= link_to "Open",               customer_portal_tickets_path(type: @type, status: "open"),           class: "btn btn-secondary btn-sm #{@status == 'open' ? 'is-warning' : 'is-light'}" %>
+  <%= link_to "In Progress",        customer_portal_tickets_path(type: @type, status: "in_progress"),    class: "btn btn-secondary btn-sm #{@status == 'in_progress' ? 'is-info' : 'is-light'}" %>
+  <%= link_to "Waiting for Us",     customer_portal_tickets_path(type: @type, status: "waiting_for_customer"), class: "btn btn-secondary btn-sm #{@status == 'waiting_for_customer' ? 'is-warning is-light' : 'is-light'}" %>
+  <%= link_to "Resolved",           customer_portal_tickets_path(type: @type, status: "resolved"),       class: "btn btn-secondary btn-sm #{@status == 'resolved' ? 'is-success' : 'is-light'}" %>
+</div>
+
+<% if @tickets.empty? %>
+  <div class="card p-3 mb-3 text-center py-6">
+    <p class="text-muted mb-3">No <%= label.downcase %> found.</p>
+    <%= link_to "＋ Submit #{is_story ? 'a story' : 'a ticket'}", new_customer_portal_ticket_path(type: @type), class: "btn btn-primary" %>
+  </div>
+<% else %>
+  <div class="card p-3 mb-3 p-0">
+    <table class="table table-hover w-100 mb-0">
+      <thead>
+        <tr>
+          <th><%= t('table_headers.title') %></th>
+          <th><%= t('table_headers.priority') %></th>
+          <th><%= t('table_headers.status') %></th>
+          <th><%= t('table_headers.submitted') %></th>
+          <th><%= t('table_headers.updated') %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @tickets.each do |ticket| %>
+          <tr>
+            <td><%= link_to ticket.title, customer_portal_ticket_path(ticket), class: "fw-medium" %></td>
+            <td>
+              <% color = { "critical" => "is-danger", "high" => "is-warning", "medium" => "is-info", "low" => "is-light" }[ticket.priority] || "is-light" %>
+              <span class="badge bg-secondary <%= color %> is-small"><%= ticket.priority.to_s.humanize %></span>
+            </td>
+            <td>
+              <% scolor = ticket.status_resolved? || ticket.status_closed? ? "is-success" :
+                          ticket.status_open? || ticket.status_in_progress? ? "is-warning" : "is-light" %>
+              <span class="badge bg-secondary <%= scolor %> is-small"><%= ticket.status.to_s.humanize %></span>
+            </td>
+            <td class="fs-7 text-muted"><%= ticket.created_at.strftime("%b %-d, %Y") %></td>
+            <td class="fs-7 text-muted"><%= ticket.updated_at.strftime("%b %-d, %Y") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

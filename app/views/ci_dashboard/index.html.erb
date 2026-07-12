@@ -1,0 +1,156 @@
+<% content_for :title, "CI Overview" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-0">🏗️ CI Overview</h1>
+      <p class="text-muted mb-0">Continuous integration health across all projects</p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to ci_runs_all_path, class: "btn btn-outline-secondary btn-sm" do %>⚙️ All Runs<% end %>
+    <%= link_to ci_security_path, class: "btn btn-outline-danger btn-sm ms-1" do %>🔒 Security<% end %>
+    <%= link_to ci_performance_path, class: "btn btn-outline-warning btn-sm ms-1" do %>⚡ Performance<% end %>
+  </div>
+</div>
+
+<%# ── Top stats ──────────────────────────────────────────────────────── %>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card p-3 stat-card text-center">
+      <div class="stat-number"><%= @stats[:total] %></div>
+      <div class="stat-label">Total Runs</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 stat-card text-center">
+      <div class="stat-number text-success"><%= @stats[:passed] %></div>
+      <div class="stat-label">Passed</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 stat-card text-center">
+      <div class="stat-number text-danger"><%= @stats[:failed] %></div>
+      <div class="stat-label">Failed</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 stat-card text-center">
+      <div class="stat-number text-info"><%= @test_stats[:pass_rate] %>%</div>
+      <div class="stat-label">Test Pass Rate</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <%# ── Project health table ────────────────────────────────────────── %>
+  <div class="col-md-7">
+    <div class="card p-3 h-100">
+      <h3 class="fw-semibold mb-3">Project Health</h3>
+      <table class="table table-hover w-100 fs-7 mb-0">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Latest Build</th>
+            <th>Status</th>
+            <th>Pass Rate (last 10)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @project_health.each do |row| %>
+            <tr>
+              <td>
+                <%= link_to row[:project].name, project_path(row[:project]), class: "fw-semibold text-decoration-none" %>
+              </td>
+              <td>
+                <% if row[:latest] %>
+                  <%= link_to "##{row[:latest].build_number}", ci_run_path(row[:latest]), class: "text-muted small" %>
+                <% else %>—<% end %>
+              </td>
+              <td>
+                <% if row[:latest] %>
+                  <%= status_tag(row[:latest].status) %>
+                <% else %>—<% end %>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1" style="height:8px;">
+                    <div class="progress-bar <%= row[:pass_rate].to_i >= 80 ? 'bg-success' : row[:pass_rate].to_i >= 50 ? 'bg-warning' : 'bg-danger' %>"
+                         style="width:<%= row[:pass_rate] %>%"></div>
+                  </div>
+                  <span class="small fw-semibold" style="min-width:34px;"><%= row[:pass_rate] %>%</span>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <%# ── Recent failures ─────────────────────────────────────────────── %>
+  <div class="col-md-5">
+    <div class="card p-3 h-100">
+      <h3 class="fw-semibold mb-3">Recent Failures</h3>
+      <% if @recent_failures.any? %>
+        <% @recent_failures.each do |run| %>
+          <div class="d-flex align-items-start gap-2 mb-3 pb-2 border-bottom">
+            <span class="badge bg-danger mt-1" style="font-size:0.65rem;">FAIL</span>
+            <div class="flex-grow-1 min-w-0">
+              <div class="fw-semibold text-truncate"><%= run.project.name %></div>
+              <div class="text-muted small"><code><%= run.branch_name.presence || "—" %></code></div>
+              <div class="text-muted" style="font-size:0.72rem;"><%= run.started_at&.strftime("%d %b %H:%M") %></div>
+            </div>
+            <%= link_to ci_run_path(run), class: "btn btn-sm btn-outline-secondary flex-shrink-0" do %>👁<% end %>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="text-success mb-0">✅ No recent failures</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%# ── Deployments row ────────────────────────────────────────────────── %>
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h3 class="fw-semibold mb-3">Deployments by Environment</h3>
+      <% @deployments_by_env.each do |env, count| %>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="badge bg-secondary"><%= env %></span>
+          <span class="fw-bold"><%= count %></span>
+        </div>
+      <% end %>
+      <%= link_to "View all deployments →", reports_deployment_summary_path, class: "btn btn-sm btn-outline-secondary mt-2 w-100" %>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card p-3">
+      <h3 class="fw-semibold mb-3">Recent Deployments</h3>
+      <table class="table table-sm table-hover mb-0 fs-7">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Version</th>
+            <th>Environment</th>
+            <th>Status</th>
+            <th>Deployed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @recent_deployments.each do |dep| %>
+            <tr>
+              <td><%= dep.project.name %></td>
+              <td><code><%= dep.version %></code></td>
+              <td><span class="badge bg-secondary"><%= dep.environment %></span></td>
+              <td><%= status_tag(dep.status) %></td>
+              <td><%= dep.deployed_at ? dep.deployed_at.strftime("%d %b") : "—" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

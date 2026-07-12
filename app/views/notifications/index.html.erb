@@ -1,0 +1,69 @@
+<% content_for :title, "Notifications" %>
+
+<div class="level">
+  <div class="level-left">
+    <h1 class="fw-bold">Notifications</h1>
+  </div>
+  <div class="level-right d-flex gap-2">
+    <%= link_to t("buttons.new_notification"), new_notification_path, class: "btn btn-primary" %>
+    <% if @notifications.any? { |n| !n.read? } %>
+      <%= link_to "Mark all read", mark_all_read_notifications_path,
+            data: { turbo_method: :post },
+            class: "btn btn-secondary is-light" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="card p-3">
+  <% if @notifications.blank? %>
+    <p class="text-muted mb-0">No notifications available.</p>
+  <% else %>
+    <div class="table-responsive">
+      <table class="table is-fullwidth">
+        <thead>
+          <tr>
+            <th><%= t('table_headers.status') %></th>
+            <th><%= t('table_headers.message') %></th>
+            <th><%= t('table_headers.error') %></th>
+            <th><%= t('table_headers.created') %></th>
+            <th class="text-end"><%= t('table_headers.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @notifications.each do |notification| %>
+            <tr>
+              <td>
+                <% if notification.read? %>
+                  <span class="badge bg-secondary is-light">Read</span>
+                <% else %>
+                  <span class="badge bg-warning text-dark">Unread</span>
+                <% end %>
+              </td>
+              <td><%= notification.message_text.truncate(120) %></td>
+              <td>
+                <% if notification.error_text.present? %>
+                  <span class="badge bg-danger">Exception</span>
+                <% else %>
+                  <span class="text-muted">-</span>
+                <% end %>
+              </td>
+              <td><%= notification.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+              <td class="text-end">
+                <%= actions_dropdown do |d| %>
+                  <% d.link t('common.view'), notification_path(notification), icon: '👁' %>
+                  <% d.button_action "Open ticket", open_ticket_notification_path(notification), method: :post, icon: '🎫' %>
+                  <% d.link t('common.actions.edit'), edit_notification_path(notification), icon: '✏️' %>
+                  <% unless notification.read? %>
+                    <% d.button_action t('common.actions.mark_read'), mark_read_notification_path(notification), method: :patch, icon: '✅' %>
+                  <% end %>
+                  <% d.divider %>
+                  <% d.delete t('common.delete'), notification_path(notification), confirm: t('common.confirm_delete') %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

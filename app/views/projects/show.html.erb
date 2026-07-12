@@ -1,0 +1,474 @@
+<% content_for :title, @project.name %>
+
+<%= render "shared/context_bar", type: "Project", icon: "📦", color: "primary",
+      crumbs: [["Projects", projects_path], [@project.name, nil]] %>
+
+<div class="level">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold">📦 <%= @project.name %></h1>
+      <p class="subfw-bold fs-6 text-muted"><%= @project.tech_stack %></p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to "💬 Chat with AI", project_ai_chats_path(@project), class: "btn btn-primary btn-sm" %>
+    <%= link_to "📊 Dashboard", dashboard_project_path(@project), class: "btn btn-primary btn-sm is-light" %>
+    <%= link_to t("common.actions.edit"), edit_project_path(@project), class: "btn btn-secondary btn-sm is-warning" %>
+    <%= link_to t("sprints.new_sprint"), new_project_sprint_path(@project), class: "btn btn-primary btn-sm" %>
+    <% if @project.repo_url.present? %>
+      <%= link_to "Repository ↗", @project.repo_url, target: "_blank", rel: "noopener noreferrer", class: "btn btn-secondary btn-sm is-light" %>
+    <% end %>
+  </div>
+</div>
+
+<p class="mb-4"><%= @project.description %></p>
+
+<%# ─── Stat cards ─────────────────────────────────────────────────────── %>
+<div class="row">
+  <div class="col-3">
+    <div class="card p-3 mb-3 stat-card">
+      <div class="stat-number"><%= @project.tickets.where.not(status: [:done, :closed]).count %></div>
+      <div class="stat-label">Open Tickets</div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card p-3 mb-3 stat-card">
+      <div class="stat-number"><%= @project.ci_runs.passed.where(created_at: 7.days.ago..).count %></div>
+      <div class="stat-label">Builds Passed (7d)</div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card p-3 mb-3 stat-card">
+      <div class="stat-number"><%= @project.deployments.where(created_at: 30.days.ago..).count %></div>
+      <div class="stat-label">Deployments (30d)</div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card p-3 mb-3 stat-card">
+      <div class="stat-number"><%= @project.pull_requests.where(status: :open).count %></div>
+      <div class="stat-label">Open Pull Requests</div>
+    </div>
+  </div>
+</div>
+
+<%# ─── Sprints ─────────────────────────────────────────────────────────── %>
+<div class="card p-3 mb-3" id="sprints">
+  <div class="level mb-3">
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🏃 Sprints</h3></div>
+    <div class="level-right">
+      <%= link_to "All sprints →", project_sprints_path(@project), class: "fs-7 text-muted me-2" %>
+      <%= link_to "+ New sprint", new_project_sprint_path(@project), class: "btn btn-sm btn-primary" %>
+    </div>
+  </div>
+  <% project_sprints = @project.sprints.includes(:tickets).order(start_date: :desc) %>
+  <% if project_sprints.any? %>
+    <table class="table table-hover w-100 fs-7 align-middle mb-0">
+      <thead>
+        <tr><th>Sprint</th><th>Status</th><th>Dates</th><th>Progress</th><th class="text-end">Estimated</th><th class="text-end">Actual</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% project_sprints.each do |sprint| %>
+          <tr style="cursor:pointer;" onclick="window.location='<%= sprint_path(sprint) %>'">
+            <td class="fw-semibold">
+              <%= sprint.name %>
+              <% if sprint.current? %><span class="badge bg-success ms-1">★ Current</span><% end %>
+            </td>
+            <td><span class="badge bg-light text-dark border"><%= sprint.status.humanize %></span></td>
+            <td class="text-muted"><%= sprint.start_date.strftime("%d %b") %> – <%= sprint.end_date.strftime("%d %b %Y") %></td>
+            <td style="min-width:120px;">
+              <div class="progress" style="height:6px;"><div class="progress-bar bg-success" style="width:<%= sprint.progress_percent %>%"></div></div>
+              <span class="fs-8 text-muted"><%= sprint.progress_percent %>%</span>
+            </td>
+            <td class="text-end num"><%= sprint.total_estimated_hours %>h</td>
+            <td class="text-end num"><%= sprint.total_actual_hours %>h</td>
+            <td class="text-end" onclick="event.stopPropagation();">
+              <% if sprint.current? %>
+                <span class="badge bg-success">★ Active</span>
+              <% else %>
+                <%= button_to "Set as active", activate_sprint_path(sprint), method: :patch,
+                      class: "btn btn-outline-success btn-sm py-0",
+                      form: { data: { turbo_confirm: "Make \"#{sprint.name}\" the active sprint for #{@project.name}?" } } %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-muted fs-7 mb-0">No sprints yet. <%= link_to "Create the first one", new_project_sprint_path(@project) %>.</p>
+  <% end %>
+</div>
+
+<%# ─── Tickets ─────────────────────────────────────────────────────────── %>
+<%
+  task_total    = @project.tickets.sum(:tasks_count)
+  task_done     = @project.tickets.sum(:completed_tasks_count)
+  task_percent  = task_total.zero? ? 0 : (task_done * 100.0 / task_total).round
+  task_est_hours = @project.tickets.sum(:total_tasks_estimation)
+%>
+<div class="card p-3 mb-3" id="tickets">
+  <div class="level mb-3">
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🎫 Tickets</h3></div>
+    <div class="level-right">
+      <%= link_to "View All →", project_tickets_path(@project), class: "fs-7 text-muted" %>
+    </div>
+  </div>
+
+  <%# Task-based progress across the whole project (completed / total tasks) %>
+  <div class="mb-3">
+    <div class="d-flex justify-content-between fs-7 mb-1">
+      <span class="fw-semibold">Task progress</span>
+      <span class="text-muted"><%= task_done %>/<%= task_total %> tasks · <%= task_est_hours %>h estimated</span>
+    </div>
+    <div class="progress" style="height:10px;">
+      <div class="progress-bar bg-info" style="width:<%= task_percent %>%"><%= task_percent %>%</div>
+    </div>
+  </div>
+
+  <%# Filter tabs: open / completed / awaiting estimation %>
+  <div class="btn-group btn-group-sm mb-3" role="group" aria-label="Ticket filters">
+    <% [
+         [ "open",             "Open" ],
+         [ "completed",        "Completed" ],
+         [ "needs_estimation", "Needs Estimation" ]
+       ].each do |key, label| %>
+      <%= link_to project_path(@project, ticket_filter: key, anchor: "tickets"),
+            class: "btn #{@ticket_filter == key ? 'btn-primary' : 'btn-outline-secondary'}" do %>
+        <%= label %>
+        <span class="badge bg-light text-dark ms-1"><%= @ticket_counts[key.to_sym] %></span>
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if @panel_tickets.any? %>
+    <table class="table table-hover w-100 fs-7 mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Status</th>
+          <th>Priority</th>
+          <th>Progress</th>
+          <th>Assignee</th>
+          <th>Updated</th>
+          <th class="text-end"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @panel_tickets.each do |ticket| %>
+          <tr>
+            <td><%= link_to "T-#{ticket.id}", ticket_path(ticket), class: "fw-bold text-primary" %></td>
+            <td><%= link_to ticket.title.truncate(60), ticket_path(ticket) %></td>
+            <td><%= status_tag(ticket.status) %></td>
+            <td><%= priority_tag(ticket.priority) %></td>
+            <td><%= render "tickets/progress_cell", ticket: ticket %></td>
+            <td><span class="d-inline-flex align-items-center gap-1"><%= user_avatar(ticket.assignee, size: 20) if ticket.assignee %><%= ticket.assignee&.display_name || '—' %></span></td>
+            <td><%= ticket.updated_at.strftime('%d/%m') %></td>
+            <td class="text-end">
+              <%= actions_dropdown do |d| %>
+                <% unless ticket.approved? %>
+                  <% d.button_action "Approve ticket", approve_ticket_path(ticket), icon: "✓" %>
+                  <% d.divider %>
+                <% end %>
+                <% Ticket.statuses.keys.each do |st| %>
+                  <% next if st == ticket.status || st == "backlog" %>
+                  <% d.button_action "Mark #{t("tickets.statuses.#{st}")}", update_status_ticket_path(ticket, status: st), icon: "→" %>
+                <% end %>
+                <% d.divider %>
+                <% d.button_action "Move to backlog", move_to_sprint_ticket_path(ticket, target: "backlog"), icon: "📥" %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-muted fs-7 mb-0">No tickets in this view.</p>
+  <% end %>
+</div>
+
+<%# ─── Channels (project chat) ──────────────────────────────────────────── %>
+<div class="card p-3 mb-3" id="channels">
+  <div class="level mb-3">
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">💬 Channels</h3></div>
+    <div class="level-right">
+      <%= link_to "➕ New channel", new_chat_room_path(project_id: @project.id), class: "btn btn-sm btn-outline-primary" %>
+    </div>
+  </div>
+  <% project_rooms = @project.chat_rooms.active.order(:name) %>
+  <% if project_rooms.any? %>
+    <div class="d-flex flex-wrap gap-2">
+      <% project_rooms.each do |room| %>
+        <%= link_to chat_room_path(room), class: "btn btn-sm btn-light border" do %>
+          # <%= room.name %>
+          <% if room.last_message %>
+            <span class="text-muted fs-7 ms-1">· <%= time_ago_in_words(room.last_message.created_at) %> ago</span>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-muted fs-7 mb-0">No channels yet — create one to start chatting about this project.</p>
+  <% end %>
+</div>
+
+<%# ─── CI Runs ─────────────────────────────────────────────────────────── %>
+<div class="card p-3 mb-3">
+  <div class="level mb-3">
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">⚙️ CI Runs</h3></div>
+    <div class="level-right">
+      <%= link_to "View All →", project_ci_runs_path(@project), class: "fs-7 text-muted" %>
+    </div>
+  </div>
+  <% if @recent_ci_runs.any? %>
+    <table class="table table-hover w-100 fs-7 mb-0">
+      <thead>
+        <tr>
+          <th><%= t('table_headers.build') %></th>
+          <th><%= t('table_headers.branch') %></th>
+          <th><%= t('table_headers.status') %></th>
+          <th><%= t('table_headers.duration') %></th>
+          <th><%= t('table_headers.started') %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @recent_ci_runs.each do |run| %>
+          <tr>
+            <td><%= link_to "##{run.build_number}", ci_run_path(run), class: "fw-bold text-primary" %></td>
+            <td><code><%= run.branch_name %></code></td>
+            <td><%= status_tag(run.status) %></td>
+            <td><%= run.duration ? "#{run.duration}m" : "—" %></td>
+            <td><%= run.started_at&.strftime('%d/%m %H:%M') || '—' %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-muted fs-7 mb-0">No CI runs yet.</p>
+  <% end %>
+</div>
+
+<%# ─── Deployments / Versions ─────────────────────────────────────────── %>
+<div class="card p-3 mb-3">
+  <div class="level mb-3">
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🚀 Deployments</h3></div>
+    <div class="level-right">
+      <%= link_to "View All →", project_deployments_path(@project), class: "fs-7 text-muted" %>
+    </div>
+  </div>
+  <% if @recent_deployments.any? %>
+    <table class="table table-hover w-100 fs-7 mb-0">
+      <thead>
+        <tr>
+          <th>Version</th>
+          <th>Environment</th>
+          <th>Status</th>
+          <th>Deployed By</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @recent_deployments.each do |deploy| %>
+          <tr>
+            <td><span class="badge bg-light text-dark"><%= deploy.version %></span></td>
+            <td><span class="deploy-env-badge <%= deploy.environment.to_s.downcase.gsub(/[^a-z]/, '') %>"><%= deploy.environment %></span></td>
+            <td><%= status_tag(deploy.status) %></td>
+            <td><%= deploy.deployed_by&.display_name || '—' %></td>
+            <td><%= deploy.created_at.strftime('%d/%m/%Y') %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-muted fs-7 mb-0">No deployments yet.</p>
+  <% end %>
+</div>
+
+<%# ─── Pull Requests ───────────────────────────────────────────────────── %>
+<div class="card p-3 mb-3">
+  <div class="level mb-3">
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🔀 Pull Requests</h3></div>
+    <div class="level-right">
+      <%= link_to "View All →", project_pull_requests_path(@project), class: "fs-7 text-muted" %>
+    </div>
+  </div>
+  <% if @open_pull_requests.any? %>
+    <table class="table table-hover w-100 fs-7 mb-0">
+      <thead>
+        <tr>
+          <th>PR</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Status</th>
+          <th>Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @open_pull_requests.each do |pr| %>
+          <tr>
+            <td><%= link_to "##{pr.pr_number}", pull_request_path(pr), class: "fw-bold text-primary" %></td>
+            <td><%= pr.title.truncate(60) %></td>
+            <td><%= pr.author || '—' %></td>
+            <td><%= status_tag(pr.status) %></td>
+            <td><%= pr.updated_at.strftime('%d/%m') %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-muted fs-7 mb-0">No open pull requests.</p>
+  <% end %>
+</div>
+
+<%# ─── Documents ───────────────────────────────────────────────────────── %>
+<div class="card p-3 mb-3">
+  <div class="level mb-3">
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">📁 Documents</h3></div>
+    <div class="level-right">
+      <%= link_to "View All →", project_documents_path(@project), class: "fs-7 text-muted" %>
+    </div>
+  </div>
+
+  <%= render "documents/ai_generate", project: @project %>
+
+  <% if @recent_documents.any? %>
+    <div class="row">
+      <% @recent_documents.each do |doc| %>
+        <div class="col-4 mb-2">
+          <div class="p-2" style="border:1px solid #eee;border-radius:6px;">
+            <p class="fw-semibold fs-7 mb-1"><%= link_to doc.title.truncate(40), document_path(doc) %></p>
+            <p class="text-muted fs-7 mb-0">
+              <span class="badge bg-light text-dark is-small"><%= doc.doc_type.humanize.gsub("_", " ") %></span>
+              <span class="ms-1"><%= doc.updated_at.strftime('%d/%m/%Y') %></span>
+            </p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-muted fs-7 mb-0">No documents yet.</p>
+  <% end %>
+</div>
+
+<%# ─── Recent Comments ───────────────────────────────────────────────── %>
+<div class="card p-3 mb-3">
+  <div class="level mb-3">
+    <div class="level-left">
+      <h3 class="fw-bold fs-5 mb-0">💬 Recent Comments</h3>
+    </div>
+    <div class="level-right fs-7 text-muted">across all tickets</div>
+  </div>
+
+  <% if @recent_comments.blank? %>
+    <p class="text-muted fs-7">No comments yet on this project's tickets.</p>
+  <% else %>
+    <% @recent_comments.each do |comment| %>
+      <% ticket = comment.commentable %>
+      <div class="media mb-3" style="border-bottom:1px solid #f5f5f5;padding-bottom:.75rem;">
+        <div class="media-content">
+          <p class="fs-7">
+            <strong><%= comment.author&.display_name || "System" %></strong>
+            <span class="text-muted ms-1">on</span>
+            <%= link_to "#T-#{ticket.id} #{ticket.title.truncate(50)}",
+                  ticket_path(ticket),
+                  class: "fw-semibold" %>
+            <span class="badge bg-light text-dark is-small ms-1"><%= ticket.kind.humanize.gsub("_", " ") %></span>
+            <span class="text-muted fs-7 ms-2"><%= time_ago_in_words(comment.created_at) %> ago</span>
+          </p>
+          <p class="fs-7 text-dark mt-1"><%= comment.body.truncate(160) %></p>
+        </div>
+        <div class="media-right fs-7 text-muted">
+          <%= link_to "→", ticket_path(ticket, anchor: "comment-#{comment.id}"), class: "text-muted" %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<%# ─── Members section ──────────────────────────────────────────────── %>
+<div id="members" class="card p-3 mb-3 mt-5">
+  <div class="level mb-3">
+    <div class="level-left">
+      <h3 class="fw-bold fs-5 mb-0">👥 Members (<%= @project.project_memberships.count %>)</h3>
+    </div>
+  </div>
+
+  <% memberships = @project.project_memberships.includes(:user).order(:role, "users.name") %>
+
+  <% if memberships.any? %>
+    <table class="table table-hover w-100 is-striped fs-7">
+      <thead>
+        <tr>
+          <th><%= t('table_headers.name') %></th>
+          <th><%= t('table_headers.email') %></th>
+          <th><%= t('table_headers.role') %></th>
+          <th><%= t('table_headers.notes') %></th>
+          <% if current_user.admin? || memberships.leads.exists?(user: current_user) %>
+            <th class="text-end"></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% memberships.each do |m| %>
+          <tr>
+            <td>
+              <span style="display:inline-flex;align-items:center;gap:.4rem;">
+                <span class="fw-semibold"><%= m.user.display_name %></span>
+              </span>
+            </td>
+            <td class="text-muted"><%= m.user.email %></td>
+            <td>
+              <span class="badge bg-secondary <%= m.lead? ? 'is-info' : m.qa? ? 'is-warning' : 'is-light' %>">
+                <%= m.role.humanize %>
+              </span>
+            </td>
+            <td class="text-muted"><%= m.notes.presence || "—" %></td>
+            <% if current_user.admin? || memberships.leads.exists?(user: current_user) %>
+              <td class="text-end">
+                <%= actions_dropdown do |d| %>
+                  <% d.delete t('common.actions.remove'), project_project_membership_path(@project, m), confirm: "Remove #{m.user.display_name} from this project?" %>
+                <% end %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-muted">No members yet.</p>
+  <% end %>
+
+  <%# ── Add member form (admin / lead only) ─────────────────────────── %>
+  <% if current_user.admin? || memberships.leads.exists?(user: current_user) %>
+    <% non_members = User.order(:name).where.not(id: @project.members.select(:id)) %>
+    <% if non_members.any? %>
+      <hr>
+      <h4 class="fw-bold fs-6 mb-3">Add a member</h4>
+      <%= form_with url: project_project_memberships_path(@project), method: :post,
+            local: true do |f| %>
+        <div class="d-flex gap-2 align-items-end is-grouped-multiline">
+          <div class="">
+            <%= f.select "project_membership[user_id]",
+                  non_members.map { |u| [u.display_name + " <#{u.email}>", u.id] },
+                  { prompt: "Select user…" },
+                  { class: "select" } %>
+          </div>
+          <div class="">
+            <%= f.select "project_membership[role]",
+                  ProjectMembership.roles.keys.map { |r| [r.humanize, r] },
+                  { selected: "developer" },
+                  { class: "select" } %>
+          </div>
+          <div class="flex-fill">
+            <%= f.text_field "project_membership[notes]",
+                  placeholder: "Notes (optional)",
+                  class: "input" %>
+          </div>
+          <div class="">
+            <%= f.submit "Add", class: "btn btn-primary" %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

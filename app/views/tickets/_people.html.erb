@@ -1,0 +1,13 @@
+<%# Small round avatars for a ticket's assignee + owner. locals: ticket, size (optional) %>
+<% size = local_assigns.fetch(:size, 22) %>
+<span class="d-inline-flex align-items-center gap-1">
+  <% if ticket.assignee %>
+    <span title="Assignee: <%= ticket.assignee.display_name %>"><%= user_avatar(ticket.assignee, size: size) %></span>
+  <% end %>
+  <% if ticket.owner && ticket.owner_id != ticket.assignee_id %>
+    <span title="Owner: <%= ticket.owner.display_name %>" style="opacity:.85;"><%= user_avatar(ticket.owner, size: size) %></span>
+  <% end %>
+  <% if ticket.assignee.nil? && ticket.owner.nil? %>
+    <span class="text-muted fs-7">—</span>
+  <% end %>
+</span>

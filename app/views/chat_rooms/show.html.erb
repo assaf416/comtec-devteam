@@ -1,0 +1,117 @@
+<% content_for :page_title do %># <%= @chat_room.name %><% end %>
+
+<div class="chat-layout" data-controller="chat">
+
+  <%# ── Channel header ──────────────────────────────────────────────────── %>
+  <div class="chat-header">
+    <span style="font-size:1.1rem;color:#aaa;">#</span>
+    <span class="chat-room-name"><%= @chat_room.name %></span>
+    <% if @chat_room.description.present? %>
+      <span style="color:#ccc;margin:0 0.4rem;">|</span>
+      <span class="chat-room-desc"><%= @chat_room.description %></span>
+    <% end %>
+    <% if @chat_room.project %>
+      <%= link_to @chat_room.project.name, project_path(@chat_room.project),
+            class: "badge bg-info text-dark is-light ms-auto" %>
+    <% end %>
+  </div>
+
+  <%# ── Messages list ──────────────────────────────────────────────────── %>
+  <turbo-frame id="chat-messages-<%= @chat_room.id %>">
+    <div class="chat-messages" id="chatMessages" data-chat-target="messages">
+
+      <% prev_user_id = nil %>
+      <% prev_date    = nil %>
+
+      <% @messages.each do |msg| %>
+        <%
+          is_continuation = (msg.user_id == prev_user_id)
+          msg_date        = msg.created_at.to_date
+        %>
+
+        <%# Day divider %>
+        <% if msg_date != prev_date %>
+          <div class="chat-day-divider">
+            <hr>
+            <span><%= msg_date == Date.today ? "Today" : msg_date.strftime("%B %-d, %Y") %></span>
+            <hr>
+          </div>
+          <% prev_user_id = nil %>
+          <% is_continuation = false %>
+        <% end %>
+
+        <div class="chat-msg <%= is_continuation ? 'is-continuation' : '' %>">
+          <% if msg.user.avatar.attached? %>
+            <%= user_avatar(msg.user, size: 32, css_class: "chat-msg-avatar") %>
+          <% else %>
+            <div class="chat-msg-avatar"
+                 style="background:<%= ["#4a90d9","#7b68ee","#20c997","#fd7e14","#e83e8c"].rotate(msg.user_id % 5).first %>;">
+              <%= msg.user.initials %>
+            </div>
+          <% end %>
+          <div class="chat-msg-body">
+            <% unless is_continuation %>
+              <div class="chat-msg-meta">
+                <span class="chat-msg-author"><%= msg.user.display_name %></span>
+                <span class="chat-msg-time" title="<%= msg.created_at.strftime('%Y-%m-%d %H:%M') %>">
+                  <%= msg.created_at.strftime("%-I:%M %p") %>
+                </span>
+                <% if msg.edited? %>
+                  <span class="chat-msg-time">(edited)</span>
+                <% end %>
+              </div>
+            <% end %>
+            <div class="chat-msg-text"><%= render_chat_body(msg.body) %></div>
+          </div>
+        </div>
+
+        <%
+          prev_user_id = msg.user_id
+          prev_date    = msg_date
+        %>
+      <% end %>
+
+      <% if @messages.empty? %>
+        <div style="text-align:center;padding:3rem 1rem;color:#bbb;">
+          <div style="font-size:2.5rem;margin-bottom:0.5rem;">#</div>
+          <strong style="color:#aaa;">This is the beginning of #<%= @chat_room.name %></strong>
+          <p style="font-size:0.85rem;margin-top:0.5rem;">
+            Send a message to get the conversation started.<br>
+            Link tickets with <code>#T-123</code>, CI runs with <code>#CI-456</code>, deployments with <code>#D-789</code>
+          </p>
+        </div>
+      <% end %>
+
+      <%# Anchor for auto-scroll %>
+      <div id="chatBottom"></div>
+    </div>
+  </turbo-frame>
+
+  <%# ── Compose area ───────────────────────────────────────────────────── %>
+  <div class="chat-compose">
+    <%= form_with url: chat_room_chat_messages_path(@chat_room),
+                  method: :post,
+                  data: { action: "submit->chat#afterSubmit" } do |f| %>
+      <div class="chat-compose-card p-3 mb-3">
+        <textarea name="chat_message[body]"
+                  placeholder="Message #<%= @chat_room.name %>  ·  Use #T-123 for tickets, #CI-456 for CI, #D-789 for deploys, @name to mention"
+                  rows="2"
+                  data-chat-target="textarea"
+                  data-action="input->chat#autoGrow keydown->chat#keySubmit"
+                  style="min-height:52px;"></textarea>
+        <div class="chat-compose-footer">
+          <span class="compose-hints">
+            <code>#T-<em>id</em></code> ticket &nbsp;
+            <code>#CI-<em>id</em></code> build &nbsp;
+            <code>#D-<em>id</em></code> deploy &nbsp;
+            <code>#PR-<em>id</em></code> PR &nbsp;
+            <code>@name</code> mention &nbsp;·&nbsp;
+            <kbd>⌘↵</kbd> to send
+          </span>
+          <%= f.submit "Send", class: "btn btn-primary btn-sm" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+</div>

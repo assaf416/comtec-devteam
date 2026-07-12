@@ -1,0 +1,83 @@
+<% content_for(:page_title) { "Ticket ##{@ticket.id}" } %>
+
+<%
+  dot_class = case @ticket.priority.to_s
+              when "critical" then "dot-critical"
+              when "high"     then "dot-high"
+              when "medium"   then "dot-medium"
+              when "low"      then "dot-low"
+              else "dot-default"
+              end
+%>
+
+<%# ── Header ──────────────────────────────────────────────────────────────── %>
+<div class="mobile-card">
+  <div class="mobile-card-header">
+    <span class="ticket-dot <%= dot_class %>" style="margin-top:6px;"></span>
+    <div style="flex:1;overflow:hidden;">
+      <div class="mobile-card-meta">
+        🎫 #<%= @ticket.id %> ·
+        <%= link_to @project.name, mobile_project_path(@project), class: "has-text-link" %>
+      </div>
+      <div style="font-weight:800;font-size:1rem;line-height:1.3;"><%= @ticket.title %></div>
+    </div>
+  </div>
+  <div class="mobile-card-body">
+    <div style="display:flex;flex-wrap:wrap;gap:0.35rem;">
+      <span class="tag is-rounded is-small is-light"><%= @ticket.status.to_s.humanize %></span>
+      <span class="tag is-rounded is-small is-light"><%= @ticket.priority.to_s.humanize %> priority</span>
+      <span class="tag is-rounded is-small is-light"><%= @ticket.kind.to_s.humanize %></span>
+      <% if @ticket.sprint %>
+        <%= link_to mobile_sprint_path(@ticket.sprint), class: "tag is-rounded is-small is-info is-light" do %>
+          🏃 <%= @ticket.sprint.name.truncate(20) %>
+        <% end %>
+      <% end %>
+      <% if @ticket.estimated? %>
+        <span class="tag is-rounded is-small is-light">📊 <%= @ticket.story_points || "—" %> pts</span>
+      <% end %>
+    </div>
+    <% if @ticket.description.present? %>
+      <div style="font-size:0.85rem;color:#4a5568;margin-top:0.6rem;"><%= @ticket.description.to_s.truncate(280) %></div>
+    <% end %>
+    <%= link_to "Open full ticket ›", ticket_path(@ticket), class: "button is-light is-small is-rounded is-fullwidth mt-2" %>
+  </div>
+</div>
+
+<%# ── Members ─────────────────────────────────────────────────────────────── %>
+<p class="mobile-section-title">👥 Members</p>
+<%= render "mobile/members", members: @members %>
+
+<%# ── Tasks (the ticket's breakdown) ───────────────────────────────────────── %>
+<p class="mobile-section-title">🧩 Tasks (<%= @ticket.completed_tasks_count %>/<%= @ticket.tasks_count %>)</p>
+<% if @tasks.any? %>
+  <div class="box p-0" style="overflow:hidden;">
+    <% @tasks.each do |task| %>
+      <div class="ticket-item px-3">
+        <span style="flex-shrink:0;"><%= task.completed? ? "✅" : (task.status == "in_progress" ? "🔵" : "⬜") %></span>
+        <div style="flex:1;overflow:hidden;">
+          <div class="ticket-title" style="<%= 'text-decoration:line-through;color:#a0aec0;' if task.completed? %>">
+            <%= task.description %>
+          </div>
+          <% if task.user %>
+            <div class="mobile-card-meta">👤 <%= task.user.display_name %></div>
+          <% end %>
+        </div>
+        <span class="tag is-rounded is-small is-light"><%= task.status.to_s.humanize %></span>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p style="color:#a0aec0;font-size:0.82rem;padding:0.25rem 0 0.5rem;">No tasks yet.</p>
+<% end %>
+
+<%# ── Pull Requests ───────────────────────────────────────────────────────── %>
+<p class="mobile-section-title">🔀 Pull Requests</p>
+<%= render "mobile/prs", prs: @pull_requests %>
+
+<%# ── Notes & Documents ───────────────────────────────────────────────────── %>
+<p class="mobile-section-title">📄 Notes &amp; Documents</p>
+<%= render "mobile/notes", notes: @notes %>
+
+<%# ── Comments ────────────────────────────────────────────────────────────── %>
+<p class="mobile-section-title">💬 Comments</p>
+<%= render "mobile/comments", comments: @comments %>

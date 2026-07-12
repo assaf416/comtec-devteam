@@ -1,0 +1,3 @@
+<nav class="breadcrumb is-small"><ul><li><%= link_to "Customers", customers_path %></li><li><%= link_to @customer.name, @customer %></li><li class="is-active"><a>New Ticket</a></li></ul></nav>
+<h1 class="fw-bold">New Support Ticket</h1>
+<%= render "form", customer_ticket: @customer_ticket %>

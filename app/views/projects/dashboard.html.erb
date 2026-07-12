@@ -1,0 +1,114 @@
+<% content_for :title, "#{@project.name} · Dashboard" %>
+
+<div class="level mb-3">
+  <div class="level-left">
+    <div>
+      <nav class="breadcrumb is-small"><ul>
+        <li><%= link_to "Projects", projects_path %></li>
+        <li><%= link_to @project.name, @project %></li>
+        <li class="is-active"><a>Dashboard</a></li>
+      </ul></nav>
+      <h1 class="fw-bold mb-1">📊 <%= @project.name %> — Dashboard</h1>
+      <p class="text-muted fs-7">Summary and analysis of this project's delivery health.</p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to "← Back to project", @project, class: "btn btn-secondary btn-sm" %>
+    <%= link_to "Full report", report_project_path(@project), class: "btn btn-secondary btn-sm is-light" %>
+  </div>
+</div>
+
+<%# ── Stat cards ──────────────────────────────────────────────────────── %>
+<div class="row g-2 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card p-3 text-center"><div class="fw-bold fs-4"><%= @total_tickets %></div><div class="text-muted fs-7">Tickets</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 text-center">
+      <div class="fw-bold fs-4"><%= @progress_percent %>%</div>
+      <div class="text-muted fs-7">Done</div>
+      <div class="progress mt-1" style="height:4px;"><div class="progress-bar bg-success" style="width:<%= @progress_percent %>%"></div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 text-center"><div class="fw-bold fs-4"><%= @open_tickets %></div><div class="text-muted fs-7">Open</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 text-center"><div class="fw-bold fs-4 <%= 'text-danger' if @blocked.positive? %>"><%= @blocked %></div><div class="text-muted fs-7">Blocked</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 text-center"><div class="fw-bold fs-4"><%= @ci_pass_rate ? "#{@ci_pass_rate}%" : "—" %></div><div class="text-muted fs-7">CI pass (7d)</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 text-center"><div class="fw-bold fs-4"><%= @open_prs %></div><div class="text-muted fs-7">Open PRs</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 text-center"><div class="fw-bold fs-4"><%= @deploys_30 %></div><div class="text-muted fs-7">Deploys (30d)</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 text-center"><div class="fw-bold fs-4 <%= 'text-warning' if @needs_estimation.positive? %>"><%= @needs_estimation %></div><div class="text-muted fs-7">Need estimate</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 text-center">
+      <div class="fw-bold fs-4"><%= @task_progress_percent %>%</div>
+      <div class="text-muted fs-7">Task progress</div>
+      <div class="progress mt-1" style="height:4px;"><div class="progress-bar bg-info" style="width:<%= @task_progress_percent %>%"></div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 text-center"><div class="fw-bold fs-4"><%= @task_estimation_total %>h</div><div class="text-muted fs-7">Task estimation</div></div>
+  </div>
+</div>
+
+<%= render "shared/insights", insights: @insights %>
+
+<div class="row">
+  <div class="col-lg-7"><%= render "shared/ticket_status_breakdown", counts: @status_counts, total: @total_tickets %></div>
+
+  <div class="col-lg-5">
+    <%# Active sprint %>
+    <div class="card p-3 mb-4">
+      <h2 class="fs-6 fw-bold mb-2">Active sprint</h2>
+      <% if @active_sprint %>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <%= link_to @active_sprint.name, dashboard_sprint_path(@active_sprint), class: "fw-semibold" %>
+          <span class="badge bg-success"><%= @active_sprint.days_remaining %>d left</span>
+        </div>
+        <div class="progress" style="height:8px;"><div class="progress-bar bg-success" style="width:<%= @active_sprint.progress_percent %>%"></div></div>
+        <div class="text-muted fs-7 mt-1"><%= @active_sprint.progress_percent %>% complete</div>
+      <% else %>
+        <p class="text-muted fs-7 mb-0">No active sprint.</p>
+      <% end %>
+    </div>
+
+    <%# Workload %>
+    <div class="card p-3 mb-4">
+      <h2 class="fs-6 fw-bold mb-2">Open work by assignee</h2>
+      <% if @workload.any? %>
+        <% @workload.each do |name, count| %>
+          <div class="d-flex justify-content-between fs-7 py-1 border-bottom"><span><%= name %></span><span class="badge bg-light text-dark"><%= count %></span></div>
+        <% end %>
+      <% else %>
+        <p class="text-muted fs-7 mb-0">No assigned open work.</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%# ── Estimation accuracy + AI deep-dive ───────────────────────────────── %>
+<div class="card p-3 mb-4">
+  <div class="d-flex align-items-center mb-2">
+    <h2 class="fs-6 fw-bold mb-0">Estimation accuracy</h2>
+    <%= button_to "🤖 Run AI estimation analysis", tools_ai_estimation_analysis_path(project_id: @project.id),
+          method: :post, class: "btn btn-sm btn-primary ms-auto" %>
+  </div>
+  <% if @estimation[:count].to_i.positive? %>
+    <div class="row g-2">
+      <div class="col-4 text-center"><div class="fw-bold fs-5"><%= @estimation[:count] %></div><div class="text-muted fs-7">Measured</div></div>
+      <div class="col-4 text-center"><div class="fw-bold fs-5"><%= @estimation[:avg_variance] %>%</div><div class="text-muted fs-7">Avg variance</div></div>
+      <div class="col-4 text-center"><div class="fw-bold fs-5"><%= @estimation[:accuracy] %></div><div class="text-muted fs-7">Accuracy score</div></div>
+    </div>
+  <% else %>
+    <p class="text-muted fs-7 mb-0">Not enough completed tickets with both an estimate and actual hours yet.</p>
+  <% end %>
+</div>

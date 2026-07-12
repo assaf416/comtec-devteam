@@ -1,0 +1,199 @@
+<% content_for :title, "Review: #{@code_review.display_title}" %>
+
+<style>
+  .diff-view {
+    background:#0e1116; color:#d7dde3; border-radius:10px; padding:.5rem 0;
+    font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; font-size:.76rem;
+    line-height:1.5; max-height:60vh; overflow:auto; border:1px solid #1c2330;
+  }
+  .diff-row { display:block; padding:0 .9rem; white-space:pre-wrap; word-break:break-word; }
+  .diff-add  { background:rgba(56,201,109,.16); color:#9df0bd; }
+  .diff-del  { background:rgba(232,69,69,.16);  color:#ff9b9b; }
+  .diff-meta { color:#7aa2f7; }
+  .diff-ctx  { color:#aab2bd; }
+  .cr-file { display:flex; justify-content:space-between; align-items:center; padding:.3rem .2rem; border-bottom:1px solid #eee; font-size:.8rem; }
+  .cr-file code { color:#1f2937; }
+</style>
+
+<%# ── Header ──────────────────────────────────────────────────────────── %>
+<div class="level mb-2">
+  <div class="level-left">
+    <div>
+      <nav class="breadcrumb is-small"><ul>
+        <li><%= link_to "Code Reviews", code_reviews_path %></li>
+        <li class="is-active"><a>#<%= @code_review.pr_number %></a></li>
+      </ul></nav>
+      <h1 class="fw-bold mb-1"><span class="text-muted">#<%= @code_review.pr_number %></span> <%= @code_review.display_title %></h1>
+      <div class="d-flex gap-2 align-items-center flex-wrap fs-7">
+        <span class="badge <%= @code_review.status_badge_class %>"><%= @code_review.status.humanize %></span>
+        <% if @code_review.gitea_state %><span class="badge bg-light text-dark border">Gitea: <%= @code_review.gitea_state %></span><% end %>
+        <% if @code_review.author %><span class="text-muted">by <%= @code_review.author %></span><% end %>
+        <% if @code_review.head_branch %><span class="text-muted"><code><%= @code_review.head_branch %></code> → <code><%= @code_review.base_branch %></code></span><% end %>
+        <% if @code_review.project %>· <%= link_to @code_review.project.name, @code_review.project %><% end %>
+        · <%= link_to "Open on Gitea ↗", @code_review.pr_url, target: "_blank", rel: "noopener" %>
+      </div>
+    </div>
+  </div>
+  <div class="level-right d-flex gap-2">
+    <%= button_to "↻ Refresh", refresh_code_review_path(@code_review), method: :post, class: "btn btn-secondary btn-sm" %>
+  </div>
+</div>
+
+<% unless @gitea_online %>
+  <div class="alert alert-warning is-light fs-7">
+    Could not load this PR from Gitea — check that <code>GITEA_URL</code> and the API token are configured and the server is reachable.
+  </div>
+<% end %>
+
+<div class="row">
+  <%# ── Left: files, test results, decision ────────────────────────────── %>
+  <div class="col-lg-4">
+    <%# Decision panel %>
+    <div class="card p-3 mb-3">
+      <h2 class="fs-6 fw-bold mb-2">Review decision</h2>
+      <%= form_with url: code_review_path(@code_review), method: :patch do |f| %>
+        <%= f.fields_for :code_review, @code_review do |cr| %>
+          <select name="code_review[status]" class="form-select form-select-sm mb-2">
+            <% CodeReview.statuses.keys.each do |st| %>
+              <option value="<%= st %>" <%= "selected" if @code_review.status == st %>><%= st.humanize %></option>
+            <% end %>
+          </select>
+          <textarea name="code_review[summary]" rows="3" class="form-control form-control-sm mb-2"
+                    placeholder="Overall review summary…"><%= @code_review.summary %></textarea>
+        <% end %>
+        <%= submit_tag "Save decision", class: "btn btn-primary btn-sm" %>
+      <% end %>
+    </div>
+
+    <%# Test results %>
+    <div class="card p-3 mb-3">
+      <h2 class="fs-6 fw-bold mb-2">Test results</h2>
+      <% if @ci_test_results.any? %>
+        <% @ci_test_results.each do |tr| %>
+          <div class="d-flex justify-content-between align-items-center fs-7 py-1 border-bottom">
+            <span><%= tr.suite_name.presence || "Suite" %></span>
+            <span>
+              <span class="badge bg-success"><%= tr.passed.to_i %>✓</span>
+              <% if tr.failed.to_i.positive? %><span class="badge bg-danger"><%= tr.failed %>✗</span><% end %>
+              <% if tr.skipped.to_i.positive? %><span class="badge bg-secondary"><%= tr.skipped %>⤳</span><% end %>
+            </span>
+          </div>
+        <% end %>
+        <% if @ci_run %><div class="fs-7 text-muted mt-1">From build <%= @ci_run.build_number %> · <%= @ci_run.status %></div><% end %>
+      <% end %>
+
+      <% if @commit_statuses.any? %>
+        <div class="mt-2">
+          <% @commit_statuses.each do |s| %>
+            <div class="d-flex justify-content-between fs-7 py-1">
+              <span><%= s["context"] %></span>
+              <span class="badge <%= commit_status_class(s["state"]) %>"><%= s["state"] %></span>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if @ci_test_results.empty? && @commit_statuses.empty? %>
+        <p class="text-muted fs-7 mb-0">No test results found for this PR's branch.</p>
+      <% end %>
+    </div>
+
+    <%# Files changed %>
+    <div class="card p-3 mb-3">
+      <h2 class="fs-6 fw-bold mb-2">Files changed <span class="text-muted">(<%= @file_details.size %>)</span></h2>
+      <% if @file_details.any? %>
+        <% @file_details.each do |file| %>
+          <div class="cr-file">
+            <code><%= file["filename"] %></code>
+            <span class="text-nowrap">
+              <span class="badge <%= file_status_class(file["status"]) %>"><%= file["status"] %></span>
+              <span class="text-success">+<%= file["additions"] %></span>
+              <span class="text-danger">-<%= file["deletions"] %></span>
+            </span>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="text-muted fs-7 mb-0">No file data available.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <%# ── Right: AI review, diff, comments ───────────────────────────────── %>
+  <div class="col-lg-8">
+    <%# AI review %>
+    <div class="card p-3 mb-3" id="ai">
+      <div class="d-flex align-items-center mb-2">
+        <h2 class="fs-6 fw-bold mb-0">🤖 AI code review</h2>
+        <%= button_to "Run AI review", ai_review_code_review_path(@code_review), method: :post,
+              class: "btn btn-sm btn-primary ms-auto" %>
+      </div>
+      <% if @ai_reviews.any? %>
+        <% @ai_reviews.each do |ar| %>
+          <div class="border rounded p-2 mb-2">
+            <div class="d-flex align-items-center fs-7 mb-1">
+              <% if ar.verdict %><span class="badge <%= ar.verdict_badge_class %>"><%= ar.verdict.humanize %></span><% end %>
+              <span class="text-muted ms-2"><%= time_ago_in_words(ar.created_at) %> ago · <%= ar.llm_model %></span>
+              <%= link_to "Full report", tools_ai_review_path(ar), class: "ms-auto fs-7" %>
+            </div>
+            <div class="fs-7 text-muted"><%= ar.summary.to_s.truncate(200) %></div>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="text-muted fs-7 mb-0">No AI review yet — run one against the PR diff with the local LLM.</p>
+      <% end %>
+    </div>
+
+    <%# Diff %>
+    <div class="card p-3 mb-3">
+      <h2 class="fs-6 fw-bold mb-2">Changes</h2>
+      <% if @diff.present? %>
+        <div class="diff-view"><% @diff.each_line do |line| %><span class="diff-row <%= diff_line_class(line) %>"><%= line.chomp %></span><% end %></div>
+      <% else %>
+        <p class="text-muted fs-7 mb-0">No diff available.</p>
+      <% end %>
+    </div>
+
+    <%# Comments %>
+    <div class="card p-3" id="comments">
+      <h2 class="fs-6 fw-bold mb-3">Review comments</h2>
+
+      <% if @gitea_comments.any? %>
+        <div class="mb-3">
+          <div class="text-muted fs-7 mb-1">From Gitea</div>
+          <% @gitea_comments.each do |c| %>
+            <div class="border-start ps-2 mb-2 fs-7">
+              <strong><%= c["user"] %></strong>
+              <span class="text-muted"><%= c["created_at"] %></span>
+              <div><%= simple_format(c["message"]) %></div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if @comments.any? %>
+        <% @comments.each do |comment| %>
+          <div class="border rounded p-2 mb-2" id="comment-<%= comment.id %>">
+            <div class="d-flex align-items-center fs-7 mb-1">
+              <strong><%= comment.author&.display_name || "Unknown" %></strong>
+              <span class="text-muted ms-2"><%= time_ago_in_words(comment.created_at) %> ago</span>
+              <% if comment.author == current_user || current_user.admin? %>
+                <%= button_to "Delete", code_review_comment_path(@code_review, comment), method: :delete,
+                      class: "btn btn-link btn-sm text-danger ms-auto p-0",
+                      data: { turbo_confirm: "Delete this comment?" } %>
+              <% end %>
+            </div>
+            <div class="fs-7"><%= simple_format(comment.body) %></div>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="text-muted fs-7">No comments yet.</p>
+      <% end %>
+
+      <%= form_with url: code_review_comments_path(@code_review), method: :post, class: "mt-3" do %>
+        <textarea name="comment[body]" rows="3" class="form-control form-control-sm mb-2"
+                  placeholder="Add a review comment…" required></textarea>
+        <%= submit_tag "Add comment", class: "btn btn-primary btn-sm" %>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,105 @@
+<% content_for :page_title, "Activity — #{@project.name}" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <p class="fs-7 text-muted mb-1">
+        <%= link_to @project.name, project_path(@project) %> /
+        Activity Feed
+      </p>
+      <h2 class="fw-bold fs-4 mb-0">📌 Activity Feed</h2>
+    </div>
+  </div>
+  <div class="level-right">
+    <%# Event type filter %>
+    <div class="btn btn-secondarys has-addons">
+      <%= link_to "All", project_activities_path(@project),
+            class: "btn btn-secondary btn-sm #{@filter.nil? ? 'is-dark is-selected' : ''}" %>
+      <%= link_to "👥 Members", project_activities_path(@project, event_type: :member_added),
+            class: "btn btn-secondary btn-sm #{@filter == 'member_added' ? 'is-info is-selected' : ''}" %>
+      <%= link_to "🔥 Exceptions", project_activities_path(@project, event_type: :exception_raised),
+            class: "btn btn-secondary btn-sm #{@filter == 'exception_raised' ? 'is-danger is-selected' : ''}" %>
+      <%= link_to "✅ CI", project_activities_path(@project, event_type: :ci_passed),
+            class: "btn btn-secondary btn-sm #{@filter&.start_with?('ci') ? 'is-success is-selected' : ''}" %>
+    </div>
+  </div>
+</div>
+
+<% if @activities.empty? %>
+  <div class="card p-3 mb-3 text-center text-muted py-6">
+    <p class="fs-4 mb-2">📭</p>
+    <p>No activity yet<% @filter.present? ? " for this filter" : "" %>.</p>
+  </div>
+<% else %>
+  <div class="timeline" style="position:relative;padding-right:2rem;">
+    <%# Left border line %>
+    <div style="position:absolute;right:0;top:0;bottom:0;width:2px;background:#e2e8f0;margin-right:12px;"></div>
+
+    <% prev_date = nil %>
+    <% @activities.each do |activity| %>
+      <% act_date = activity.created_at.to_date %>
+
+      <%# Date separator %>
+      <% if act_date != prev_date %>
+        <div class="text-center my-4" style="position:relative;z-index:1;">
+          <span class="badge bg-light text-dark is-medium">
+            <%= act_date == Date.today ? "Today" : act_date.strftime("%B %-d, %Y") %>
+          </span>
+        </div>
+        <% prev_date = act_date %>
+      <% end %>
+
+      <%# Activity row %>
+      <%
+        tag_class = case activity.event_type
+          when "member_added"     then "is-success"
+          when "member_removed"   then "is-warning"
+          when "exception_raised" then "is-danger"
+          when "ci_failed"        then "is-danger"
+          when "ci_passed"        then "is-success"
+          when "deployment_done"  then "is-info"
+          else "is-light"
+        end
+      %>
+      <div class="card p-3 mb-3 mb-2 py-3 px-4" style="border-right:4px solid #<%= tag_class == 'is-danger' ? 'e84545' : tag_class == 'is-success' ? '38c96d' : tag_class == 'is-info' ? '4a90d9' : tag_class == 'is-warning' ? 'f5a623' : 'e2e8f0' %>;">
+        <div class="level is-mobile mb-1">
+          <div class="level-left" style="gap:.6rem;">
+            <span style="font-size:1.1rem;"><%= activity.icon %></span>
+            <span class="badge bg-secondary <%= badge bg-secondary_class %> is-small"><%= activity.event_type.humanize %></span>
+            <strong class="fs-7"><%= activity.user.display_name %></strong>
+          </div>
+          <div class="level-right">
+            <span class="fs-7 text-muted" title="<%= activity.created_at.strftime('%Y-%m-%d %H:%M') %>">
+              <%= time_ago_in_words(activity.created_at) %> ago
+            </span>
+          </div>
+        </div>
+
+        <p class="fs-7 text-dark"><%= activity.description %></p>
+
+        <%# Extra metadata %>
+        <% meta = activity.parsed_metadata %>
+        <% if meta.any? %>
+          <div class="mt-2" style="display:flex;gap:.4rem;flex-wrap:wrap;">
+            <% meta.each do |k, v| %>
+              <% next if v.blank? %>
+              <span class="badge bg-light text-dark is-small"><%= k %>: <%= v.to_s.truncate(50) %></span>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%# Links to related resources %>
+        <div class="mt-2" style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <% if activity.subject_user %>
+            <span class="badge bg-info text-dark is-light is-small">👤 <%= activity.subject_user.display_name %></span>
+          <% end %>
+          <% if activity.ticket %>
+            <%= link_to "#T-#{activity.ticket_id} #{activity.ticket.title.truncate(30)}",
+                  ticket_path(activity.ticket),
+                  class: "badge bg-warning-subtle text-warning-emphasis is-small" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

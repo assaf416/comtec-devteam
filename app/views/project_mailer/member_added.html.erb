@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .card { background: #fff; border-radius: 8px; padding: 32px; max-width: 520px; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .header { background: #1a1d2e; border-radius: 6px 6px 0 0; padding: 20px 32px; margin: -32px -32px 28px; }
+    .header h1 { color: #fff; font-size: 18px; margin: 0; }
+    .header span { color: #74b0f0; font-size: 14px; }
+    .badge { display: inline-block; background: #ebf4ff; color: #2b6cb0; border-radius: 4px; padding: 3px 10px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+    .project-name { font-size: 22px; font-weight: bold; color: #1a1d2e; margin: 16px 0 8px; }
+    .detail { color: #718096; font-size: 14px; margin: 6px 0; }
+    .cta { display: inline-block; margin-top: 24px; background: #4a90d9; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+    .footer { margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #a0aec0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h1>🚀 DevTeam Hub</h1>
+      <span>Project invitation</span>
+    </div>
+
+    <p>Hi <strong><%= @user.display_name %></strong>,</p>
+
+    <p>You have been added to a project by <strong><%= @added_by.display_name %></strong>.</p>
+
+    <div class="project-name">📁 <%= @project.name %></div>
+
+    <% if @project.description.present? %>
+      <p class="detail"><%= @project.description %></p>
+    <% end %>
+
+    <p class="detail">
+      <strong>Your role:</strong> <span class="badge"><%= @role %></span>
+    </p>
+
+    <% if @project.tech_stack.present? %>
+      <p class="detail"><strong>Stack:</strong> <%= @project.tech_stack %></p>
+    <% end %>
+
+    <%= link_to "Open Project →", project_url(@project), class: "cta" %>
+
+    <div class="footer">
+      You received this email because you were added to a DevTeam Hub project.<br>
+      If you believe this is a mistake, contact your system administrator.
+    </div>
+  </div>
+</body>
+</html>

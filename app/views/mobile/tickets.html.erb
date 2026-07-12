@@ -1,0 +1,25 @@
+<% content_for(:page_title) { t('mobile.tickets.my_tickets') } %>
+
+<%# ── Open tickets ────────────────────────────────────────────────────────── %>
+<% if @open.any? %>
+  <p class="mobile-section-title"><%= t('mobile.tickets.open_header', count: @open.size) %></p>
+  <%= render "mobile/tickets", tickets: @open %>
+<% else %>
+  <div class="has-text-centered py-5" style="color:#bbb;">
+    <p style="font-size:3rem;">✅</p>
+    <p style="color:#38a169;font-weight:700;"><%= t('mobile.tickets.all_caught_up') %></p>
+    <p style="color:#8a93a2;font-size:0.875rem;"><%= t('mobile.tickets.no_open') %></p>
+  </div>
+<% end %>
+
+<%# ── Recently done ───────────────────────────────────────────────────────── %>
+<% if @done.any? %>
+  <p class="mobile-section-title">Recently done</p>
+  <%= render "mobile/tickets", tickets: @done %>
+<% end %>
+
+<div class="mt-4" style="text-align:right;">
+  <%= link_to mobile_projects_path, class: "button is-light is-rounded is-small" do %>
+    <%= t('mobile.tickets.browse_all') %>
+  <% end %>
+</div>

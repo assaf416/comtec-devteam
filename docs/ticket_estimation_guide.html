@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticket Estimation — Agile Best Practices</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f0e8; --panel: #fffdf7; --ink: #12252b; --muted: #5c6f76;
+      --line: #d7d0c2; --teal: #0b7a75; --navy: #17324a; --orange: #d26d18;
+      --red: #b63a34; --green: #1a7a3a;
+      --shadow: 0 18px 44px rgba(18,37,43,0.09); --radius: 18px;
+      --mono: "JetBrains Mono", monospace; --sans: "Manrope", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      margin: 0; color: var(--ink); font-family: var(--sans); line-height: 1.6;
+      background: radial-gradient(900px 420px at 0% 0%, rgba(11,122,117,0.14), transparent),
+                  radial-gradient(760px 340px at 100% 0%, rgba(210,109,24,0.12), transparent), var(--bg);
+    }
+    .shell { max-width: 1100px; margin: 0 auto; padding: 24px 18px 60px; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 20; background: rgba(255,253,247,0.92);
+      border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(8px);
+      box-shadow: var(--shadow); margin-bottom: 16px; display: flex;
+      align-items: center; justify-content: space-between; padding: 10px 22px;
+    }
+    .topbar-logo { font-weight: 800; font-size: 1.15rem; color: var(--teal); display: flex; align-items: center; gap: 8px; }
+    .topbar-logo span { font-size: 1.4rem; }
+    .topbar-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+    .topbar-nav a { color: var(--muted); font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 8px; transition: 0.15s; }
+    .topbar-nav a:hover { background: rgba(11,122,117,0.08); color: var(--teal); }
+
+    .hero { text-align: center; padding: 48px 18px 32px; }
+    .hero h1 { font-size: 2.6rem; font-weight: 800; color: var(--navy); margin: 0 0 10px; }
+    .hero p { font-size: 1.1rem; color: var(--muted); max-width: 640px; margin: 0 auto; }
+
+    .section {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 32px 36px; margin-bottom: 20px; box-shadow: var(--shadow);
+    }
+    .section h2 { font-size: 1.4rem; font-weight: 800; color: var(--navy); margin: 0 0 10px; display: flex; align-items: center; gap: 10px; }
+    .section h2 .icon { font-size: 1.5rem; }
+    .section h3 { font-size: 1.05rem; font-weight: 700; color: var(--teal); margin: 24px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+    .section h4 { font-size: 0.95rem; font-weight: 700; color: var(--orange); margin: 18px 0 6px; }
+    .section p, .section li { line-height: 1.7; }
+    .section ul, .section ol { padding-left: 22px; }
+
+    code { font-family: var(--mono); font-size: 0.88em; background: rgba(11,122,117,0.07); color: var(--teal); padding: 2px 7px; border-radius: 5px; }
+    pre { background: #1c2833; color: #e8e6df; font-family: var(--mono); font-size: 0.86rem; padding: 18px 22px; border-radius: 12px; overflow-x: auto; margin: 12px 0 16px; line-height: 1.55; }
+    pre code { background: none; padding: 0; color: inherit; }
+
+    .tip { background: rgba(11,122,117,0.06); border-left: 3px solid var(--teal); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .tip strong { color: var(--teal); }
+    .warn { background: rgba(210,109,24,0.06); border-left: 3px solid var(--orange); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .warn strong { color: var(--orange); }
+    .bad { background: rgba(182,58,52,0.06); border-left: 3px solid var(--red); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .bad strong { color: var(--red); }
+
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 8px; }
+    th { text-align: left; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 8px 12px; border-bottom: 2px solid var(--line); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 0.92rem; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+
+    .example-card {
+      background: rgba(11,122,117,0.03); border: 1px solid rgba(11,122,117,0.15);
+      border-radius: 14px; padding: 22px 26px; margin: 16px 0;
+    }
+    .example-card h4 { margin-top: 0; color: var(--teal); }
+    .example-card .field { display: flex; gap: 8px; margin-bottom: 6px; font-size: 0.92rem; }
+    .example-card .field .label { font-weight: 700; color: var(--navy); min-width: 160px; }
+    .example-card .field .value { color: var(--ink); }
+
+    .points-card {
+      background: var(--panel); border: 2px solid var(--line); border-radius: 14px;
+      padding: 20px; text-align: center; transition: 0.2s;
+    }
+    .points-card:hover { border-color: var(--teal); transform: translateY(-2px); }
+    .points-card .number { font-size: 2rem; font-weight: 800; color: var(--teal); }
+    .points-card .desc { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .grid-7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+    @media (max-width: 820px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .grid-7 { grid-template-columns: repeat(4, 1fr); }
+      .hero h1 { font-size: 2rem; }
+    }
+
+    .formula {
+      background: rgba(23,50,74,0.05); border: 1px solid rgba(23,50,74,0.15);
+      border-radius: 12px; padding: 18px 24px; text-align: center;
+      font-family: var(--mono); font-size: 1.1rem; color: var(--navy);
+      margin: 16px 0;
+    }
+
+    .footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 12px; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="topbar-logo"><span>⏱️</span> Ticket Estimation Guide</div>
+    <nav class="topbar-nav">
+      <a href="#fields">Estimation Fields</a>
+      <a href="#story-points">Story Points</a>
+      <a href="#complexity">Complexity Levels</a>
+      <a href="#hours">Hour Estimates</a>
+      <a href="#techniques">Techniques</a>
+      <a href="#examples">Examples</a>
+      <a href="#tracking">Tracking Actuals</a>
+      <a href="#pitfalls">Pitfalls</a>
+    </nav>
+  </div>
+
+  <div class="hero">
+    <h1>Ticket Estimation</h1>
+    <p>A practical guide to estimating work in Agile — using story points, complexity levels, and hour estimates from the DevTeam Hub model.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Estimation Fields                                   -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="fields">
+    <h2><span class="icon">🧮</span> Estimation Fields in DevTeam Hub</h2>
+    <p>Our ticket model provides multiple estimation dimensions. Each serves a different purpose:</p>
+
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Purpose</th><th>Who Sets It</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>story_points</code></td>
+          <td>Integer</td>
+          <td>Relative effort/complexity. Used for sprint planning and velocity tracking.</td>
+          <td>Team (during planning)</td>
+        </tr>
+        <tr>
+          <td><code>level</code></td>
+          <td>Enum</td>
+          <td>Complexity classification: trivial, simple, moderate, complex, expert.</td>
+          <td>Tech lead or developer</td>
+        </tr>
+        <tr>
+          <td><code>dev_estimate_hours</code></td>
+          <td>Decimal</td>
+          <td>Estimated developer hours for implementation.</td>
+          <td>Assigned developer</td>
+        </tr>
+        <tr>
+          <td><code>tester_estimate_hours</code></td>
+          <td>Decimal</td>
+          <td>Estimated QA hours for testing.</td>
+          <td>QA engineer</td>
+        </tr>
+        <tr>
+          <td><code>actual_hours</code></td>
+          <td>String</td>
+          <td>Time actually spent (e.g. "2d 4h"). Recorded after completion.</td>
+          <td>Developer</td>
+        </tr>
+        <tr>
+          <td><code>actual_velocity</code></td>
+          <td>Integer</td>
+          <td>Actual story points delivered (may differ from estimate).</td>
+          <td>Team (during retro)</td>
+        </tr>
+        <tr>
+          <td><code>estimated_by</code></td>
+          <td>User ref</td>
+          <td>Who last updated the estimate. Auto-set on ticket update.</td>
+          <td>System (automatic)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="tip">
+      <strong>💡 Key insight:</strong> Story points measure <em>complexity</em>, not <em>time</em>. A 5-point story for a senior developer and a junior developer takes different hours — but the complexity is the same.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Story Points                                        -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="story-points">
+    <h2><span class="icon">🎯</span> Story Points — The Fibonacci Scale</h2>
+    <p>We use the <strong>modified Fibonacci sequence</strong> for story points. The growing gaps between numbers force the team to acknowledge uncertainty in larger items.</p>
+
+    <div class="grid-7">
+      <div class="points-card">
+        <div class="number">1</div>
+        <div class="desc">Trivial change</div>
+      </div>
+      <div class="points-card">
+        <div class="number">2</div>
+        <div class="desc">Small &amp; clear</div>
+      </div>
+      <div class="points-card">
+        <div class="number">3</div>
+        <div class="desc">Moderate work</div>
+      </div>
+      <div class="points-card">
+        <div class="number">5</div>
+        <div class="desc">Significant effort</div>
+      </div>
+      <div class="points-card">
+        <div class="number">8</div>
+        <div class="desc">Large &amp; complex</div>
+      </div>
+      <div class="points-card">
+        <div class="number">13</div>
+        <div class="desc">Very large</div>
+      </div>
+      <div class="points-card">
+        <div class="number">21</div>
+        <div class="desc">Should split</div>
+      </div>
+    </div>
+
+    <h3>What Each Point Value Means</h3>
+    <table>
+      <thead><tr><th>Points</th><th>Complexity</th><th>Typical Work</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>1</strong></td>
+          <td>Trivial</td>
+          <td>Config change, copy update, one-line fix</td>
+          <td>Change button label from "Submit" to "Save"</td>
+        </tr>
+        <tr>
+          <td><strong>2</strong></td>
+          <td>Simple</td>
+          <td>Well-understood, small scope, clear path</td>
+          <td>Add a new column to an existing table, add validation</td>
+        </tr>
+        <tr>
+          <td><strong>3</strong></td>
+          <td>Moderate</td>
+          <td>Standard feature, some design decisions</td>
+          <td>Add email notification when ticket is assigned</td>
+        </tr>
+        <tr>
+          <td><strong>5</strong></td>
+          <td>Significant</td>
+          <td>Multiple components, moderate uncertainty</td>
+          <td>Build CSV export with filters, pagination, and download</td>
+        </tr>
+        <tr>
+          <td><strong>8</strong></td>
+          <td>Complex</td>
+          <td>Cross-cutting concern, integration work, new patterns</td>
+          <td>Integrate third-party payment gateway with webhooks</td>
+        </tr>
+        <tr>
+          <td><strong>13</strong></td>
+          <td>Very complex</td>
+          <td>Multiple unknowns, architectural changes, high risk</td>
+          <td>Migrate session storage from cookies to Redis cluster</td>
+        </tr>
+        <tr>
+          <td><strong>21</strong></td>
+          <td>Epic-sized</td>
+          <td>⚠ Too large — must be split into smaller stories</td>
+          <td>Build entire reporting module (split this!)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="warn">
+      <strong>⚠ Rule:</strong> If a story is estimated at 13+ points, the team should discuss splitting it before committing it to a sprint. Stories above 8 points carry significant estimation risk.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Complexity Levels                                   -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="complexity">
+    <h2><span class="icon">⚙️</span> Complexity Levels</h2>
+    <p>The <code>level</code> field classifies the technical complexity independently of effort. It helps with task assignment and load balancing.</p>
+
+    <table>
+      <thead><tr><th>Level</th><th>Description</th><th>Who Should Work On It</th><th>Typical Points</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>trivial</code></td>
+          <td>No design decisions. Clear, mechanical change.</td>
+          <td>Any team member, including juniors</td>
+          <td>1–2</td>
+        </tr>
+        <tr>
+          <td><code>simple</code></td>
+          <td>Well-understood pattern. One component affected.</td>
+          <td>Junior or mid-level developer</td>
+          <td>2–3</td>
+        </tr>
+        <tr>
+          <td><code>moderate</code></td>
+          <td>Some design choices. Multiple components involved.</td>
+          <td>Mid-level developer</td>
+          <td>3–5</td>
+        </tr>
+        <tr>
+          <td><code>complex</code></td>
+          <td>Significant design decisions. New patterns or integrations.</td>
+          <td>Senior developer</td>
+          <td>5–8</td>
+        </tr>
+        <tr>
+          <td><code>expert</code></td>
+          <td>Architectural impact. Deep domain or infrastructure knowledge.</td>
+          <td>Senior / tech lead with domain expertise</td>
+          <td>8–13</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Level vs Points — They're Different</h3>
+    <div class="grid-2">
+      <div class="tip">
+        <strong>Level = Technical Difficulty</strong>
+        <p>How hard is the problem? Does it require deep expertise? How many unknowns exist?</p>
+      </div>
+      <div class="tip">
+        <strong>Points = Total Effort</strong>
+        <p>How much work is involved? Includes implementation, testing, review, and deployment.</p>
+      </div>
+    </div>
+    <p>A <code>simple</code> level ticket can still be <strong>5 points</strong> if it involves many repetitive changes across files. A <code>complex</code> ticket might be only <strong>3 points</strong> if the solution is small but requires deep understanding.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Hour Estimates                                      -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="hours">
+    <h2><span class="icon">⏰</span> Hour-Based Estimates</h2>
+    <p>While story points measure complexity, <code>dev_estimate_hours</code> and <code>tester_estimate_hours</code> provide <strong>calendar-time forecasts</strong> for capacity planning.</p>
+
+    <h3>Guideline: Points to Hours</h3>
+    <p>The exact ratio depends on team velocity, but here's a starting reference:</p>
+
+    <table>
+      <thead><tr><th>Story Points</th><th>Dev Hours (approx)</th><th>QA Hours (approx)</th><th>Total</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>0.5–1h</td><td>0.5h</td><td>1–1.5h</td></tr>
+        <tr><td>2</td><td>2–3h</td><td>1h</td><td>3–4h</td></tr>
+        <tr><td>3</td><td>4–6h</td><td>1.5–2h</td><td>5.5–8h</td></tr>
+        <tr><td>5</td><td>6–10h</td><td>2–3h</td><td>8–13h</td></tr>
+        <tr><td>8</td><td>12–18h</td><td>3–5h</td><td>15–23h</td></tr>
+        <tr><td>13</td><td>20–30h</td><td>5–8h</td><td>25–38h</td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip">
+      <strong>💡 Tip:</strong> These are <em>focused work hours</em>, not wall-clock time. A developer with meetings and code reviews might have 5–6 focused hours in an 8-hour day.
+    </div>
+
+    <h3>Recording Actual Hours</h3>
+    <p>The <code>actual_hours</code> field accepts flexible formats. DevTeam Hub parses them into hours (1 day = 8 hours):</p>
+    <table>
+      <thead><tr><th>Input</th><th>Parsed As</th></tr></thead>
+      <tbody>
+        <tr><td><code>2d 4h</code></td><td>20 hours (2 × 8 + 4)</td></tr>
+        <tr><td><code>5h</code></td><td>5 hours</td></tr>
+        <tr><td><code>1d</code></td><td>8 hours</td></tr>
+        <tr><td><code>16</code></td><td>16 hours</td></tr>
+        <tr><td><code>0.5d 2h</code></td><td>6 hours (0.5 × 8 + 2)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Estimation Techniques                               -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="techniques">
+    <h2><span class="icon">🃏</span> Estimation Techniques</h2>
+
+    <h3>1. Planning Poker</h3>
+    <p>The most common Agile estimation technique. Best for team-wide consensus.</p>
+    <ol>
+      <li>Product owner reads the ticket aloud</li>
+      <li>Team discusses and asks clarifying questions</li>
+      <li>Each member privately picks a Fibonacci card (1, 2, 3, 5, 8, 13, 21)</li>
+      <li>All cards are revealed simultaneously</li>
+      <li>If estimates differ by more than 2 steps, the highest and lowest explain their reasoning</li>
+      <li>Re-vote until consensus (within 1 step)</li>
+    </ol>
+
+    <div class="tip">
+      <strong>💡 Time-box:</strong> Spend maximum 5 minutes per ticket. If you can't reach consensus, the ticket probably needs more refinement.
+    </div>
+
+    <h3>2. T-Shirt Sizing</h3>
+    <p>Quick and informal. Good for backlog grooming when precise numbers aren't needed yet.</p>
+    <table>
+      <thead><tr><th>Size</th><th>Equivalent Points</th><th>Level</th></tr></thead>
+      <tbody>
+        <tr><td>XS</td><td>1</td><td>trivial</td></tr>
+        <tr><td>S</td><td>2–3</td><td>simple</td></tr>
+        <tr><td>M</td><td>5</td><td>moderate</td></tr>
+        <tr><td>L</td><td>8</td><td>complex</td></tr>
+        <tr><td>XL</td><td>13+</td><td>expert (needs splitting)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3. Reference Story Comparison</h3>
+    <p>Compare each new ticket to a "reference story" the team has already completed. This anchors estimates in reality.</p>
+    <ol>
+      <li>Pick 3 completed tickets as reference points (small, medium, large)</li>
+      <li>For each new ticket, ask: "Is this bigger or smaller than our reference?"</li>
+      <li>Assign points relative to the references</li>
+    </ol>
+
+    <h3>4. Three-Point Estimation (for hours)</h3>
+    <p>When hour accuracy matters (client billing, deadline forecasting), use three estimates:</p>
+    <div class="formula">
+      <strong>Estimate</strong> = (Optimistic + 4 × Most Likely + Pessimistic) ÷ 6
+    </div>
+    <p>Example: A feature might take 4h (best case), 8h (most likely), or 20h (worst case):</p>
+    <div class="formula">
+      (4 + 4 × 8 + 20) ÷ 6 = <strong>9.3h</strong> → set <code>dev_estimate_hours</code> to <strong>9.5</strong>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Examples                                            -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="examples">
+    <h2><span class="icon">📚</span> Estimation Examples</h2>
+
+    <h3>Example 1: Simple Feature</h3>
+    <div class="example-card">
+      <h4>🎫 T-42: Add "Last Login" timestamp to user profile page</h4>
+      <div class="field"><span class="label">Kind:</span><span class="value">story</span></div>
+      <div class="field"><span class="label">Level:</span><span class="value">simple</span></div>
+      <div class="field"><span class="label">Story Points:</span><span class="value">2</span></div>
+      <div class="field"><span class="label">Dev Estimate:</span><span class="value">2h</span></div>
+      <div class="field"><span class="label">QA Estimate:</span><span class="value">0.5h</span></div>
+      <div class="field"><span class="label">Rationale:</span></div>
+      <pre><code>- Migration: add last_login_at column (trivial)
+- Model: update Devise callback to set timestamp (known pattern)
+- View: display formatted date on profile (simple)
+- Test: one model spec + one request spec
+- No design decisions, no unknowns → level: simple, 2 points</code></pre>
+      <div class="field"><span class="label">Actual Hours:</span><span class="value">1.5h (came in under estimate ✓)</span></div>
+    </div>
+
+    <h3>Example 2: Moderate Feature</h3>
+    <div class="example-card">
+      <h4>🎫 T-55: Add ticket comment notifications via email</h4>
+      <div class="field"><span class="label">Kind:</span><span class="value">story</span></div>
+      <div class="field"><span class="label">Level:</span><span class="value">moderate</span></div>
+      <div class="field"><span class="label">Story Points:</span><span class="value">5</span></div>
+      <div class="field"><span class="label">Dev Estimate:</span><span class="value">8h</span></div>
+      <div class="field"><span class="label">QA Estimate:</span><span class="value">2h</span></div>
+      <div class="field"><span class="label">Rationale:</span></div>
+      <pre><code>- Mailer: new TicketMailer.comment_added (moderate)
+- Job: background job to send emails (known pattern)
+- Model: ticket_watchers notification preferences (some design)
+- UI: "Watch this ticket" toggle on ticket show (small)
+- Tests: mailer spec + job spec + request spec
+- Some decisions needed:
+  - Who gets notified? (assignee, owner, watchers)
+  - How to handle reply-by-email? (punt to later)
+- Multiple components but well-understood → 5 points</code></pre>
+      <div class="field"><span class="label">Actual Hours:</span><span class="value">1d 2h (10h — slightly over due to email template styling)</span></div>
+    </div>
+
+    <h3>Example 3: Complex Integration</h3>
+    <div class="example-card">
+      <h4>🎫 T-73: Integrate Gitea webhooks for automatic PR sync</h4>
+      <div class="field"><span class="label">Kind:</span><span class="value">story</span></div>
+      <div class="field"><span class="label">Level:</span><span class="value">complex</span></div>
+      <div class="field"><span class="label">Story Points:</span><span class="value">8</span></div>
+      <div class="field"><span class="label">Dev Estimate:</span><span class="value">16h</span></div>
+      <div class="field"><span class="label">QA Estimate:</span><span class="value">4h</span></div>
+      <div class="field"><span class="label">Rationale:</span></div>
+      <pre><code>- Webhook endpoint: receive and validate Gitea payloads (moderate)
+- Payload parsing: handle PR opened/updated/merged events (moderate)
+- PR model sync: create/update pull_request records (moderate)
+- Ticket linking: match branch name to ticket ID (simple)
+- Security: validate webhook signature, rate limiting (significant)
+- Error handling: retries, logging, dead-letter queue (moderate)
+- Tests: multiple edge cases, webhook payload fixtures
+- Unknowns:
+  - Gitea webhook payload format (need to research)
+  - How to handle force-pushes and rebases
+- Multiple unknowns + cross-cutting → level: complex, 8 points</code></pre>
+      <div class="field"><span class="label">Actual Hours:</span><span class="value">2d 6h (22h — Gitea payload edge cases took longer)</span></div>
+    </div>
+
+    <h3>Example 4: Bug Fix</h3>
+    <div class="example-card">
+      <h4>🐛 T-81: Fix timezone display in sprint date picker</h4>
+      <div class="field"><span class="label">Kind:</span><span class="value">bug_fix</span></div>
+      <div class="field"><span class="label">Level:</span><span class="value">simple</span></div>
+      <div class="field"><span class="label">Story Points:</span><span class="value">1</span></div>
+      <div class="field"><span class="label">Dev Estimate:</span><span class="value">1h</span></div>
+      <div class="field"><span class="label">QA Estimate:</span><span class="value">0.5h</span></div>
+      <div class="field"><span class="label">Rationale:</span></div>
+      <pre><code>- Root cause identified: date picker sends UTC, display assumes local
+- Fix: add timezone conversion in date_helper.rb
+- Risk: low (isolated change, well-tested area)
+- 1 point for a focused, well-understood fix</code></pre>
+      <div class="field"><span class="label">Actual Hours:</span><span class="value">1h ✓</span></div>
+    </div>
+
+    <h3>Example 5: Spike</h3>
+    <div class="example-card">
+      <h4>🔬 T-88: Spike — Evaluate full-text search options</h4>
+      <div class="field"><span class="label">Kind:</span><span class="value">spike</span></div>
+      <div class="field"><span class="label">Level:</span><span class="value">moderate</span></div>
+      <div class="field"><span class="label">Story Points:</span><span class="value">3</span></div>
+      <div class="field"><span class="label">Dev Estimate:</span><span class="value">4h (time-boxed)</span></div>
+      <div class="field"><span class="label">QA Estimate:</span><span class="value">0h</span></div>
+      <div class="field"><span class="label">Rationale:</span></div>
+      <pre><code>- Research task: no code delivered
+- Time-boxed to 4 hours regardless of outcome
+- Deliverable: written recommendation in ticket description
+- 3 points for research effort + documentation
+- Always estimate spikes at the time-box duration</code></pre>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Tracking & Velocity                                 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="tracking">
+    <h2><span class="icon">📊</span> Tracking Actuals &amp; Velocity</h2>
+
+    <h3>Why Track Actuals?</h3>
+    <p>Comparing estimates to actuals over time reveals:</p>
+    <ul>
+      <li><strong>Estimation accuracy</strong> — Are we consistently over or under-estimating?</li>
+      <li><strong>Team velocity</strong> — How many points can we reliably deliver per sprint?</li>
+      <li><strong>Capacity planning</strong> — How much work can we commit to next sprint?</li>
+      <li><strong>Process improvement</strong> — Which types of work have the widest estimate gaps?</li>
+    </ul>
+
+    <h3>Velocity Formula</h3>
+    <div class="formula">
+      <strong>Sprint Velocity</strong> = Sum of <code>story_points</code> for all tickets marked <code>done</code> in the sprint
+    </div>
+    <p>Use the <strong>rolling average of the last 3 sprints</strong> for planning. Don't use a single sprint — it's too volatile.</p>
+
+    <h3>Estimation Accuracy</h3>
+    <div class="formula">
+      <strong>Accuracy</strong> = <code>dev_estimate_hours</code> ÷ <code>actual_hours</code> × 100%
+    </div>
+    <p>Good teams aim for <strong>80–120% accuracy</strong>. Below 80% means systematic under-estimation. Above 120% means padding.</p>
+
+    <h3>Using the CLI to Track</h3>
+    <pre><code># Update actual hours after completing work
+$ dt ticket update 42 actual_hours "1d 6h"
+
+# View estimation accuracy in reports
+# Reports → Estimation Accuracy (in the web UI)</code></pre>
+
+    <div class="tip">
+      <strong>💡 Best practice:</strong> Fill in <code>actual_hours</code> immediately when moving a ticket to <code>done</code>. Waiting until the end of the sprint leads to inaccurate numbers.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Best Practices                                      -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="best-practices">
+    <h2><span class="icon">⭐</span> Estimation Best Practices</h2>
+
+    <ol>
+      <li><strong>Estimate as a team</strong> — The collective wisdom of the team is more accurate than any individual. Use Planning Poker.</li>
+      <li><strong>Estimate complexity, not duration</strong> — "How hard is this?" not "How long will it take you?"</li>
+      <li><strong>Include everything</strong> — Implementation + tests + code review + documentation. Not just the fun coding part.</li>
+      <li><strong>Use reference stories</strong> — Compare to past work the team has actually delivered.</li>
+      <li><strong>Don't estimate bugs at 0</strong> — Even a one-line fix needs investigation, testing, and review.</li>
+      <li><strong>Time-box spikes</strong> — Always set a maximum time. The output is knowledge, not perfection.</li>
+      <li><strong>Re-estimate when scope changes</strong> — If requirements change mid-sprint, update the estimates.</li>
+      <li><strong>Track and learn</strong> — Review estimate accuracy in retrospectives. Adjust calibration over time.</li>
+      <li><strong>Don't game the numbers</strong> — Estimates are forecasts, not commitments. Padding destroys trust.</li>
+      <li><strong>Split, don't inflate</strong> — If a story feels too big, split it into smaller stories instead of giving it a huge number.</li>
+    </ol>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Pitfalls                                            -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="pitfalls">
+    <h2><span class="icon">🚫</span> Common Estimation Pitfalls</h2>
+
+    <div class="grid-2">
+      <div class="bad">
+        <strong>❌ Anchoring Bias</strong>
+        <p>The first person to say a number influences everyone else. That's why Planning Poker uses simultaneous reveal.</p>
+      </div>
+      <div class="bad">
+        <strong>❌ Optimism Bias</strong>
+        <p>"It's just a simple change" — until you discover the test suite, the edge cases, and the code review feedback.</p>
+      </div>
+      <div class="bad">
+        <strong>❌ Confusing Effort with Duration</strong>
+        <p>An 8-point story isn't "8 hours of work." It might be 16 hours spread across 3 days with interruptions.</p>
+      </div>
+      <div class="bad">
+        <strong>❌ Not Including QA</strong>
+        <p>A feature isn't done when the code is written. Include <code>tester_estimate_hours</code> in sprint capacity.</p>
+      </div>
+      <div class="bad">
+        <strong>❌ Hero Estimation</strong>
+        <p>"I can do this in 2 hours" — but what if you're sick? Estimate for the average team member, not the fastest.</p>
+      </div>
+      <div class="bad">
+        <strong>❌ Ignoring Unknowns</strong>
+        <p>If a ticket has research needed, add a spike first. Don't estimate implementation when you don't understand the problem.</p>
+      </div>
+    </div>
+
+    <h3>The 90% Done Trap</h3>
+    <div class="warn">
+      <strong>⚠ Warning:</strong> "The first 90% of the work takes 90% of the time. The remaining 10% takes the other 90% of the time." — Tom Cargill
+    </div>
+    <p>This usually happens when estimates don't include:</p>
+    <ul>
+      <li>Error handling and edge cases</li>
+      <li>Cross-browser / cross-device testing</li>
+      <li>Code review iterations</li>
+      <li>Documentation updates</li>
+      <li>Migration and deployment considerations</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Quick Reference                                     -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="cheatsheet">
+    <h2><span class="icon">📋</span> Quick Reference Card</h2>
+
+    <h3>Sprint Planning Checklist</h3>
+    <ol>
+      <li>Review team velocity (average of last 3 sprints)</li>
+      <li>Account for planned absences, holidays, meetings</li>
+      <li>Pull top-priority tickets from backlog</li>
+      <li>Estimate each ticket using Planning Poker</li>
+      <li>Set <code>story_points</code>, <code>level</code>, <code>dev_estimate_hours</code>, <code>tester_estimate_hours</code></li>
+      <li>Assign tickets to team members based on level and expertise</li>
+      <li>Verify total committed points ≤ team velocity</li>
+      <li>Move tickets to sprint: <code>dt ticket move &lt;ID&gt; to sprint &lt;SID&gt;</code></li>
+    </ol>
+
+    <h3>After Completing a Ticket</h3>
+    <pre><code># 1. Record actual time spent
+$ dt ticket update 42 actual_hours "1d 4h"
+
+# 2. Mark as done
+$ dt ticket close 42</code></pre>
+
+    <h3>CLI Estimation Commands</h3>
+    <pre><code># Set story points
+$ dt ticket update 42 points 5
+
+# Update with multiple fields
+$ dt ticket update 42 points 5 level moderate
+
+# The estimated_by field is set automatically when you update via the API</code></pre>
+  </div>
+
+  <div class="footer">
+    DevTeam Hub — Ticket Estimation Guide — May 2026
+  </div>
+</div>
+</body>
+</html>

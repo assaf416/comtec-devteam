@@ -1,0 +1,12 @@
+<div class="d-flex align-items-center mb-4 gap-2">
+  <%= link_to project_deployments_path(@project), class: "btn btn-sm btn-outline-secondary" do %>
+    <i class="bi bi-arrow-left"></i> Back
+  <% end %>
+  <h2 class="mb-0">New Deployment — <%= @project.name %></h2>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <%= render "form", deployment: @deployment %>
+  </div>
+</div>

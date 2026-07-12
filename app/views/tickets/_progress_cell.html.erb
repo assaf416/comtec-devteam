@@ -1,0 +1,6 @@
+<%# Task progress for a ticket table row. locals: ticket %>
+<% if ticket.tasks_count.to_i.positive? %>
+  <div class="d-flex flex-wrap gap-1"><%= render "tickets/progress_badges", ticket: ticket %></div>
+<% else %>
+  <span class="text-muted fs-7">—</span>
+<% end %>

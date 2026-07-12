@@ -1,0 +1,11 @@
+<% content_for :title, "Edit Notification" %>
+
+<div class="level mb-3">
+  <div class="level-left">
+    <h1 class="fw-bold">Edit Notification #<%= @notification.id %></h1>
+  </div>
+</div>
+
+<div class="card p-3">
+  <%= render "form", notification: @notification %>
+</div>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTeam Hub — What's New (2026)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#f3f0e8; --panel:#fffdf7; --ink:#12252b; --muted:#5c6f76; --line:#d7d0c2;
+      --teal:#0b7a75; --navy:#17324a; --orange:#d26d18; --red:#b63a34; --green:#1a7a3a;
+      --purple:#6d28d9; --blue:#2563eb; --shadow:0 18px 44px rgba(18,37,43,.09); --radius:18px;
+      --mono:"JetBrains Mono",monospace; --sans:"Manrope","Segoe UI",sans-serif;
+    }
+    *{box-sizing:border-box;}
+    html{scroll-behavior:smooth;background:var(--bg);}
+    body{margin:0;color:var(--ink);font-family:var(--sans);line-height:1.6;
+      background:radial-gradient(900px 420px at 0% 0%,rgba(11,122,117,.14),transparent),
+                 radial-gradient(760px 340px at 100% 0%,rgba(109,40,217,.12),transparent),var(--bg);}
+    .shell{max-width:1080px;margin:0 auto;padding:24px 18px 64px;}
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(255,253,247,.92);border:1px solid var(--line);
+      border-radius:16px;backdrop-filter:blur(8px);box-shadow:var(--shadow);margin-bottom:16px;display:flex;
+      align-items:center;justify-content:space-between;padding:10px 22px;}
+    .topbar-logo{font-weight:800;font-size:1.15rem;color:var(--teal);display:flex;align-items:center;gap:8px;}
+    .topbar-nav{display:flex;gap:6px;flex-wrap:wrap;}
+    .topbar-nav a{color:var(--muted);font-size:.82rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:8px;}
+    .topbar-nav a:hover{background:rgba(11,122,117,.08);color:var(--teal);}
+    .hero{text-align:center;padding:46px 18px 30px;}
+    .hero .kicker{font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--purple);font-size:.8rem;}
+    .hero h1{font-size:2.6rem;font-weight:900;color:var(--navy);margin:.4rem 0 .6rem;}
+    .hero p{font-size:1.08rem;color:var(--muted);max-width:760px;margin:0 auto;}
+    .hero .pills{margin-top:18px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+    .pill{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:.8rem;font-weight:700;color:var(--teal);}
+    .section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:32px 36px;margin-bottom:20px;box-shadow:var(--shadow);}
+    .section h2{font-size:1.5rem;font-weight:800;color:var(--navy);margin:0 0 6px;display:flex;align-items:center;gap:10px;}
+    .section .sub{color:var(--muted);margin:0 0 18px;}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+    @media(max-width:820px){.grid-2,.grid-3{grid-template-columns:1fr;}.hero h1{font-size:2rem;}}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;transition:.2s;}
+    .card:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:var(--shadow);}
+    .card .ic{font-size:1.6rem;}
+    .card h3{margin:.4rem 0 .3rem;font-size:1.05rem;color:var(--navy);}
+    .card p{margin:0;font-size:.9rem;color:var(--muted);}
+    code{font-family:var(--mono);font-size:.85em;background:rgba(11,122,117,.08);color:var(--teal);padding:2px 6px;border-radius:5px;}
+
+    /* Chat showcase */
+    .chat{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);}
+    .chat-head{background:var(--navy);color:#fff;padding:12px 18px;font-weight:700;display:flex;align-items:center;gap:8px;}
+    .chat-head small{color:rgba(255,255,255,.6);font-weight:500;}
+    .chat-body{padding:20px;}
+    .msg{display:flex;margin-bottom:14px;}
+    .msg.u{justify-content:flex-end;}
+    .bubble{max-width:78%;padding:11px 15px;border-radius:14px;font-size:.92rem;line-height:1.5;}
+    .u .bubble{background:var(--blue);color:#fff;border-bottom-right-radius:4px;}
+    .a .bubble{background:#f1f5f9;color:var(--ink);border-bottom-left-radius:4px;}
+    .a .bubble strong{color:var(--navy);}
+    .chat-input{border-top:1px solid var(--line);padding:12px 18px;display:flex;gap:8px;}
+    .chat-input .fake{flex:1;border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:#9aa6ad;}
+    .chat-input .send{background:var(--blue);color:#fff;border-radius:12px;padding:10px 18px;font-weight:700;}
+    .recos{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+    .reco{background:#fff;border:1px solid #cbd5e1;border-radius:20px;padding:7px 14px;font-size:.82rem;}
+    .footer{text-align:center;color:var(--muted);font-size:.82rem;padding:28px 0 6px;}
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="topbar-logo"><span>🚀</span> DevTeam Hub · What's New</div>
+    <nav class="topbar-nav">
+      <a href="#ask">Ask the AI</a>
+      <a href="#ai">AI everywhere</a>
+      <a href="#delivery">Delivery</a>
+      <a href="#ops">Ops</a>
+      <a href="#ceremonies">Ceremonies</a>
+    </nav>
+  </div>
+
+  <div class="hero">
+    <div class="kicker">2026 Release</div>
+    <h1>Just ask your project.</h1>
+    <p>DevTeam Hub now ships with a <strong>local, on-prem AI assistant</strong> that knows your project inside-out —
+       tickets, tasks, sprints, team messages and the code in your git repo — plus a wave of new delivery and ops
+       features. No cloud. No data leaving your LAN.</p>
+    <div class="pills">
+      <span class="pill">🤖 Project-aware AI chat</span>
+      <span class="pill">📊 Per-developer analytics</span>
+      <span class="pill">🖥️ Server monitoring</span>
+      <span class="pill">🏃 Sprint workflows</span>
+      <span class="pill">🔒 100% on-prem</span>
+    </div>
+  </div>
+
+  <!-- ASK THE AI -->
+  <div class="section" id="ask">
+    <h2>💬 Ask the questions that used to take a meeting</h2>
+    <p class="sub">Open <strong>Chat with AI</strong> from any project. It loads that project's live context, so you can
+       just ask — in plain English.</p>
+
+    <div class="chat">
+      <div class="chat-head">🤖 Chat with AI <small>· Print Server / TDI · Sprint 4 — Active</small></div>
+      <div class="chat-body">
+        <div class="msg u"><div class="bubble">Who is the fastest delivering developer?</div></div>
+        <div class="msg a"><div class="bubble"><strong>Avi Peretz</strong> is delivering fastest — 12 tickets done at an
+          average of <strong>6.1h each</strong>, ahead of Dana (8.4h) and Noam (9.2h).</div></div>
+
+        <div class="msg u"><div class="bubble">Who has the best estimations?</div></div>
+        <div class="msg a"><div class="bubble"><strong>Dana Mizrahi</strong> — a <strong>92% estimation accuracy</strong>
+          across her completed tickets (estimates vs. actuals). The team average is 78%; Noam tends to under-estimate by ~20%.</div></div>
+
+        <div class="msg u"><div class="bubble">What's the current sprint status?</div></div>
+        <div class="msg a"><div class="bubble"><strong>Sprint 4</strong> is <strong>46% done</strong> with 6 days left.
+          13 tasks, 6 complete · 54h estimated. Risk: 2 high-priority tickets are still <em>in review</em>. Suggested next
+          step — pair on T-118 to unblock the release.</div></div>
+      </div>
+      <div class="recos" style="padding:0 18px 14px;">
+        <span class="reco">📄 Generate a specification</span>
+        <span class="reco">⚠️ Risk management</span>
+        <span class="reco">🧪 Test plan</span>
+        <span class="reco">📊 Sprint status</span>
+        <span class="reco">💡 Next steps</span>
+      </div>
+      <div class="chat-input"><div class="fake">Ask anything about this project…</div><div class="send">Send</div></div>
+    </div>
+
+    <p class="sub" style="margin-top:16px;">Because the assistant is fed a <strong>team-performance summary</strong>
+      (delivery speed + estimation accuracy per developer), sprint metrics, and the project's <strong>git repository</strong>,
+      these answers are grounded in your real data — and it can draft specs, risk docs and test plans on the spot.</p>
+  </div>
+
+  <!-- AI EVERYWHERE -->
+  <div class="section" id="ai">
+    <h2>🧠 AI woven through the workflow</h2>
+    <p class="sub">All powered by a local Ollama model on an on-prem Mac mini — every run logged as an auditable record.</p>
+    <div class="grid-3">
+      <div class="card"><div class="ic">💬</div><h3>Project chat assistant</h3><p>Context-aware Q&amp;A + document generation, scoped to each project's repo.</p></div>
+      <div class="card"><div class="ic">🐛</div><h3>Fix that bug</h3><p>Diagnoses a bug ticket and proposes a concrete, minimal fix with tests.</p></div>
+      <div class="card"><div class="ic">🧩</div><h3>Generate tasks &amp; estimates</h3><p>Breaks a story into tasks, calibrated on the project's estimate-vs-actual history.</p></div>
+      <div class="card"><div class="ic">📄</div><h3>Docs on demand</h3><p>Specifications and risk-management documents generated from your stories.</p></div>
+      <div class="card"><div class="ic">🔍</div><h3>Code &amp; test review</h3><p>Reviews diffs (Go/Ruby/C#/Node) and Cucumber tests; flags gaps.</p></div>
+      <div class="card"><div class="ic">📈</div><h3>Live sprint analysis</h3><p>Real-time, on-track/at-risk read rendered right on the sprint page.</p></div>
+    </div>
+  </div>
+
+  <!-- DELIVERY -->
+  <div class="section" id="delivery">
+    <h2>🏃 Sharper delivery tracking</h2>
+    <div class="grid-2">
+      <div class="card"><div class="ic">✅</div><h3>Staged tickets + approval</h3><p>An uncluttered, stage-aware edit form: draft basics → approve → refine &amp; estimate → tasks. Approve from the ticket or any list.</p></div>
+      <div class="card"><div class="ic">🧩</div><h3>Tasks &amp; progress badges</h3><p>Stories break into estimable tasks; every ticket shows a <code>🧩 %</code> and <code>⏱ done/total h</code> badge everywhere it appears.</p></div>
+      <div class="card"><div class="ic">⭐</div><h3>One current sprint</h3><p>Set the current sprint with a click; the previous one closes automatically. Sprint pages show the derived team.</p></div>
+      <div class="card"><div class="ic">📋</div><h3>Project sprints at a glance</h3><p>Each project lists its sprints with <strong>total estimated</strong> and <strong>total actual</strong> hours.</p></div>
+    </div>
+  </div>
+
+  <!-- OPS -->
+  <div class="section" id="ops">
+    <h2>🖥️ Deployments &amp; server monitoring</h2>
+    <div class="grid-2">
+      <div class="card"><div class="ic">🚀</div><h3>Richer deployments</h3><p>Each deployment records its server (name, id, OS, IP), an OS snapshot (CPU/mem/disk/errors) and the remote log file.</p></div>
+      <div class="card"><div class="ic">📡</div><h3>Heartbeat monitoring</h3><p>Remote machines POST telemetry to <code>/api/v1/heartbeats</code>. The <strong>Servers</strong> page shows live health + historical CPU/memory/disk charts per machine.</p></div>
+      <div class="card"><div class="ic">📜</div><h3>Log viewer</h3><p>A readable, error-highlighted console over the central Loki logs, with a live "watch" tail.</p></div>
+      <div class="card"><div class="ic">🔍</div><h3>Code review tool</h3><p>Paste a PR URL to review diff, files and test results — with one-click AI review.</p></div>
+    </div>
+  </div>
+
+  <!-- CEREMONIES -->
+  <div class="section" id="ceremonies">
+    <h2>📅 Run every ceremony in one place</h2>
+    <p class="sub">A <strong>Ceremonies</strong> menu in the top toolbar opens purpose-built pages, each with the team's video bar on top.</p>
+    <div class="grid-3">
+      <div class="card"><div class="ic">🗣️</div><h3>Daily Standup</h3><p>Per-developer "yesterday / today" from their tasks and tickets.</p></div>
+      <div class="card"><div class="ic">📋</div><h3>Sprint Planning</h3><p>Capacity, what needs estimation, and a backlog you can pull from.</p></div>
+      <div class="card"><div class="ic">🔍</div><h3>Backlog Refinement</h3><p>Surfaces tickets missing estimates or detail to refine together.</p></div>
+      <div class="card"><div class="ic">🎬</div><h3>Sprint Review / Demo</h3><p>What shipped this sprint, ready to demo, plus carry-over.</p></div>
+      <div class="card"><div class="ic">🔁</div><h3>Retrospective</h3><p>Sprint performance vs. previous sprints + a per-developer scorecard (story quality, estimation, tests).</p></div>
+      <div class="card"><div class="ic">👥</div><h3>Reach anyone</h3><p>A toolbar contact finder to video-call (Jitsi) or message any teammate from any page.</p></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    DevTeam Hub · 2026 feature release · fully on-premises. The AI runs on your own hardware (Ollama on a Mac mini) —
+    your code, tickets and customer data never leave the LAN. See <code>docs/ai_integration.md</code> and
+    <code>docs/local_llm_onprem_guide.html</code> for setup.
+  </div>
+
+</div>
+</body>
+</html>

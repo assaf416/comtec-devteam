@@ -1,0 +1,72 @@
+<div class="level">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold"><%= @customer.name %></h1>
+      <p class="subfw-bold fs-6"><%= @customer.company %> · <%= mail_to @customer.email %> <% if @customer.phone.present? %>· <%= @customer.phone %><% end %></p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to t("common.actions.edit"), edit_customer_path(@customer), class: "btn btn-warning is-light me-2" %>
+    <%= link_to t("buttons.new_support_ticket"), new_customer_customer_ticket_path(@customer), class: "btn btn-primary me-2" %>
+    <%= link_to "Add Installation", new_customer_installation_path(@customer), class: "btn btn-success is-light" %>
+  </div>
+</div>
+
+<% if @customer.notes.present? %>
+  <div class="alert alert-light mb-4"><%= @customer.notes %></div>
+<% end %>
+
+<div class="row">
+  <div class="col-7">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Support Tickets</h3>
+      <% if @customer_tickets.any? %>
+        <table class="table w-100 fs-7">
+          <thead><tr><th><%= t('table_headers.title') %></th><th><%= t('table_headers.priority') %></th><th><%= t('table_headers.status') %></th><th><%= t('table_headers.opened') %></th><th></th></tr></thead>
+          <tbody>
+            <% @customer_tickets.each do |ct| %>
+              <tr>
+                <td><%= link_to ct.title, customer_customer_ticket_path(@customer, ct) %></td>
+                <td><%= priority_tag(ct.priority) %></td>
+                <td><%= status_tag(ct.status) %></td>
+                <td><%= ct.created_at.strftime("%d/%m/%y") %></td>
+                <td>
+                  <%= actions_dropdown do |d| %>
+                    <% unless ct.status_resolved? || ct.status_closed? %>
+                      <% d.button_action t('common.actions.resolve'), resolve_customer_customer_ticket_path(@customer, ct), method: :patch, icon: '✅' %>
+                    <% end %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-muted">No tickets yet.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="col-5">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Installed Software</h3>
+      <% if @installations.any? %>
+        <table class="table w-100 fs-7">
+          <thead><tr><th><%= t('table_headers.software') %></th><th><%= t('table_headers.version') %></th><th><%= t('table_headers.environment') %></th><th><%= t('table_headers.status') %></th></tr></thead>
+          <tbody>
+            <% @installations.each do |inst| %>
+              <tr class="<%= 'bg-warning-subtle' if inst.status_outdated? %>">
+                <td><%= link_to inst.software_name, customer_installation_path(@customer, inst) %></td>
+                <td><code><%= inst.version %></code></td>
+                <td><span class="badge bg-light text-dark is-small"><%= inst.environment %></span></td>
+                <td><%= status_tag(inst.status) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-muted">No installations tracked yet.</p>
+      <% end %>
+    </div>
+  </div>
+</div>

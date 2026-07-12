@@ -1,0 +1,78 @@
+<% content_for :title, "Deployment Summary" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <h1 class="fw-bold mb-0">Deployment Summary</h1>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number"><%= @total_deployments %></div><div class="stat-label">Total Deployments</div></div></div>
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number text-success"><%= @succeeded_count %></div><div class="stat-label">Succeeded</div></div></div>
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number text-danger"><%= @failed_count %></div><div class="stat-label">Failed</div></div></div>
+  <div class="col-3"><div class="card p-3 mb-3 stat-card"><div class="stat-number text-warning"><%= @in_progress_count %></div><div class="stat-label">In Progress</div></div></div>
+</div>
+
+<div class="row">
+  <div class="col-4">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Status</h3>
+      <%= pie_chart @status_breakdown, height: "260px" %>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Environment</h3>
+      <%= pie_chart @environment_breakdown, height: "260px" %>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Deployment Type</h3>
+      <%= pie_chart @deploy_type_breakdown, height: "260px" %>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-7">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Deployment Trend (Last 45 Days)</h3>
+      <%= area_chart @deployments_by_day, height: "290px" %>
+    </div>
+  </div>
+  <div class="col-5">
+    <div class="card p-3 mb-3">
+      <h3 class="subfw-bold">Deployments by Project</h3>
+      <%= bar_chart @deployments_by_project, height: "290px" %>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3">
+  <h3 class="subfw-bold">Recent Deployments</h3>
+  <table class="table table-hover w-100 fs-7">
+    <thead>
+      <tr>
+        <th><%= t('table_headers.project') %></th>
+        <th><%= t('table_headers.version') %></th>
+        <th><%= t('table_headers.environment') %></th>
+        <th><%= t('table_headers.deploy_type') %></th>
+        <th><%= t('table_headers.status') %></th>
+        <th><%= t('table_headers.deployed_at') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @recent_deployments.each do |deployment| %>
+        <tr>
+          <td><%= deployment.project.name %></td>
+          <td><code><%= deployment.version %></code></td>
+          <td><span class="badge bg-light text-dark"><%= deployment.environment %></span></td>
+          <td><%= deployment.deploy_type.humanize %></td>
+          <td><%= status_tag(deployment.status) %></td>
+          <td><%= deployment.deployed_at ? l(deployment.deployed_at, format: :short) : "-" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

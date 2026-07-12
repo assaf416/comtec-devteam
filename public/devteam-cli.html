@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>devteam — CLI & TUI design</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#11151f; --ink:#d7dce5; --muted:#8b94a7; --line:#222838;
+    --green:#9ece6a; --blue:#7aa2f7; --cyan:#56d4dd; --yellow:#e0af68; --red:#f7768e;
+    --purple:#bb9af7; --term:#0a0d13;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#05070b;color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:40px 22px 80px}
+  code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  h1{font-size:2rem;margin:0 0 4px}
+  h2{font-size:1.35rem;margin:46px 0 6px;border-top:1px solid var(--line);padding-top:24px}
+  h3{font-size:1.05rem;margin:24px 0 8px;color:#fff}
+  p{color:#c2c9d6}
+  .sub{color:var(--muted);font-size:1.05rem}
+  a{color:var(--blue)}
+  .pill{display:inline-block;background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:3px 11px;font-size:.74rem;margin:8px 6px 0 0}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#151a26;color:#fff}
+  td code{color:var(--cyan)}
+  .note{border-left:3px solid var(--blue);background:var(--panel);padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0;font-size:.92rem}
+  .note b{color:#fff}
+
+  /* terminal window */
+  .term{background:var(--term);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:16px 0;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .term .bar{display:flex;align-items:center;gap:7px;padding:9px 12px;background:#10141d;border-bottom:1px solid var(--line)}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .dot.r{background:#ff5f56}.dot.y{background:#ffbd2e}.dot.g{background:#27c93f}
+  .term .title{color:var(--muted);font:12px/1 "JetBrains Mono",monospace;margin-left:8px}
+  .term pre{margin:0;padding:16px 18px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12.5px;line-height:1.5;color:#cdd3df;overflow:auto;white-space:pre}
+  .g{color:var(--green)} .b{color:var(--blue)} .c{color:var(--cyan)} .y{color:var(--yellow)}
+  .r{color:var(--red)} .p{color:var(--purple)} .m{color:var(--muted)} .w{color:#fff}
+  .cap{color:var(--muted);font-size:.82rem;text-align:center;margin-top:6px}
+  ul{color:#c2c9d6}
+  .kbd{background:#151a26;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:.82em;font-family:"JetBrains Mono",monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>🛠 <code style="font-size:1.6rem;color:#fff">devteam</code> — CLI &amp; TUI design</h1>
+<div class="sub">A Go client for the DevTeam hub: a scriptable command line <em>and</em> an interactive TUI chat. This is the design spec — command grammar, <code>--help</code>, and TUI screenshots — to lock the UX before writing code.</div>
+<div>
+  <span class="pill">Go</span><span class="pill">Cobra (CLI)</span><span class="pill">Bubble Tea + Lip Gloss + Bubbles (TUI)</span>
+  <span class="pill">Glamour (markdown)</span><span class="pill">talks to /api/v1</span><span class="pill">win · linux · mac</span>
+</div>
+
+<!-- STACK -->
+<h2>Recommended stack</h2>
+<table>
+  <tr><th>Concern</th><th>Library</th><th>Why</th></tr>
+  <tr><td>CLI commands + flags</td><td><code>spf13/cobra</code> + <code>spf13/viper</code></td><td>De-facto standard; subcommands, help, shell completion, config files/env</td></tr>
+  <tr><td>TUI framework</td><td><code>charmbracelet/bubbletea</code></td><td>The Elm-architecture TUI runtime — the modern Go standard</td></tr>
+  <tr><td>TUI styling/layout</td><td><code>charmbracelet/lipgloss</code></td><td>Borders, panes, colors, flexbox-like layout</td></tr>
+  <tr><td>TUI widgets</td><td><code>charmbracelet/bubbles</code></td><td>list, viewport, textinput, table, spinner, progress</td></tr>
+  <tr><td>Markdown in chat</td><td><code>charmbracelet/glamour</code></td><td>Render the assistant's markdown replies in the terminal</td></tr>
+  <tr><td>Git</td><td><code>go-git/go-git</code> (+ shell fallback)</td><td>Branch/commit/push without requiring a git binary; shell out for edge cases</td></tr>
+  <tr><td>HTTP</td><td>stdlib <code>net/http</code></td><td>Calls the existing DevTeam <code>/api/v1</code> (tickets, PRs, deployments, docs)</td></tr>
+</table>
+
+<!-- GRAMMAR -->
+<h2>Command grammar (refined)</h2>
+<p>Your draft is close. Three refinements make it unambiguous and consistent:</p>
+<ul>
+  <li><b>Imperative verbs, not past tense:</b> <code>start</code> / <code>stop</code> / <code>done</code> — not <code>started</code> / <code>completed</code>. Reads as a command, scripts cleanly.</li>
+  <li><b>Separate "run the app" from "start work":</b> <code>devteam run</code> boots the app locally; <code>devteam ticket &lt;id&gt; start</code> begins a work session. Otherwise "start" is overloaded.</li>
+  <li><b>Noun → id → verb</b> stays your shape (<code>devteam ticket 123 push</code>), and bare <code>devteam</code> launches the TUI.</li>
+</ul>
+
+<table>
+  <tr><th>Your draft</th><th>Refined</th><th>What it does</th></tr>
+  <tr><td><code>ticket 123 open</code></td><td><code>devteam ticket 123 open</code></td><td>Checkout the ticket's branch (create <code>feature/t-123-slug</code> from base if the ticket has none, then write it back)</td></tr>
+  <tr><td><code>ticket 123 started</code></td><td><code>devteam ticket 123 start</code></td><td>Set status → in&nbsp;progress, start a work-session timer</td></tr>
+  <tr><td>—</td><td><code>devteam ticket 123 stop</code></td><td>Pause the work session</td></tr>
+  <tr><td><code>ticket 123 completed</code></td><td><code>devteam ticket 123 done</code></td><td>Set status → done (alias <code>complete</code>)</td></tr>
+  <tr><td><code>ticket 123 commit</code></td><td><code>devteam ticket 123 commit [-m]</code></td><td>Commit staged changes (AI message if <code>-m</code> omitted)</td></tr>
+  <tr><td><code>ticket 123 push</code></td><td><code>devteam ticket 123 push</code></td><td>Push branch + create/refresh the PR</td></tr>
+  <tr><td>—</td><td><code>devteam ticket 123 status &lt;v&gt;</code></td><td>Set an explicit status</td></tr>
+  <tr><td><code>document 123 translate</code></td><td><code>devteam document 123 translate --to he</code></td><td>Translate a document</td></tr>
+  <tr><td><code>document create &lt;name&gt;</code></td><td><code>devteam document create "&lt;name&gt;" --type spec</code></td><td>Create a document from a template</td></tr>
+  <tr><td>start app</td><td><code>devteam run</code> / <code>devteam run stop</code></td><td>Boot / stop the project app locally</td></tr>
+  <tr><td>test file/folder</td><td><code>devteam test [path] [--watch]</code></td><td>Run tests for a file or folder locally</td></tr>
+  <tr><td>git wrap</td><td><code>devteam sync · commit · push · pr · git …</code></td><td>High-level git ops (+ raw passthrough)</td></tr>
+</table>
+
+<!-- HELP -->
+<h2>1 · <code>devteam --help</code></h2>
+<div class="term">
+  <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">~/code/print-tdi — devteam --help</span></div>
+<pre><span class="m">$</span> <span class="w">devteam</span> --help
+
+<span class="w">devteam</span> — your DevTeam hub, from the terminal.
+
+<span class="y">USAGE</span>
+  devteam <span class="c">[command]</span>
+  devteam                       <span class="m"># no command → launch the interactive TUI (chat)</span>
+
+<span class="y">WORK</span>
+  <span class="g">chat</span>          Launch the interactive TUI            <span class="m">(default)</span>
+  <span class="g">ticket</span>        Tickets + their git branch            <span class="m">open·start·stop·done·commit·push·pr</span>
+  <span class="g">document</span>      Create &amp; manipulate documents         <span class="m">create·translate·rewrite·ls</span>
+  <span class="g">run</span>           Start the app locally                 <span class="m">run·run stop·run logs</span>
+  <span class="g">test</span>          Run tests for a file or folder
+  <span class="g">sync</span>          Pull + rebase the current branch
+  <span class="g">commit</span>        Stage &amp; commit (AI message if no -m)
+  <span class="g">push</span>          Push current branch to origin
+  <span class="g">pr</span>            Open / update the pull request
+
+<span class="y">WORKSPACE</span>
+  <span class="g">init</span>          Link this folder to a DevTeam project
+  <span class="g">projects</span>      List &amp; switch projects
+  <span class="g">status</span>        Folder · branch · ticket · PR at a glance
+  <span class="g">config</span>        Get/set config (server, token, editor…)
+  <span class="g">login</span>         Authenticate to your DevTeam server
+
+<span class="y">GLOBAL FLAGS</span>
+  <span class="c">--project</span> <span class="m">&lt;slug&gt;</span>   Override the active project
+  <span class="c">--folder</span> <span class="m">&lt;path&gt;</span>    Project folder            <span class="m">(default: .)</span>
+  <span class="c">--json</span>             Machine-readable output
+  <span class="c">-y, --yes</span>          Skip confirmation prompts
+  <span class="c">--no-color</span>         Disable ANSI color
+  <span class="c">-v, --verbose</span>      Verbose logging
+  <span class="c">-h, --help</span>         Help for any command
+  <span class="c">--version</span>          Print version
+
+<span class="y">EXAMPLES</span>
+  <span class="m">$</span> devteam ticket 123 open          <span class="m"># checkout the ticket's branch</span>
+  <span class="m">$</span> devteam ticket 123 start         <span class="m"># status → in-progress, start timer</span>
+  <span class="m">$</span> devteam ticket 123 commit        <span class="m"># AI commit message</span>
+  <span class="m">$</span> devteam ticket 123 push          <span class="m"># push + refresh PR</span>
+  <span class="m">$</span> devteam test ./app/models        <span class="m"># run a folder's tests</span>
+  <span class="m">$</span> devteam run                      <span class="m"># boot the app locally</span>
+  <span class="m">$</span> devteam document 88 translate --to he
+
+Run <span class="c">"devteam &lt;command&gt; --help"</span> for details · run <span class="c">"devteam"</span> for the TUI.</pre>
+</div>
+
+<h3><code>devteam ticket --help</code></h3>
+<div class="term">
+  <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">devteam ticket --help</span></div>
+<pre><span class="m">$</span> <span class="w">devteam</span> ticket --help
+
+Work with a ticket and the git branch behind it.
+
+<span class="y">USAGE</span>
+  devteam ticket <span class="c">&lt;id&gt; &lt;action&gt;</span> [flags]
+  devteam ticket <span class="c">new</span>  [--title …] [--kind story|bug]
+  devteam ticket <span class="c">ls</span>   [--mine] [--sprint current]
+
+<span class="y">ACTIONS</span>
+  <span class="g">show</span>            Status, assignee, branch, PR, checks
+  <span class="g">open</span>            Switch to the ticket branch <span class="m">(create from --base if nil)</span>
+  <span class="g">start</span>           Status → in-progress · start work session
+  <span class="g">stop</span>            Pause the work session
+  <span class="g">done</span>            Status → done            <span class="m">(alias: complete)</span>
+  <span class="g">status</span> <span class="c">&lt;value&gt;</span>   backlog|open|in_progress|in_review|testing|done|blocked
+  <span class="g">commit</span> <span class="c">[-m]</span>      Commit staged changes   <span class="m">(AI message if -m omitted)</span>
+  <span class="g">push</span>            Push branch + create/refresh PR
+  <span class="g">pr</span> <span class="c">[--draft]</span>     Open a pull request
+  <span class="g">watch</span>           Stream CI + review status
+
+<span class="y">FLAGS</span>
+  <span class="c">--base</span> <span class="m">&lt;branch&gt;</span>   Base for new branches   <span class="m">(default: main)</span>
+  <span class="c">-m, --message</span>     Commit / PR message
+  <span class="c">--no-switch</span>       Don't change the local branch on <span class="g">open</span>
+
+<span class="y">EXAMPLES</span>
+  <span class="m">$</span> devteam ticket 123 open
+  <span class="m">$</span> devteam ticket 123 commit -m <span class="g">"Fix null queue race"</span>
+  <span class="m">$</span> devteam ticket 123 push</pre>
+</div>
+
+<div class="note"><b>Branch behavior on <code>open</code>.</b> If the ticket already has <code>branch_name</code>, devteam checks it out (fetching if needed). If it's <code>nil</code>, devteam creates <code>feature/t-&lt;id&gt;-&lt;slug&gt;</code> from <code>--base</code>, checks it out, and writes the branch back to the ticket via the API — so the next teammate who runs <code>open</code> lands on the same branch.</div>
+
+<!-- CLI FLOW -->
+<h3>A scripted session</h3>
+<div class="term">
+  <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">~/code/print-tdi — zsh</span></div>
+<pre><span class="m">$</span> <span class="w">devteam</span> ticket 123 open
+  <span class="g">✓</span> T-123 “Add PDF export for print queue jobs”
+  <span class="g">✓</span> branch <span class="c">feature/t-123-add-pdf-export</span> created from <span class="c">main</span> and checked out
+  <span class="m">↳ tip: `devteam ticket 123 start` to begin a work session</span>
+
+<span class="m">$</span> <span class="w">devteam</span> ticket 123 start
+  <span class="g">✓</span> status <span class="y">open</span> → <span class="b">in_progress</span> · ⏱ session started 14:02
+
+<span class="m">$</span> <span class="w">devteam</span> test ./src/AddPdfExportService.cs
+  <span class="b">▶</span> dotnet test --filter AddPdfExport …
+  <span class="g">✓ 12 passed</span>  <span class="r">✗ 1 failed</span>  <span class="m">(4.1s)</span>
+  <span class="r">✗ handles 50 jobs ≤ 2s — expected ≤2000ms, got 2640ms</span>
+
+<span class="m">$</span> <span class="w">devteam</span> ticket 123 commit
+  <span class="p">🤖</span> commit message: <span class="g">"Batch PDF render so 50-job export stays under 2s"</span>
+  <span class="g">✓</span> committed 3 files on <span class="c">feature/t-123-add-pdf-export</span>
+
+<span class="m">$</span> <span class="w">devteam</span> ticket 123 push
+  <span class="g">✓</span> pushed → origin/feature/t-123-add-pdf-export
+  <span class="g">✓</span> PR <span class="c">#1010</span> refreshed · CI <span class="y">queued</span> · <span class="b">open cockpit ↗</span></pre>
+</div>
+
+<!-- TUI -->
+<h2>2 · The interactive TUI (<code>devteam</code> or <code>devteam chat</code>)</h2>
+<p>ChatGPT-style center column, with the four extras you asked for: ⚙ settings, a <b>projects</b> rail, a <b>context</b> panel (folder · git · ticket · PR), and a <b>test runner</b> with live results.</p>
+
+<div class="term">
+  <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">devteam — interactive</span></div>
+<pre><span class="b">┌─ devteam ─────────────────────────────────────────────────────────────────  ⚙ settings ┐</span>
+<span class="b">│</span> <span class="y">PROJECTS</span>        <span class="b">│</span> <span class="m">chat · print-tdi</span>                              <span class="b">│</span> <span class="y">CONTEXT</span>            <span class="b">│</span>
+<span class="b">│</span> <span class="g">●</span> <span class="w">print-tdi</span>     <span class="b">│</span>                                               <span class="b">│</span> <span class="m">📁</span> ~/code/print-tdi <span class="b">│</span>
+<span class="b">│</span>   tdi2          <span class="b">│</span> <span class="p">🤖</span> Morning, Assaf. You're on <span class="c">T-123</span> and the    <span class="b">│</span> <span class="m">🌿</span> <span class="c">feature/t-123</span>    <span class="b">│</span>
+<span class="b">│</span>   dis           <span class="b">│</span>    branch <span class="c">feature/t-123-add-pdf-export</span> is      <span class="b">│</span>    ↑2 ↓0  <span class="y">✎ dirty</span>   <span class="b">│</span>
+<span class="b">│</span>   wms           <span class="b">│</span>    checked out. The last test run had 1        <span class="b">│</span> <span class="m">🎫</span> T-123 <span class="b">in_progress</span><span class="b">│</span>
+<span class="b">│</span>                 <span class="b">│</span>    failing perf test. Want me to dig in?       <span class="b">│</span> <span class="m">🔀</span> PR <span class="c">#1010</span> <span class="b">review</span>  <span class="b">│</span>
+<span class="b">│</span> <span class="m">+ open project</span>  <span class="b">│</span>                                               <span class="b">│</span>    checks <span class="g">✓ 4/4</span>      <span class="b">│</span>
+<span class="b">│</span>                 <span class="b">│</span> <span class="g">you</span> why is the 50-job export slow?             <span class="b">│</span> <span class="b">────────────────</span>  <span class="b">│</span>
+<span class="b">│</span> <span class="b">────────────────</span><span class="b">│</span>                                               <span class="b">│</span> <span class="y">TESTS</span>             <span class="b">│</span>
+<span class="b">│</span> <span class="m">recent</span>          <span class="b">│</span> <span class="p">🤖</span> It renders pages synchronously. Batching     <span class="b">│</span> <span class="g">[ ▶ run ]</span> <span class="m">[ ■ stop ]</span><span class="b">│</span>
+<span class="b">│</span>  tdi2/main      <span class="b">│</span>    the writer keeps it under budget. I can     <span class="b">│</span> last: <span class="g">✓ 142/142</span>   <span class="b">│</span>
+<span class="b">│</span>  dis/feat-auth  <span class="b">│</span>    draft the change on this branch.            <span class="b">│</span> cov <span class="g">84%</span> <span class="g">▲2</span>  <span class="m">8.3s</span> <span class="b">│</span>
+<span class="b">│</span>                 <span class="b">│</span> <span class="m">&gt;</span> <span class="w">draft it_</span>                                    <span class="b">│</span>                    <span class="b">│</span>
+<span class="b">│</span>                 <span class="b">│</span> <span class="m">/ticket  /test  /commit  /push  /doc  /help</span>    <span class="b">│</span>                    <span class="b">│</span>
+<span class="b">└─────────────────┴───────────────────────────────────────────────┴────────────────────┘</span>
+ <span class="m">Tab</span> switch pane · <span class="m">/</span> command · <span class="m">↵</span> send · <span class="m">^S</span> settings · <span class="m">^P</span> projects · <span class="m">^R</span> run tests · <span class="m">q</span> quit</pre>
+</div>
+<div class="cap">Main chat TUI — projects rail (left), conversation (center), context + test runner (right), command palette + keybindings.</div>
+
+<h3>Test runner — running, then results</h3>
+<div class="term">
+  <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">devteam — ^R run tests</span></div>
+<pre><span class="b">│</span> <span class="y">TESTS</span>                  <span class="b">│</span>          <span class="b">│</span> <span class="y">TESTS</span>                 <span class="b">│</span>
+<span class="b">│</span> <span class="c">⠹ running…</span>  <span class="m">spec/</span>      <span class="b">│</span>   ───►    <span class="b">│</span> <span class="g">[ ▶ run ]</span> <span class="m">[ ■ stop ]</span>  <span class="b">│</span>
+<span class="b">│</span> <span class="g">████████</span><span class="m">░░░░</span> 68%       <span class="b">│</span>          <span class="b">│</span> <span class="g">✓ 142 passed</span>          <span class="b">│</span>
+<span class="b">│</span> <span class="g">✓</span> models  <span class="g">✓</span> requests  <span class="b">│</span>          <span class="b">│</span> <span class="r">✗ 1 failed</span>  <span class="m">8.3s</span>      <span class="b">│</span>
+<span class="b">│</span> <span class="c">·</span> features <span class="m">(running)</span>  <span class="b">│</span>          <span class="b">│</span> <span class="r">✗ perf_spec:42</span>        <span class="b">│</span>
+<span class="b">│</span>                       <span class="b">│</span>          <span class="b">│</span>   <span class="m">≤2000ms, got 2640</span>   <span class="b">│</span>
+<span class="b">│</span> <span class="m">^C to stop</span>            <span class="b">│</span>          <span class="b">│</span> cov <span class="g">84% ▲2</span>           <span class="b">│</span></pre>
+</div>
+<div class="cap">The right-rail test runner streams progress (spinner + bar), then collapses to a pass/fail summary with the failing test and coverage delta.</div>
+
+<h3>Settings (<kbd class="kbd">^S</kbd>)</h3>
+<div class="term">
+  <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">devteam — settings</span></div>
+<pre><span class="b">┌─ settings ──────────────────────────────────────────────────┐</span>
+<span class="b">│</span>  <span class="y">Server</span>      <span class="w">https://hub.devteam.local</span>            <span class="g">● connected</span> <span class="b">│</span>
+<span class="b">│</span>  <span class="y">Token</span>       <span class="m">••••••••••••••••</span>  <span class="b">[ regenerate ]</span>            <span class="b">│</span>
+<span class="b">│</span>  <span class="y">User</span>        Assaf Goldstein  <span class="m">&lt;assaf@cenevo.com&gt;</span>        <span class="b">│</span>
+<span class="b">│</span>  <span class="b">───────────────────────────────────────────────────────</span> <span class="b">│</span>
+<span class="b">│</span>  <span class="y">Editor</span>      <span class="c">code</span>                  <span class="m">($EDITOR override)</span>    <span class="b">│</span>
+<span class="b">│</span>  <span class="y">Base branch</span> <span class="c">main</span>                                      <span class="b">│</span>
+<span class="b">│</span>  <span class="y">Run cmd</span>     <span class="c">bin/dev</span>               <span class="m">(devteam run)</span>       <span class="b">│</span>
+<span class="b">│</span>  <span class="y">Test cmd</span>    <span class="c">bundle exec rspec</span>     <span class="m">(devteam test)</span>      <span class="b">│</span>
+<span class="b">│</span>  <span class="y">AI model</span>    <span class="c">qwen2.5-coder:14b</span>     <span class="m">(local Ollama)</span>      <span class="b">│</span>
+<span class="b">│</span>  <span class="y">Theme</span>       <span class="c">dark</span>      <span class="y">Color</span>  <span class="c">on</span>                       <span class="b">│</span>
+<span class="b">│</span>                                            <span class="b">[ save ]  [ esc ]</span> <span class="b">│</span>
+<span class="b">└──────────────────────────────────────────────────────────────┘</span>
+ <span class="m">↑↓ move · ↵ edit · ⇥ next field · esc back</span></pre>
+</div>
+<div class="cap">Settings reachable from the header (⚙) or <kbd class="kbd">^S</kbd> — server/token/user, plus per-project run/test commands and the AI model.</div>
+
+<h3>Switching project re-reads the folder &amp; git state</h3>
+<div class="note">
+  Selecting a project in the left rail (or <kbd class="kbd">^P</kbd>) points devteam at that project's local folder and refreshes the <b>context</b> panel: current branch + ahead/behind + dirty flag, the active ticket, and the open PR (with CI/review checks). If the folder isn't linked yet, the panel shows <code>not linked — run `devteam init`</code> with a one-key fix.
+</div>
+
+<div style="color:var(--muted);font-size:.82rem;border-top:1px solid var(--line);margin-top:46px;padding-top:16px">
+  devteam CLI/TUI design · Cobra + Bubble Tea/Lip Gloss/Bubbles · talks to the DevTeam <code>/api/v1</code> · mockups are design targets, not final pixels.
+</div>
+
+</div>
+</body>
+</html>

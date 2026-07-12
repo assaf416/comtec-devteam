@@ -1,0 +1,12 @@
+<%# Task progress badges for a ticket — shown wherever a ticket with tasks
+    appears. Renders nothing when the ticket has no tasks. locals: ticket %>
+<% if ticket.tasks_count.to_i.positive? %>
+  <span class="badge rounded-pill bg-info text-dark" title="Tasks completed (<%= ticket.completed_tasks_count %>/<%= ticket.tasks_count %>)">
+    🧩 <%= ticket.tasks_progress_in_percents %>%
+  </span>
+  <% if ticket.total_tasks_estimation.to_f.positive? %>
+    <span class="badge rounded-pill bg-light text-dark border" title="Hours completed / estimated">
+      ⏱ <%= hours_label(ticket.completed_tasks_estimation) %>/<%= hours_label(ticket.total_tasks_estimation) %>h
+    </span>
+  <% end %>
+<% end %>

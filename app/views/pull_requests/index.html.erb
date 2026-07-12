@@ -1,0 +1,85 @@
+<%
+  status_colors = { "open" => "success", "review" => "primary", "merged" => "purple", "closed" => "secondary" }
+%>
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h2 class="fw-bold mb-0"><i class="bi bi-git me-2"></i>Pull Requests — <%= @project.name %></h2>
+  <div class="d-flex gap-2">
+    <% %w[open review merged closed].each do |s| %>
+      <%= link_to s.capitalize, project_pull_requests_path(@project, status: s),
+            class: "btn btn-sm #{params[:status] == s ? 'btn-dark' : 'btn-outline-secondary'}" %>
+    <% end %>
+    <%= link_to "All", project_pull_requests_path(@project),
+          class: "btn btn-sm #{params[:status].blank? ? 'btn-dark' : 'btn-outline-secondary'}" %>
+  </div>
+</div>
+
+<% if @pull_requests.any? %>
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">#</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Author</th>
+            <th>Files</th>
+            <th>Comments</th>
+            <th>Synced</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @pull_requests.each do |pr| %>
+            <% badge = status_colors.fetch(pr.status, "secondary") %>
+            <tr>
+              <td class="ps-3 text-muted">#<%= pr.pr_number %></td>
+              <td>
+                <div class="fw-semibold"><%= link_to pr.title, pull_request_path(pr) %></div>
+                <% if pr.ticket %>
+                  <small class="text-muted"><i class="bi bi-ticket me-1"></i><%= pr.ticket.title.truncate(50) %></small>
+                <% end %>
+              </td>
+              <td><span class="badge bg-<%= badge %>"><%= pr.status.capitalize %></span></td>
+              <td><%= pr.author.presence || "—" %></td>
+              <td>
+                <% fc = pr.changed_files.size %>
+                <% if fc > 0 %>
+                  <span class="badge bg-light text-dark border"><i class="bi bi-file-code me-1"></i><%= fc %></span>
+                <% else %>
+                  <span class="text-muted">—</span>
+                <% end %>
+              </td>
+              <td>
+                <% cc = pr.pr_comments.size %>
+                <% if cc > 0 %>
+                  <span class="badge bg-light text-dark border"><i class="bi bi-chat me-1"></i><%= cc %></span>
+                <% else %>
+                  <span class="text-muted">—</span>
+                <% end %>
+              </td>
+              <td>
+                <% if pr.synced? %>
+                  <small class="text-muted"><%= pr.synced_at.strftime("%b %-d %H:%M") %></small>
+                <% else %>
+                  <span class="badge bg-warning text-dark">Not synced</span>
+                <% end %>
+              </td>
+              <td class="pe-3">
+                <%= link_to pull_request_path(pr), class: "btn btn-sm btn-outline-secondary" do %>
+                  <i class="bi bi-eye"></i>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% else %>
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-git display-4 d-block mb-3"></i>
+    No pull requests found.
+  </div>
+<% end %>

@@ -1,0 +1,220 @@
+<% content_for :title, @meeting.title %>
+
+<%# ── Header ───────────────────────────────────────────────────────────────── %>
+<div class="d-flex align-items-start justify-content-between mb-3 flex-wrap gap-2">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <%= status_tag(@meeting.status) %>
+      <span class="badge bg-secondary fs-8"><%= t("meetings.types.#{@meeting.meeting_type}") %></span>
+      <% if @meeting.sprint %>
+        <%= link_to @meeting.sprint.name, sprint_path(@meeting.sprint), class: "badge bg-info text-dark text-decoration-none fs-8" %>
+      <% end %>
+    </div>
+    <h1 class="fw-bold mb-0"><%= @meeting.title %></h1>
+    <p class="text-muted fs-7 mb-0">
+      🕐 <%= @meeting.scheduled_at.strftime('%A, %d %b %Y · %H:%M') %>
+      · <%= @meeting.duration_minutes || 60 %> min
+      <% if @meeting.project %> · <%= link_to @meeting.project.name, @meeting.project %><% end %>
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <% unless @meeting.completed? || @meeting.cancelled? %>
+      <%= button_to @meeting.in_progress? ? "⏹ End Meeting" : "▶ Start Meeting",
+            end_meeting_meeting_path(@meeting),
+            method: :post,
+            class: "btn btn-sm #{@meeting.in_progress? ? 'btn-danger' : 'btn-success'}" %>
+    <% end %>
+    <%= link_to "📹 Open Jitsi", @meeting.jitsi_url, target: "_blank", class: "btn btn-primary btn-sm" %>
+    <%= link_to "📅 iCal", ical_meeting_path(@meeting), class: "btn btn-secondary btn-sm" %>
+    <%= link_to "✏️ #{t('common.actions.edit')}", edit_meeting_path(@meeting), class: "btn btn-outline-secondary btn-sm" %>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <%# ── Left column ─────────────────────────────────────────────────────────── %>
+  <div class="col-lg-8">
+
+    <%# ── Jitsi embedded huddle ───────────────────────────────────────────── %>
+    <div class="card mb-3">
+      <div class="card-body p-0">
+        <%# Toolbar above iframe %>
+        <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom bg-dark"
+             style="border-radius:0.375rem 0.375rem 0 0;">
+          <span class="text-white fw-semibold fs-7">📹 Huddle Room</span>
+          <code class="text-info fs-8 flex-grow-1"><%= @meeting.jitsi_url %></code>
+          <button class="btn btn-sm btn-outline-light fs-8"
+                  onclick="document.getElementById('jitsi-frame').requestFullscreen()">⛶ Fullscreen</button>
+          <a href="<%= @meeting.jitsi_url %>" target="_blank" class="btn btn-sm btn-outline-light fs-8">↗ New Tab</a>
+          <button class="btn btn-sm btn-outline-secondary fs-8"
+                  onclick="toggleJitsi()" id="jitsi-toggle-btn">▲ Hide</button>
+        </div>
+        <%# Jitsi iframe %>
+        <div id="jitsi-frame-wrapper">
+          <iframe id="jitsi-frame"
+            src="<%= @meeting.jitsi_url %>"
+            allow="camera; microphone; fullscreen; display-capture; clipboard-read; clipboard-write"
+            style="width:100%; height:540px; border:0; display:block;"
+            title="<%= @meeting.title %>">
+          </iframe>
+        </div>
+        <%# Keyboard shortcuts hint %>
+        <div class="d-flex align-items-center gap-2 px-3 py-2 border-top bg-light"
+             style="border-radius:0 0 0.375rem 0.375rem; font-size:0.78rem;">
+          <span class="text-muted">Jitsi shortcuts:</span>
+          <span class="badge bg-secondary">🎤 Mute — M</span>
+          <span class="badge bg-secondary">📷 Camera — V</span>
+          <span class="badge bg-secondary">🖥 Share Screen — S</span>
+          <span class="badge bg-secondary">💬 Chat — C</span>
+          <span class="badge bg-secondary">✋ Raise Hand — R</span>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Agenda ──────────────────────────────────────────────────────────── %>
+    <div class="card p-3 mb-3">
+      <h5 class="fw-bold mb-2">📋 Agenda</h5>
+      <div class="content fs-7"><%= simple_format(@meeting.agenda.presence || "<em>No agenda set.</em>") %></div>
+    </div>
+
+    <%# ── Notes ──────────────────────────────────────────────────────────── %>
+    <div class="card p-3 mb-3">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h5 class="fw-bold mb-0">📝 Notes</h5>
+        <%= link_to t("buttons.edit_notes"), edit_meeting_path(@meeting), class: "btn btn-sm btn-outline-secondary" %>
+      </div>
+      <div class="content fs-7"><%= simple_format(@meeting.notes.presence || "<em>No notes yet.</em>") %></div>
+    </div>
+
+    <%# ── Recording ───────────────────────────────────────────────────────── %>
+    <div class="card p-3 mb-3">
+      <h5 class="fw-bold mb-2">🎬 Recording</h5>
+      <% if @meeting.recording_url.present? %>
+        <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+          <span class="badge bg-success">Saved</span>
+          <%= link_to "▶ Watch Recording", @meeting.recording_url,
+                target: "_blank", class: "btn btn-sm btn-outline-primary" %>
+          <code class="fs-8 text-muted"><%= @meeting.recording_url.truncate(70) %></code>
+        </div>
+      <% else %>
+        <p class="text-muted fs-7 mb-2">No recording yet. Record with Jitsi then paste the URL below.</p>
+      <% end %>
+      <%= form_with url: save_recording_meeting_path(@meeting), method: :patch, class: "d-flex gap-2" do |f| %>
+        <%= f.url_field :recording_url,
+              value: @meeting.recording_url,
+              class: "form-control form-control-sm",
+              placeholder: "https://... recording URL" %>
+        <%= f.submit "💾 #{t('buttons.save_recording')}", class: "btn btn-sm btn-primary flex-shrink-0" %>
+      <% end %>
+    </div>
+
+  </div>
+
+  <%# ── Right column ────────────────────────────────────────────────────────── %>
+  <div class="col-lg-4">
+
+    <%# ── Meeting info ────────────────────────────────────────────────────── %>
+    <div class="card p-3 mb-3">
+      <h5 class="fw-bold mb-2">ℹ️ Details</h5>
+      <table class="table table-sm is-borderless fs-7 mb-0">
+        <tr><th>Organizer</th><td><%= @meeting.organizer&.display_name || '—' %></td></tr>
+        <tr><th>Duration</th><td><%= @meeting.duration_minutes || 60 %> min</td></tr>
+        <tr><th>Room</th><td><code class="fs-8"><%= @meeting.jitsi_room %></code></td></tr>
+        <% if @meeting.project %>
+          <tr><th>Project</th><td><%= link_to @meeting.project.name, @meeting.project %></td></tr>
+        <% end %>
+        <% if @meeting.sprint %>
+          <tr><th>Sprint</th><td><%= link_to @meeting.sprint.name, sprint_path(@meeting.sprint) %></td></tr>
+        <% end %>
+        <tr><th>Created</th><td><%= @meeting.created_at.strftime('%d %b %Y') %></td></tr>
+      </table>
+    </div>
+
+    <%# ── Attendees + Invite ──────────────────────────────────────────────── %>
+    <div class="card p-3 mb-3">
+      <h5 class="fw-bold mb-2">👥 Attendees (<%= @meeting.attendees.count %>)</h5>
+
+      <% @meeting.attendees.each do |member| %>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <%= user_avatar(member, size: 28, bg: "#6366f1") %>
+          <span class="fs-7 flex-grow-1"><%= member.display_name %></span>
+          <% if member.id == current_user.id %>
+            <span class="badge bg-secondary fs-8">you</span>
+          <% end %>
+        </div>
+      <% end %>
+      <% if @meeting.attendees.empty? %>
+        <p class="text-muted fs-7">No attendees yet.</p>
+      <% end %>
+
+      <%# Invite form %>
+      <hr class="my-2">
+      <p class="fw-semibold fs-7 mb-1">➕ Invite someone</p>
+      <%= form_with url: invite_meeting_path(@meeting), method: :post, class: "d-flex gap-2" do |f| %>
+        <select name="user_id" class="form-select form-select-sm">
+          <option value="">— Choose —</option>
+          <% User.order(:name).each do |u| %>
+            <% next if @meeting.attendees.include?(u) %>
+            <option value="<%= u.id %>"><%= u.display_name %></option>
+          <% end %>
+        </select>
+        <%= f.submit "Invite", class: "btn btn-sm btn-primary flex-shrink-0" %>
+      <% end %>
+    </div>
+
+    <%# ── Meeting chat ────────────────────────────────────────────────────── %>
+    <div class="card p-3 mb-3">
+      <h5 class="fw-bold mb-2">💬 Meeting Chat</h5>
+
+      <div id="meeting-chat-messages"
+           style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"
+           class="mb-2">
+        <% @meeting.comments.includes(:author).order(:created_at).each do |comment| %>
+          <div class="d-flex gap-2 align-items-start">
+            <%= user_avatar(comment.author, size: 24, bg: "#6366f1") %>
+            <div>
+              <span class="fw-semibold fs-8"><%= comment.author&.display_name || 'Unknown' %></span>
+              <span class="text-muted fs-8 ms-1"><%= comment.created_at.strftime('%H:%M') %></span>
+              <div class="fs-7"><%= comment.body %></div>
+            </div>
+          </div>
+        <% end %>
+        <% if @meeting.comments.empty? %>
+          <p class="text-muted fs-7 mb-0">No messages yet.</p>
+        <% end %>
+      </div>
+
+      <%= form_with url: meeting_comments_path(@meeting), method: :post,
+            data: { turbo: false }, class: "d-flex gap-2" do |f| %>
+        <%= f.text_field :body,
+              class: "form-control form-control-sm",
+              placeholder: "Type a message…",
+              required: true,
+              autocomplete: "off" %>
+        <%= f.submit "Send", class: "btn btn-sm btn-primary flex-shrink-0" %>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Auto-scroll chat to bottom on load
+  (function () {
+    var el = document.getElementById("meeting-chat-messages");
+    if (el) el.scrollTop = el.scrollHeight;
+  })();
+
+  // Toggle Jitsi iframe
+  function toggleJitsi() {
+    var wrapper = document.getElementById("jitsi-frame-wrapper");
+    var btn     = document.getElementById("jitsi-toggle-btn");
+    if (wrapper.style.display === "none") {
+      wrapper.style.display = "";
+      btn.textContent = "▲ Hide";
+    } else {
+      wrapper.style.display = "none";
+      btn.textContent = "▼ Show Video";
+    }
+  }
+</script>

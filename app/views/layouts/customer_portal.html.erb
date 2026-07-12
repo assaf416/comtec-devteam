@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= content_for(:title).presence || "Customer Portal" %> — DevTeam Hub</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+  </head>
+
+  <body class="bg-light">
+    <%# ── Portal Navbar ──────────────────────────────────────────────────── %>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm" role="navigation">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="<%= customer_portal_root_path %>">
+          🏢 Customer Portal
+        </a>
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#portalNavbar"
+                aria-controls="portalNavbar" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div id="portalNavbar" class="collapse navbar-collapse">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <%= link_to "🏠 Dashboard", customer_portal_root_path,
+                    class: "nav-link #{controller_name == 'dashboard' ? 'active fw-semibold' : ''}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "🎫 Tickets", customer_portal_tickets_path(type: "support"),
+                    class: "nav-link #{controller_name == 'tickets' && params[:type] != 'feature_request' ? 'active fw-semibold' : ''}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "💡 Stories", customer_portal_tickets_path(type: "feature_request"),
+                    class: "nav-link #{controller_name == 'tickets' && params[:type] == 'feature_request' ? 'active fw-semibold' : ''}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "💬 Messages", customer_portal_messages_path,
+                    class: "nav-link #{controller_name == 'messages' ? 'active fw-semibold' : ''}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "🏁 Milestones", customer_portal_milestones_path,
+                    class: "nav-link #{controller_name == 'milestones' ? 'active fw-semibold' : ''}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "📄 Docs", customer_portal_documents_path,
+                    class: "nav-link #{controller_name == 'documents' ? 'active fw-semibold' : ''}" %>
+            </li>
+          </ul>
+
+          <% if customer_user_signed_in? %>
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false">
+                  <%= current_customer_user.display_name %>
+                  <span class="badge bg-light text-primary ms-1 fs-7"><%= current_customer.display_name %></span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <%= link_to "Sign Out", destroy_customer_user_session_path,
+                          data: { turbo_method: :delete },
+                          class: "dropdown-item text-danger" %>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          <% end %>
+        </div>
+      </div>
+    </nav>
+
+    <%# ── Flash messages ────────────────────────────────────────────────── %>
+    <div class="container mt-3">
+      <% flash.each do |type, msg| %>
+        <% css = { "notice" => "success", "alert" => "danger", "warning" => "warning" }.fetch(type.to_s, "info") %>
+        <div class="alert alert-<%= css %> alert-dismissible fade show" role="alert">
+          <%= msg %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ── Content ────────────────────────────────────────────────────────── %>
+    <main class="container my-4">
+      <%= yield %>
+    </main>
+
+    <footer class="py-4 mt-5 border-top bg-white">
+      <div class="text-center text-muted small">
+        Customer Portal · DevTeam Hub
+      </div>
+    </footer>
+  </body>
+</html>
+
+  <body>
+    <%# ── Portal Navbar ──────────────────────────────────────────────────── %>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary navbar navbar-expand-lg navbar-dark bg-primary-expand-lg navbar navbar-expand-lg navbar-dark bg-primary-dark bg-primary" role="navigation" aria-label="portal navigation">
+      <div class="navbar navbar-expand-lg navbar-dark bg-primary-brand">
+        <a class="nav-link fw-bold" href="<%= customer_portal_root_path %>">
+          🏢 Customer Portal
+        </a>
+        <a role="button" class="navbar navbar-expand-lg navbar-dark bg-primary-burger" aria-label="menu" data-target="portalNavbar">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+      </div>
+
+      <div id="portalNavbar" class="navbar navbar-expand-lg navbar-dark bg-primary-menu">
+        <div class="navbar navbar-expand-lg navbar-dark bg-primary-start">
+          <%= link_to "🏠 Dashboard",      customer_portal_root_path,         class: "nav-link #{controller_name == 'dashboard'  ? 'is-active' : ''}" %>
+          <%= link_to "🎫 Tickets",        customer_portal_tickets_path(type: "support"),         class: "nav-link #{controller_name == 'tickets' && params[:type] != 'feature_request' ? 'is-active' : ''}" %>
+          <%= link_to "💡 Stories",        customer_portal_tickets_path(type: "feature_request"),  class: "nav-link #{controller_name == 'tickets' && params[:type] == 'feature_request' ? 'is-active' : ''}" %>
+          <%= link_to "💬 Messages",       customer_portal_messages_path,      class: "nav-link #{controller_name == 'messages'    ? 'is-active' : ''}" %>
+          <%= link_to "🏁 Milestones",     customer_portal_milestones_path,    class: "nav-link #{controller_name == 'milestones'  ? 'is-active' : ''}" %>
+          <%= link_to "📄 Documentation",  customer_portal_documents_path,     class: "nav-link #{controller_name == 'documents'   ? 'is-active' : ''}" %>
+        </div>
+
+        <div class="navbar navbar-expand-lg navbar-dark bg-primary-end">
+          <% if customer_user_signed_in? %>
+            <div class="nav-link has-dropdown is-hoverable">
+              <a class="navbar navbar-expand-lg navbar-dark bg-primary-link">
+                <%= current_customer_user.display_name %>
+                <span class="badge bg-light text-dark is-light ms-2 fs-7"><%= current_customer.display_name %></span>
+              </a>
+              <div class="navbar navbar-expand-lg navbar-dark bg-primary-dropdown is-right">
+                <%= link_to "Sign Out", destroy_customer_user_session_path,
+                      data: { turbo_method: :delete }, class: "nav-link text-danger" %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </nav>
+
+    <%# ── Flash messages ────────────────────────────────────────────────── %>
+    <div class="container mt-2">
+      <% flash.each do |type, msg| %>
+        <% css = { "notice" => "is-success", "alert" => "is-danger", "warning" => "is-warning" }.fetch(type.to_s, "is-info") %>
+        <div class="alert alert-secondary <%= css %>">
+          <button class="btn-close" onclick="this.parentElement.remove()"></button>
+          <%= msg %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ── Content ────────────────────────────────────────────────────────── %>
+    <main class="container mt-5 mb-6">
+      <%= yield %>
+    </main>
+
+    <footer class="footer py-4">
+      <div class="content text-center text-muted fs-7">
+        Customer Portal · DevTeam Hub
+      </div>
+    </footer>
+  </body>
+</html>

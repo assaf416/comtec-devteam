@@ -1,0 +1,45 @@
+<% content_for :title, "Assistant" %>
+
+<div class="d-flex align-items-center justify-content-between mb-2">
+  <div>
+    <h1 class="fw-bold mb-0">🤖 Assistant</h1>
+    <p class="text-muted fs-7 mb-0">A chat terminal over your projects, PRs, servers and deploys. Type <code>/help</code> for commands.</p>
+  </div>
+  <%= button_to "Clear", assistant_clear_path, method: :post, class: "btn btn-outline-secondary btn-sm",
+        form_class: "d-inline", data: { turbo_confirm: "Clear this conversation?" } %>
+</div>
+
+<div class="card" data-controller="ai-chat" style="overflow:hidden;">
+  <%# Transcript %>
+  <div data-ai-chat-target="scroll"
+       style="background:#0d1117;height:60vh;overflow:auto;padding:1rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85rem;line-height:1.5;">
+    <% if @messages.empty? %>
+      <div style="color:#7d8590;">
+        <div style="color:#9ece6a;">devteam@assistant:~$ welcome</div>
+        Type a question, or a command:
+        <div style="margin-top:.5rem;color:#7aa2f7;">
+          /help · /review &lt;pr#&gt; · /report · /servers · /deploy &lt;tag&gt; to &lt;env&gt; · /search &lt;text&gt;
+        </div>
+      </div>
+    <% end %>
+    <% @messages.each do |m| %>
+      <% user = m["role"] == "user" %>
+      <div style="margin-bottom:.85rem;">
+        <div style="color:<%= user ? '#9ece6a' : '#7aa2f7' %>;font-weight:700;">
+          <%= user ? "devteam@assistant:~$" : "🤖 assistant" %>
+        </div>
+        <div style="color:#e6edf3;white-space:pre-wrap;word-break:break-word;"><%= m["content"] %></div>
+      </div>
+    <% end %>
+    <span id="bottom"></span>
+  </div>
+
+  <%# Input %>
+  <%= form_with url: assistant_message_path, method: :post, class: "p-2 border-top bg-white d-flex gap-2" do %>
+    <%= text_field_tag :message, nil, autocomplete: "off", autofocus: true,
+          placeholder: "Ask anything, or type /help…",
+          class: "form-control", data: { "ai-chat-target": "input", action: "keydown->ai-chat#submitOnEnter" },
+          style: "font-family:ui-monospace,monospace;" %>
+    <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+  <% end %>
+</div>

@@ -1,0 +1,79 @@
+<% content_for :title, "Console — #{@latest.server_name || @ip}" %>
+
+<%= render "shared/context_bar", type: "Server", icon: "🖥️", color: "dark",
+      crumbs: [ ["Servers", servers_path], [@latest.server_name || @ip, server_path(ip: @ip)], ["Console", nil] ] %>
+
+<div class="d-flex align-items-start justify-content-between mb-3">
+  <div>
+    <h2 class="fw-bold mb-1">🖥️ <%= @latest.server_name || @ip %> <span class="text-muted fs-6">· Docker console</span></h2>
+    <div class="fs-7 text-muted"><code><%= @ip %></code> · <%= @latest.server_os %> · <span class="badge <%= @latest.health_badge_class %>"><%= @latest.health.humanize %></span></div>
+  </div>
+  <%= link_to "📊 Telemetry", server_path(ip: @ip), class: "btn btn-secondary btn-sm" %>
+</div>
+
+<% unless @docker.configured? %>
+  <div class="alert alert-light border py-2 fs-7"><i class="bi bi-info-circle me-1"></i>
+    <strong>Demo mode.</strong> No Docker host agent wired up — set <code>DOCKER_API_BASE</code> to manage real containers. Actions and edits are simulated.</div>
+<% end %>
+
+<%# ── Containers ──────────────────────────────────────────────────────────── %>
+<div class="card shadow-sm mb-3">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <strong><i class="bi bi-box-seam me-2"></i>Containers</strong>
+    <span class="badge bg-secondary"><%= @containers.size %></span>
+  </div>
+  <table class="table table-hover align-middle mb-0 fs-7">
+    <thead><tr><th>Name</th><th>Image</th><th>Ports</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>
+      <% @containers.each do |c| %>
+        <% running = c["state"] == "running" %>
+        <tr>
+          <td class="fw-semibold"><%= c["name"] %></td>
+          <td><code class="fs-8"><%= c["image"] %></code></td>
+          <td class="text-muted"><%= c["ports"].presence || "—" %></td>
+          <td>
+            <span class="badge <%= running ? 'bg-success' : (c['state'] == 'restarting' ? 'bg-warning text-dark' : 'bg-secondary') %>"><%= c["state"] %></span>
+            <span class="fs-8 text-muted ms-1"><%= c["status"] %></span>
+          </td>
+          <td class="text-end text-nowrap">
+            <% %w[restart stop start].each do |verb| %>
+              <%= button_to verb.capitalize, server_docker_path(ip: @ip, verb: verb, container: c["name"]),
+                    method: :post, class: "btn btn-sm btn-outline-secondary py-0 d-inline-block",
+                    form_class: "d-inline" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<%# ── Dockerfile + compose editors ────────────────────────────────────────── %>
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header"><strong><i class="bi bi-file-earmark-text me-2"></i>Dockerfile</strong></div>
+      <div class="card-body">
+        <%= form_with url: server_docker_path, method: :post do %>
+          <%= hidden_field_tag :ip, @ip %>
+          <%= hidden_field_tag :save_kind, "Dockerfile" %>
+          <textarea name="content" rows="12" class="form-control fs-8" style="font-family:ui-monospace,monospace;background:#0d1117;color:#e6edf3;"><%= @dockerfile %></textarea>
+          <button class="btn btn-primary btn-sm mt-2"><i class="bi bi-save me-1"></i>Save Dockerfile</button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header"><strong><i class="bi bi-stack me-2"></i>docker-compose.yml</strong></div>
+      <div class="card-body">
+        <%= form_with url: server_docker_path, method: :post do %>
+          <%= hidden_field_tag :ip, @ip %>
+          <%= hidden_field_tag :save_kind, "docker-compose.yml" %>
+          <textarea name="content" rows="12" class="form-control fs-8" style="font-family:ui-monospace,monospace;background:#0d1117;color:#e6edf3;"><%= @compose %></textarea>
+          <button class="btn btn-primary btn-sm mt-2"><i class="bi bi-save me-1"></i>Save compose</button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

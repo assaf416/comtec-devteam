@@ -1,0 +1,37 @@
+<%= form_with model: notification, url: (notification.persisted? ? notification_path(notification) : notifications_path) do |f| %>
+  <% if notification.errors.any? %>
+    <div class="alert alert-danger p-3 mb-3">
+      <p class="fw-semibold mb-1">Please fix the following:</p>
+      <ul class="mb-0">
+        <% notification.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= f.label :message, class: "form-label fw-semibold" %>
+    <%= f.text_area :message, rows: 3, class: "textarea", placeholder: "Short debugging or business message" %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :error_message, class: "form-label fw-semibold" %>
+    <%= f.text_area :error_message, rows: 2, class: "textarea", placeholder: "Runtime exception or validation error" %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :backtrace, class: "form-label fw-semibold" %>
+    <%= f.text_area :backtrace, rows: 8, class: "textarea", placeholder: "Stack trace for debugging" %>
+  </div>
+
+  <div class="mb-4">
+    <%= f.label :read_at, "Read at", class: "form-label fw-semibold" %>
+    <%= f.datetime_local_field :read_at, class: "input" %>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit class: "btn btn-primary" %>
+    <%= link_to "Cancel", notifications_path, class: "btn btn-secondary is-light" %>
+  </div>
+<% end %>

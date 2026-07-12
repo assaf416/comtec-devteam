@@ -1,0 +1,90 @@
+<% content_for :title, "Retro Meeting" %>
+
+<div class="level mb-3">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-1">🔁 Sprint Retrospective</h1>
+      <% if @sprint %>
+        <p class="text-muted fs-7 mb-0"><%= @project.name %> · <%= @sprint.name %> ·
+          <%= @sprint.start_date.strftime("%d %b") %> – <%= @sprint.end_date.strftime("%d %b %Y") %></p>
+      <% end %>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= render "shared/sprint_picker", sprints: @sprint_options, selected: @sprint, url: retro_meeting_path %>
+  </div>
+</div>
+
+<% unless @sprint %>
+  <div class="alert alert-light">No sprint to review. Pick one above.</div>
+<% else %>
+  <% s = @report.summary %>
+
+  <%# Team video bar %>
+  <%= render "shared/jitsi_bar", room: "devteam-retro-sprint-#{@sprint.id}", title: "Retrospective — #{@sprint.name}" %>
+
+  <%# This sprint's performance %>
+  <h2 class="fs-5 fw-bold mb-2">📊 This sprint</h2>
+  <div class="row g-2 mb-4">
+    <div class="col-6 col-md-2"><div class="card p-3 text-center"><div class="fw-bold fs-4"><%= s[:completion] %>%</div><div class="text-muted fs-7">Tickets done</div></div></div>
+    <div class="col-6 col-md-2"><div class="card p-3 text-center"><div class="fw-bold fs-4"><%= s[:task_progress] %>%</div><div class="text-muted fs-7">Tasks done</div></div></div>
+    <div class="col-6 col-md-2"><div class="card p-3 text-center"><div class="fw-bold fs-4"><%= s[:velocity] %></div><div class="text-muted fs-7">Velocity (pts)</div></div></div>
+    <div class="col-6 col-md-2"><div class="card p-3 text-center"><div class="fw-bold fs-4"><%= s[:points_done] %>/<%= s[:points_planned] %></div><div class="text-muted fs-7">Points</div></div></div>
+    <div class="col-6 col-md-2"><div class="card p-3 text-center"><div class="fw-bold fs-4"><%= s[:est_hours] %>h</div><div class="text-muted fs-7">Estimated</div></div></div>
+    <div class="col-6 col-md-2"><div class="card p-3 text-center"><div class="fw-bold fs-4"><%= s[:estimation_accuracy] || "—" %><%= "%" if s[:estimation_accuracy] %></div><div class="text-muted fs-7">Est. accuracy</div></div></div>
+  </div>
+
+  <%# Trend vs previous sprints %>
+  <h2 class="fs-5 fw-bold mb-2">📈 Compared to previous sprints</h2>
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card p-3">
+        <div class="fw-semibold fs-7 mb-2">Velocity by sprint</div>
+        <%= column_chart @report.velocity_trend, height: "260px", colors: ["#0b7a75"] %>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card p-3">
+        <div class="fw-semibold fs-7 mb-2">Completion % by sprint</div>
+        <%= column_chart @report.completion_trend, suffix: "%", max: 100, height: "260px", colors: ["#4a90d9"] %>
+      </div>
+    </div>
+  </div>
+
+  <%# Per-developer performance %>
+  <h2 class="fs-5 fw-bold mb-2">👤 Team performance</h2>
+  <p class="text-muted fs-7">How well each teammate wrote stories, estimated, and covered tests this sprint (0–100; AI-scored where available, otherwise from definition-of-ready completeness).</p>
+
+  <div class="card p-3 mb-3">
+    <%= column_chart @report.chart_series, height: "320px", max: 100,
+          colors: ["#6d28d9", "#d26d18", "#1a7a3a"], library: { scales: { y: { suggestedMax: 100 } } } %>
+  </div>
+
+  <% rows = @report.user_rows %>
+  <% if rows.any? %>
+    <div class="card">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Developer</th><th>Tickets</th>
+            <th>📝 Story quality</th><th>🎯 Estimation</th><th>🧪 Test quality</th><th>Overall</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.each do |r| %>
+            <tr>
+              <td><span class="d-inline-flex align-items-center gap-1"><%= user_avatar(r.user, size: 24) %><%= r.user.display_name %></span></td>
+              <td><%= r.tickets_count %></td>
+              <td><%= score_badge(r.story_quality) %></td>
+              <td><%= score_badge(r.estimation_accuracy) %></td>
+              <td><%= score_badge(r.test_quality) %></td>
+              <td><%= score_badge(r.overall) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="alert alert-light">No team members on this sprint's tickets yet.</div>
+  <% end %>
+<% end %>

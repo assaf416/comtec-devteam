@@ -1,0 +1,13 @@
+<% if entries.any? %>
+  <% entries.each do |entry| %>
+    <div class="<%= log_row_class(entry) %>">
+      <span class="log-ts"><%= entry[:time].strftime("%H:%M:%S.%L") %></span>
+      <span class="badge <%= log_level_badge_class(entry[:level]) %> log-level"><%= entry[:level].upcase %></span>
+      <span class="log-service"><%= entry[:service] %></span>
+      <span class="log-msg"><%= log_message(entry, params[:search]) %></span>
+      <% if entry[:exception] %><span class="log-flag" title="Exception / error">🔥</span><% end %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="log-empty"><%= t("log_viewer.empty") %></div>
+<% end %>

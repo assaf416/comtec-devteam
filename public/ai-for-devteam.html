@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI for DevTeam — On-Prem LLM Platform Blueprint</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c232e; --ink:#e6edf3; --muted:#9aa7b4;
+    --line:#2b3340; --accent:#7aa2f7; --accent2:#9ece6a; --warn:#e0af68; --bad:#f7768e;
+    --purple:#bb9af7; --cyan:#56d4dd; --maxw:1080px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* layout */
+  .wrap{display:grid;grid-template-columns:280px 1fr;max-width:1400px;margin:0 auto}
+  nav.toc{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:24px 18px;border-right:1px solid var(--line);background:var(--panel)}
+  nav.toc h2{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+  nav.toc a{display:block;color:var(--muted);padding:3px 0;font-size:.86rem}
+  nav.toc a:hover{color:var(--ink)}
+  main{padding:44px 56px;max-width:var(--maxw);min-width:0}
+  @media(max-width:980px){.wrap{grid-template-columns:1fr}nav.toc{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:24px}}
+
+  header.hero{padding:18px 0 30px;border-bottom:1px solid var(--line);margin-bottom:28px}
+  .hero h1{font-size:2.3rem;margin:0 0 6px;line-height:1.15}
+  .hero .sub{color:var(--muted);font-size:1.05rem}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+    border-radius:999px;padding:3px 11px;font-size:.74rem;margin:10px 6px 0 0}
+
+  h2.sec{font-size:1.7rem;margin:54px 0 6px;padding-top:12px;border-top:1px solid var(--line)}
+  h3{font-size:1.25rem;margin:30px 0 8px;color:#fff}
+  h4{font-size:1.02rem;margin:20px 0 6px;color:var(--cyan)}
+  p{color:#cdd6e0}
+  .lead{color:var(--muted);font-size:1.05rem;margin-top:2px}
+  ul,ol{color:#cdd6e0}
+  li{margin:4px 0}
+  hr{border:0;border-top:1px solid var(--line);margin:30px 0}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:780px){.grid2,.grid3{grid-template-columns:1fr}}
+  .tag{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted);margin-right:5px}
+  .tag.good{color:var(--accent2);border-color:#2f4a2f}
+  .tag.warn{color:var(--warn);border-color:#4a3f2a}
+  .tag.bad{color:var(--bad);border-color:#4a2a33}
+  .tag.acc{color:var(--accent);border-color:#2a3a52}
+  .tag.pur{color:var(--purple);border-color:#3a2f52}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:#fff;font-weight:600}
+  tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+
+  pre{background:#0a0e14;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;font-size:.82rem;line-height:1.5}
+  pre .k{color:var(--purple)} pre .s{color:var(--accent2)} pre .c{color:#5c6675;font-style:italic}
+  pre .n{color:var(--warn)} pre .key{color:var(--cyan)}
+  code.inl{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.84em;color:var(--cyan)}
+
+  .callout{border-left:3px solid var(--accent);background:var(--panel2);padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0}
+  .callout.good{border-color:var(--accent2)} .callout.warn{border-color:var(--warn)} .callout.bad{border-color:var(--bad)}
+  .callout b{color:#fff}
+
+  /* bar charts */
+  .chart{margin:18px 0}
+  .bar-row{display:grid;grid-template-columns:190px 1fr;align-items:center;gap:12px;margin:7px 0}
+  .bar-label{font-size:.82rem;color:var(--muted);text-align:right}
+  .bar-track{background:var(--panel2);border-radius:6px;height:26px;position:relative;overflow:hidden}
+  .bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;
+    padding-right:9px;font-size:.78rem;color:#06131f;font-weight:700;min-width:30px}
+  .legend{font-size:.78rem;color:var(--muted);margin-top:6px}
+  .axis{font-size:.72rem;color:var(--muted);grid-column:2;border-top:1px dashed var(--line);padding-top:3px;display:flex;justify-content:space-between}
+
+  figure{margin:18px 0}
+  figcaption{font-size:.8rem;color:var(--muted);text-align:center;margin-top:8px}
+  svg{max-width:100%;height:auto}
+
+  .step{display:grid;grid-template-columns:34px 1fr;gap:12px;margin:10px 0}
+  .step .no{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#06131f;font-weight:700;display:flex;align-items:center;justify-content:center}
+  kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:.8em}
+  .foot{color:var(--muted);font-size:.82rem;border-top:1px solid var(--line);margin-top:50px;padding-top:18px}
+  .tocnum{color:var(--accent);font-weight:700;margin-right:6px}
+  .svc-id{font-family:"JetBrains Mono",monospace;color:var(--purple);font-size:.85em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ TOC ============ -->
+<nav class="toc">
+  <strong style="font-size:1.05rem">🤖 AI for DevTeam</strong>
+  <div style="color:var(--muted);font-size:.78rem;margin:4px 0 10px">On-prem LLM platform blueprint</div>
+  <h2>Foundations</h2>
+  <a href="#exec">0 · Executive summary</a>
+  <a href="#hardware">1 · Hardware &amp; model choice</a>
+  <a href="#models">2 · Which LLMs to run</a>
+  <a href="#arch">3 · Architecture</a>
+  <a href="#context">4 · The DevContext JSON tree</a>
+  <h2>Services</h2>
+  <a href="#svc-overview">5 · Service catalog</a>
+  <a href="#s1">S1 · Repo Reader</a>
+  <a href="#s2">S2 · Branch &amp; PR generator</a>
+  <a href="#s3">S3 · Test runner</a>
+  <a href="#s4">S4 · Code review</a>
+  <a href="#s5">S5 · Ticket → solution</a>
+  <a href="#s6">S6 · Performance reports</a>
+  <a href="#s7">S7 · Document rewriter</a>
+  <a href="#s8">S8 · Charts &amp; media</a>
+  <a href="#s9">S9 · Chat terminal</a>
+  <a href="#s-extra">S10–S18 · Extra services</a>
+  <h2>Operating it</h2>
+  <a href="#ci">6 · Connecting to CI/CD</a>
+  <a href="#perf">7 · Performance on a Mac mini</a>
+  <h2>Building it</h2>
+  <a href="#stackA">8 · Stack A — Python core</a>
+  <a href="#stackB">9 · Stack B — Ruby/Rails</a>
+  <a href="#stories">10 · Stories &amp; tests</a>
+  <a href="#cucumber">11 · Cucumber strategy</a>
+  <a href="#roadmap">12 · Roadmap</a>
+  <a href="#appendix">13 · Appendix</a>
+</nav>
+
+<!-- ============ MAIN ============ -->
+<main>
+<header class="hero">
+  <h1>AI for DevTeam</h1>
+  <div class="sub">A blueprint for an on-prem LLM platform that reads your code, opens branches &amp; merge requests, runs tests, reviews MRs, turns tickets into solutions, reports on team performance, edits documents, and answers questions through a chat-terminal — all wired into your local GitLab + CI and exposed as services to your Rails 8 app.</div>
+  <div>
+    <span class="pill">On-prem · no cloud</span>
+    <span class="pill">Apple Silicon Mac&nbsp;mini · 32&nbsp;GB</span>
+    <span class="pill">GitLab + GitLab CI</span>
+    <span class="pill">Rails 8.1 · Ruby 3.4</span>
+    <span class="pill">Ollama / llama.cpp</span>
+    <span class="pill">Updated 2026-06-06</span>
+  </div>
+</header>
+
+<!-- 0 EXEC -->
+<h2 class="sec" id="exec">0 · Executive summary</h2>
+<p>You already have the system of record (the Rails app: projects, tickets, sprints, pull requests with <code class="inl">files_data</code>/<code class="inl">tests_data</code>/<code class="inl">coverage</code>, comments, documents, team metrics). What you want to add is an <b>AI layer</b> that turns that data — plus the live code in GitLab and the signals from CI — into actions and insight.</p>
+
+<div class="grid3">
+  <div class="card"><h4 style="margin-top:0">The shape</h4><p style="margin:0">A small local model server (Ollama) on the Mac mini, fronted by an <b>AI service layer</b> that owns prompts, context assembly, and JSON-validated outputs. Rails calls it; CI calls it; the chat window calls it.</p></div>
+  <div class="card"><h4 style="margin-top:0;color:var(--accent2)">The contract</h4><p style="margin:0">Every service consumes a slice of one <b>DevContext</b> JSON tree and returns <b>schema-validated JSON</b> — never free text the app has to scrape. That makes the whole thing testable, including with Cucumber.</p></div>
+  <div class="card"><h4 style="margin-top:0;color:var(--warn)">The reality</h4><p style="margin:0">A 32&nbsp;GB Mac mini runs 7B–14B coder models comfortably and a 32B model slowly. Plan for <b>1–2 concurrent requests</b>, a job queue, and overnight batch for heavy reports.</p></div>
+</div>
+
+<div class="callout"><b>Reading guide.</b> §1–4 are foundations (hardware, models, architecture, the context tree). §5 is the service-by-service catalog — each with <i>what it is → data in → JSON out</i>. §6–7 cover CI wiring and realistic performance. §8–12 are two concrete build plans (Python-core and Ruby-native) with a story list, a test plan per story, and how Cucumber fits.</div>
+
+<!-- 1 HARDWARE -->
+<h2 class="sec" id="hardware">1 · Hardware &amp; the model-size budget</h2>
+<p>On Apple Silicon the GPU shares <b>unified memory</b> with the CPU, so "VRAM" is just your RAM. On a 32&nbsp;GB machine, after macOS (~5–7&nbsp;GB) and your Rails/Postgres/Redis stack (~3–5&nbsp;GB), you realistically have <b>~22–24&nbsp;GB</b> for the model weights <i>plus</i> the KV cache (which grows with context length). That is the single most important constraint.</p>
+
+<p>What actually fits, at the common <code class="inl">Q4_K_M</code> quantization, with headroom for an 8k–16k context KV cache:</p>
+
+<figure class="chart">
+  <div class="bar-row"><span class="bar-label">Llama 3.1 8B</span><div class="bar-track"><div class="bar-fill" style="width:12%;background:var(--accent2)">~5 GB</div></div></div>
+  <div class="bar-row"><span class="bar-label">Qwen2.5-Coder 7B</span><div class="bar-track"><div class="bar-fill" style="width:12%;background:var(--accent2)">~5 GB</div></div></div>
+  <div class="bar-row"><span class="bar-label">Qwen2.5-Coder 14B</span><div class="bar-track"><div class="bar-fill" style="width:21%;background:var(--accent2)">~9 GB</div></div></div>
+  <div class="bar-row"><span class="bar-label">DeepSeek-Coder-V2-Lite 16B (MoE)</span><div class="bar-track"><div class="bar-fill" style="width:24%;background:var(--accent2)">~10 GB</div></div></div>
+  <div class="bar-row"><span class="bar-label">Codestral 22B</span><div class="bar-track"><div class="bar-fill" style="width:31%;background:var(--accent)">~13 GB</div></div></div>
+  <div class="bar-row"><span class="bar-label">Gemma 2 27B</span><div class="bar-track"><div class="bar-fill" style="width:38%;background:var(--accent)">~16 GB</div></div></div>
+  <div class="bar-row"><span class="bar-label">Qwen2.5-Coder 32B</span><div class="bar-track"><div class="bar-fill" style="width:48%;background:var(--warn)">~20 GB</div></div></div>
+  <div class="bar-row"><span class="bar-label">Llama 3.3 70B</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--bad)">~42 GB — does NOT fit</div></div></div>
+  <div class="bar-row"><span class="bar-label" style="color:#fff">usable budget (32 GB)</span><div class="bar-track" style="background:transparent;border:1px dashed var(--warn)"><div style="position:absolute;left:0;top:0;bottom:0;width:57%;border-right:2px dashed var(--warn)"></div><span style="position:absolute;right:8px;top:3px;font-size:.74rem;color:var(--warn)">~24 GB ceiling for weights + KV</span></div></div>
+  <figcaption>Approximate on-disk / in-memory weight size at Q4_K_M. The dashed line is your practical ceiling on a 32&nbsp;GB box. 70B-class models need a 64&nbsp;GB+ machine.</figcaption>
+</figure>
+
+<div class="callout warn"><b>Rule of thumb:</b> on 32&nbsp;GB, treat <b>14B as your daily driver</b>, keep a <b>7B</b> for fast/interactive work (chat, commit messages), and reserve <b>32B</b> for queued, quality-critical jobs (deep code review, architecture suggestions) where you can tolerate slower output. If you can buy the 64&nbsp;GB Mac mini, do it — it unlocks 32B comfortably and 70B at a squeeze.</div>
+
+<!-- 2 MODELS -->
+<h2 class="sec" id="models">2 · Which LLMs to run</h2>
+<p>All of these run on Apple Silicon via <b>Ollama</b> (llama.cpp + Metal under the hood) or <b>LM Studio</b>. Pick by task; you don't need one model for everything.</p>
+
+<table>
+<thead><tr><th>Model</th><th>Params / type</th><th>Q4 size</th><th>Best at</th><th>Verdict on 32 GB</th></tr></thead>
+<tbody>
+<tr><td><b>Qwen2.5-Coder 7B</b></td><td>7B dense</td><td class="num">~5 GB</td><td>Fast code gen, FIM, commit msgs, chat</td><td><span class="tag good">daily/interactive</span></td></tr>
+<tr><td><b>Qwen2.5-Coder 14B</b></td><td>14B dense</td><td class="num">~9 GB</td><td>Strong code review &amp; generation</td><td><span class="tag good">recommended default</span></td></tr>
+<tr><td><b>Qwen2.5-Coder 32B</b></td><td>32B dense</td><td class="num">~20 GB</td><td>Best on-device code quality</td><td><span class="tag warn">queued / slow</span></td></tr>
+<tr><td><b>DeepSeek-Coder-V2-Lite</b></td><td>16B MoE (2.4B active)</td><td class="num">~10 GB</td><td>Fast for its size (MoE), code</td><td><span class="tag good">great speed/quality</span></td></tr>
+<tr><td><b>Codestral 22B</b></td><td>22B dense</td><td class="num">~13 GB</td><td>Code, 80+ languages, fill-in-middle</td><td><span class="tag acc">good if licensed</span></td></tr>
+<tr><td><b>Llama 3.1 8B</b></td><td>8B dense</td><td class="num">~5 GB</td><td>General reasoning, summaries, chat</td><td><span class="tag good">general daily</span></td></tr>
+<tr><td><b>Phi-4 14B</b></td><td>14B dense</td><td class="num">~9 GB</td><td>Reasoning, structured output</td><td><span class="tag good">strong reasoner</span></td></tr>
+<tr><td><b>Gemma 2 27B</b></td><td>27B dense</td><td class="num">~16 GB</td><td>General + writing (docs)</td><td><span class="tag acc">doc work</span></td></tr>
+<tr><td><b>Mistral Small 24B</b></td><td>24B dense</td><td class="num">~14 GB</td><td>Balanced general + tools</td><td><span class="tag acc">tool/agent use</span></td></tr>
+<tr><td><b>DeepSeek-R1-Distill 14B/32B</b></td><td>14–32B (reasoning)</td><td class="num">9–20 GB</td><td>Multi-step reasoning, planning</td><td><span class="tag pur">estimation/planning</span></td></tr>
+<tr><td><b>nomic-embed-text</b></td><td>137M (embeddings)</td><td class="num">~0.3 GB</td><td>Code/doc embeddings for RAG</td><td><span class="tag good">always-on</span></td></tr>
+<tr><td><b>Llama 3.3 70B</b></td><td>70B dense</td><td class="num">~42 GB</td><td>Top general quality</td><td><span class="tag bad">needs 64 GB+</span></td></tr>
+</tbody>
+</table>
+
+<h3>Recommended roster for a 32 GB Mac mini</h3>
+<div class="grid3">
+  <div class="card"><span class="svc-id">role: coder</span><h4 style="margin:6px 0 4px">Qwen2.5-Coder 14B</h4><p style="margin:0;font-size:.9rem">Default for review, generation, test authoring. Best quality that still runs at usable speed.</p></div>
+  <div class="card"><span class="svc-id">role: fast</span><h4 style="margin:6px 0 4px">Qwen2.5-Coder 7B</h4><p style="margin:0;font-size:.9rem">Interactive chat, commit messages, quick Q&amp;A, FIM completions. Low latency.</p></div>
+  <div class="card"><span class="svc-id">role: reasoner / writer</span><h4 style="margin:6px 0 4px">Llama 3.1 8B + Phi-4 14B</h4><p style="margin:0;font-size:.9rem">Ticket analysis, document rewriting, report narratives, estimation rationale.</p></div>
+  <div class="card"><span class="svc-id">role: embeddings</span><h4 style="margin:6px 0 4px">nomic-embed-text</h4><p style="margin:0;font-size:.9rem">Indexes the repo &amp; docs into pgvector for semantic search / RAG. Tiny, always loaded.</p></div>
+  <div class="card"><span class="svc-id">role: heavy (optional)</span><h4 style="margin:6px 0 4px">Qwen2.5-Coder 32B</h4><p style="margin:0;font-size:.9rem">Queued, off the critical path: deep reviews, refactors, architecture proposals.</p></div>
+  <div class="card"><span class="svc-id">tip</span><h4 style="margin:6px 0 4px">Keep ≤ 2 models hot</h4><p style="margin:0;font-size:.9rem">Ollama unloads idle models. Loading a cold 14B costs a few seconds; pin the two you use most with <code class="inl">keep_alive</code>.</p></div>
+</div>
+
+<!-- 3 ARCH -->
+<h2 class="sec" id="arch">3 · Architecture</h2>
+<p>Three planes: <b>Rails</b> (UI + system of record + orchestration), the <b>AI service layer</b> (prompts, context assembly, schema validation, model routing), and the <b>model runtime</b> (Ollama). GitLab and GitLab CI sit on the side and are reached through a bot account. Everything stays on the LAN.</p>
+
+<figure>
+<svg viewBox="0 0 920 470" font-family="JetBrains Mono, monospace" font-size="13">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#7aa2f7"/></marker>
+  </defs>
+  <rect x="0" y="0" width="920" height="470" fill="#0a0e14" rx="10"/>
+
+  <!-- Mac mini boundary -->
+  <rect x="20" y="20" width="600" height="430" rx="12" fill="none" stroke="#2b3340" stroke-dasharray="5 4"/>
+  <text x="34" y="44" fill="#9aa7b4">🖥 Mac mini (on-prem) — 32 GB unified memory</text>
+
+  <!-- Rails -->
+  <rect x="44" y="64" width="250" height="120" rx="10" fill="#161b22" stroke="#2a3a52"/>
+  <text x="60" y="88" fill="#7aa2f7" font-size="14">Rails 8 app</text>
+  <text x="60" y="110" fill="#cdd6e0" font-size="11">• UI + chat window</text>
+  <text x="60" y="128" fill="#cdd6e0" font-size="11">• Models: Project/Ticket/PR…</text>
+  <text x="60" y="146" fill="#cdd6e0" font-size="11">• Sidekiq jobs / webhooks</text>
+  <text x="60" y="164" fill="#cdd6e0" font-size="11">• Builds DevContext JSON</text>
+
+  <!-- AI service -->
+  <rect x="44" y="210" width="250" height="150" rx="10" fill="#161b22" stroke="#2f4a2f"/>
+  <text x="60" y="234" fill="#9ece6a" font-size="14">AI service layer</text>
+  <text x="60" y="256" fill="#cdd6e0" font-size="11">• Prompt templates</text>
+  <text x="60" y="274" fill="#cdd6e0" font-size="11">• Context assembler + RAG</text>
+  <text x="60" y="292" fill="#cdd6e0" font-size="11">• JSON-schema validator</text>
+  <text x="60" y="310" fill="#cdd6e0" font-size="11">• Model router (7B/14B/32B)</text>
+  <text x="60" y="328" fill="#cdd6e0" font-size="11">• Per-service endpoints</text>
+  <text x="60" y="346" fill="#cdd6e0" font-size="11">• Guardrails / retries</text>
+
+  <!-- Ollama -->
+  <rect x="330" y="64" width="266" height="120" rx="10" fill="#161b22" stroke="#4a3f2a"/>
+  <text x="346" y="88" fill="#e0af68" font-size="14">Ollama runtime (Metal)</text>
+  <text x="346" y="110" fill="#cdd6e0" font-size="11">qwen2.5-coder:14b (default)</text>
+  <text x="346" y="128" fill="#cdd6e0" font-size="11">qwen2.5-coder:7b (fast)</text>
+  <text x="346" y="146" fill="#cdd6e0" font-size="11">llama3.1:8b / phi-4 (reason)</text>
+  <text x="346" y="164" fill="#cdd6e0" font-size="11">nomic-embed-text (embeds)</text>
+
+  <!-- pgvector -->
+  <rect x="330" y="210" width="266" height="70" rx="10" fill="#161b22" stroke="#3a2f52"/>
+  <text x="346" y="234" fill="#bb9af7" font-size="14">Postgres + pgvector</text>
+  <text x="346" y="256" fill="#cdd6e0" font-size="11">code &amp; doc embeddings · run logs</text>
+
+  <!-- redis -->
+  <rect x="330" y="296" width="266" height="64" rx="10" fill="#161b22" stroke="#2b3340"/>
+  <text x="346" y="320" fill="#56d4dd" font-size="13">Redis — Sidekiq queue</text>
+  <text x="346" y="340" fill="#cdd6e0" font-size="11">throttles model concurrency</text>
+
+  <!-- GitLab + CI -->
+  <rect x="660" y="64" width="240" height="130" rx="10" fill="#161b22" stroke="#2a3a52"/>
+  <text x="676" y="88" fill="#7aa2f7" font-size="14">GitLab (LAN)</text>
+  <text x="676" y="110" fill="#cdd6e0" font-size="11">• Repos / branches / MRs</text>
+  <text x="676" y="128" fill="#cdd6e0" font-size="11">• REST + webhooks</text>
+  <text x="676" y="146" fill="#cdd6e0" font-size="11">• Bot account + token</text>
+  <text x="676" y="170" fill="#cdd6e0" font-size="11">• Issues ↔ tickets sync</text>
+
+  <rect x="660" y="220" width="240" height="120" rx="10" fill="#161b22" stroke="#4a2a33"/>
+  <text x="676" y="244" fill="#f7768e" font-size="14">GitLab CI runners</text>
+  <text x="676" y="266" fill="#cdd6e0" font-size="11">• Build / test / coverage</text>
+  <text x="676" y="284" fill="#cdd6e0" font-size="11">• Deploy on-prem</text>
+  <text x="676" y="302" fill="#cdd6e0" font-size="11">• Pipeline job calls AI</text>
+  <text x="676" y="320" fill="#cdd6e0" font-size="11">• Posts results back</text>
+
+  <!-- arrows -->
+  <line x1="169" y1="184" x2="169" y2="208" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <line x1="294" y1="124" x2="328" y2="124" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <line x1="294" y1="285" x2="328" y2="240" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <line x1="294" y1="320" x2="328" y2="324" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <line x1="296" y1="100" x2="296" y2="100" stroke="#7aa2f7"/>
+  <line x1="294" y1="120" x2="330" y2="120" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <line x1="620" y1="120" x2="658" y2="120" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <line x1="620" y1="270" x2="658" y2="270" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <text x="624" y="113" fill="#9aa7b4" font-size="10">git + API</text>
+  <text x="624" y="263" fill="#9aa7b4" font-size="10">trigger</text>
+</svg>
+<figcaption>Everything in the dashed box runs on the Mac mini. GitLab and the CI runners can be the same box or another LAN host. No traffic leaves the network.</figcaption>
+</figure>
+
+<div class="callout"><b>Why a separate AI service layer instead of calling Ollama from Rails directly?</b> Because the value is not the model call — it's <i>context assembly + a stable JSON contract + validation + routing</i>. Keeping that in one place means the chat window, a CI job, and a Sidekiq batch all get identical, testable behaviour. In <b>Stack B</b> (§9) this "layer" is simply a set of Ruby service objects inside Rails; in <b>Stack A</b> (§8) it's a small FastAPI process.</div>
+
+<!-- 4 CONTEXT -->
+<h2 class="sec" id="context">4 · The DevContext JSON tree</h2>
+<p><b>Yes — you can and should generate a single JSON tree</b> that gives the model the full picture of your development process. Think of it as a serialized snapshot of "everything relevant right now," assembled on demand from your Rails models (+ GitLab + CI). Each service consumes a <i>slice</i> of it, never the whole thing (context windows are finite). Below is the canonical shape.</p>
+
+<pre><span class="c">// DevContext — the root object the AI layer assembles per request.</span>
+<span class="c">// Every service receives a pruned subset (see "scope" per service).</span>
+{
+  <span class="key">"schema_version"</span>: <span class="s">"1.0"</span>,
+  <span class="key">"generated_at"</span>: <span class="s">"2026-06-06T09:00:00Z"</span>,
+  <span class="key">"scope"</span>: <span class="s">"code_review"</span>,            <span class="c">// which service asked; drives pruning</span>
+
+  <span class="key">"organization"</span>: { <span class="key">"name"</span>: <span class="s">"Cenevo"</span>, <span class="key">"timezone"</span>: <span class="s">"Asia/Jerusalem"</span> },
+
+  <span class="key">"project"</span>: {
+    <span class="key">"id"</span>: <span class="n">42</span>, <span class="key">"name"</span>: <span class="s">"Print Server / TDI"</span>, <span class="key">"slug"</span>: <span class="s">"print-tdi"</span>,
+    <span class="key">"gitlab_url"</span>: <span class="s">"http://gitlab.local/devteam/print-tdi"</span>,
+    <span class="key">"default_branch"</span>: <span class="s">"main"</span>,
+    <span class="key">"languages"</span>: [<span class="s">"csharp"</span>, <span class="s">"ruby"</span>, <span class="s">"gherkin"</span>],
+    <span class="key">"stack"</span>: [<span class="s">".NET 8"</span>, <span class="s">"Rails 8"</span>, <span class="s">"SQLite"</span>],
+    <span class="key">"conventions"</span>: {                  <span class="c">// learned or curated coding standards</span>
+      <span class="key">"test_command"</span>: <span class="s">"dotnet test && bundle exec rspec"</span>,
+      <span class="key">"style_guide"</span>: <span class="s">"docs/STYLE.md"</span>,
+      <span class="key">"pr_rules"</span>: [<span class="s">"tests required"</span>, <span class="s">"no secrets"</span>, <span class="s">"coverage ≥ 80%"</span>]
+    },
+    <span class="key">"repository"</span>: {
+      <span class="key">"tree"</span>: [<span class="s">"src/"</span>, <span class="s">"features/"</span>, <span class="s">"spec/"</span>],   <span class="c">// pruned file tree</span>
+      <span class="key">"key_files"</span>: [{ <span class="key">"path"</span>: <span class="s">"src/PrintQueue.cs"</span>, <span class="key">"summary"</span>: <span class="s">"job queue core"</span> }],
+      <span class="key">"readme_excerpt"</span>: <span class="s">"..."</span>
+    },
+    <span class="key">"ci"</span>: {
+      <span class="key">"last_pipeline"</span>: { <span class="key">"status"</span>: <span class="s">"passed"</span>, <span class="key">"coverage"</span>: <span class="n">81.7</span>, <span class="key">"ref"</span>: <span class="s">"main"</span> },
+      <span class="key">"test_command"</span>: <span class="s">"dotnet test"</span>, <span class="key">"runner"</span>: <span class="s">"mac-mini-shell"</span>
+    }
+  },
+
+  <span class="key">"sprint"</span>: {
+    <span class="key">"id"</span>: <span class="n">7</span>, <span class="key">"name"</span>: <span class="s">"Sprint 24"</span>, <span class="key">"goal"</span>: <span class="s">"PDF export + stability"</span>,
+    <span class="key">"starts_on"</span>: <span class="s">"2026-06-01"</span>, <span class="key">"ends_on"</span>: <span class="s">"2026-06-14"</span>,
+    <span class="key">"velocity"</span>: <span class="n">34</span>, <span class="key">"committed_points"</span>: <span class="n">40</span>, <span class="key">"completed_points"</span>: <span class="n">22</span>
+  },
+
+  <span class="key">"tickets"</span>: [{
+    <span class="key">"id"</span>: <span class="n">1010</span>, <span class="key">"key"</span>: <span class="s">"T-1010"</span>, <span class="key">"title"</span>: <span class="s">"Add PDF export for print queue jobs"</span>,
+    <span class="key">"type"</span>: <span class="s">"story"</span>, <span class="key">"status"</span>: <span class="s">"in_progress"</span>, <span class="key">"priority"</span>: <span class="s">"high"</span>,
+    <span class="key">"points"</span>: <span class="n">5</span>, <span class="key">"assignee"</span>: <span class="s">"oren"</span>, <span class="key">"reporter"</span>: <span class="s">"pm-dana"</span>,
+    <span class="key">"description"</span>: <span class="s">"As a user I want to export…"</span>,
+    <span class="key">"acceptance_criteria"</span>: [<span class="s">"PDF matches print layout"</span>, <span class="s">"≤ 2s for 50 jobs"</span>],
+    <span class="key">"labels"</span>: [<span class="s">"backend"</span>, <span class="s">"export"</span>], <span class="key">"linked_mr"</span>: <span class="n">1010</span>
+  }],
+
+  <span class="key">"pull_requests"</span>: [{
+    <span class="key">"id"</span>: <span class="n">1010</span>, <span class="key">"number"</span>: <span class="n">1010</span>, <span class="key">"title"</span>: <span class="s">"Improve error handling…"</span>,
+    <span class="key">"status"</span>: <span class="s">"open"</span>, <span class="key">"author"</span>: <span class="s">"oren"</span>, <span class="key">"ticket_id"</span>: <span class="n">1010</span>,
+    <span class="key">"source_branch"</span>: <span class="s">"feature/t-1010-pdf-export"</span>, <span class="key">"target_branch"</span>: <span class="s">"main"</span>,
+    <span class="key">"coverage_percent"</span>: <span class="n">81.7</span>,
+    <span class="key">"files"</span>: [{                       <span class="c">// = your PullRequest#files_data</span>
+      <span class="key">"path"</span>: <span class="s">"src/AddPdfExportService.cs"</span>, <span class="key">"language"</span>: <span class="s">"csharp"</span>,
+      <span class="key">"additions"</span>: <span class="n">58</span>, <span class="key">"deletions"</span>: <span class="n">24</span>, <span class="key">"status"</span>: <span class="s">"modified"</span>,
+      <span class="key">"url"</span>: <span class="s">"http://gitlab.local/…/AddPdfExportService.cs"</span>,
+      <span class="key">"diff"</span>: <span class="s">"@@ -10,6 +10,40 @@ …"</span>,        <span class="c">// unified diff for review</span>
+      <span class="key">"content"</span>: <span class="s">"public class AddPdfExportService { … }"</span>
+    }],
+    <span class="key">"tests"</span>: [{                        <span class="c">// = your PullRequest#tests_data</span>
+      <span class="key">"name"</span>: <span class="s">"exports a valid PDF"</span>, <span class="key">"file"</span>: <span class="s">"features/pdf.feature"</span>,
+      <span class="key">"suite"</span>: <span class="s">"Cucumber"</span>, <span class="key">"status"</span>: <span class="s">"passed"</span>, <span class="key">"time_ms"</span>: <span class="n">120</span>
+    }]
+  }],
+
+  <span class="key">"team"</span>: [{
+    <span class="key">"user"</span>: <span class="s">"oren"</span>, <span class="key">"display_name"</span>: <span class="s">"Oren Shapiro"</span>, <span class="key">"role"</span>: <span class="s">"senior_dev"</span>,
+    <span class="key">"metrics"</span>: {                      <span class="c">// rolling window, fed to the report service</span>
+      <span class="key">"tickets_closed"</span>: <span class="n">14</span>, <span class="key">"points_completed"</span>: <span class="n">31</span>,
+      <span class="key">"avg_cycle_time_days"</span>: <span class="n">2.4</span>, <span class="key">"prs_merged"</span>: <span class="n">12</span>,
+      <span class="key">"review_turnaround_h"</span>: <span class="n">5.1</span>, <span class="key">"estimate_accuracy"</span>: <span class="n">0.86</span>,
+      <span class="key">"bug_rate"</span>: <span class="n">0.08</span>, <span class="key">"test_coverage_added"</span>: <span class="n">0.74</span>
+    }
+  }],
+
+  <span class="key">"documents"</span>: [{ <span class="key">"id"</span>: <span class="n">5</span>, <span class="key">"title"</span>: <span class="s">"Spec: PDF export"</span>, <span class="key">"kind"</span>: <span class="s">"spec"</span>, <span class="key">"sprint_id"</span>: <span class="n">7</span> }],
+
+  <span class="key">"rag"</span>: {                              <span class="c">// retrieved chunks (semantic search) for this request</span>
+    <span class="key">"query"</span>: <span class="s">"pdf export error handling"</span>,
+    <span class="key">"chunks"</span>: [{ <span class="key">"path"</span>: <span class="s">"src/PrintQueue.cs#L40-90"</span>, <span class="key">"score"</span>: <span class="n">0.82</span>, <span class="key">"text"</span>: <span class="s">"…"</span> }]
+  },
+
+  <span class="key">"conversation"</span>: {                     <span class="c">// only for the chat terminal service</span>
+    <span class="key">"history"</span>: [{ <span class="key">"role"</span>: <span class="s">"user"</span>, <span class="key">"content"</span>: <span class="s">"why does export time out?"</span> }],
+    <span class="key">"cwd"</span>: <span class="s">"print-tdi@feature/t-1010-pdf-export"</span>
+  }
+}</pre>
+
+<div class="callout good"><b>How it maps to what you already have.</b> <code class="inl">project</code>→<code class="inl">Project</code>, <code class="inl">tickets</code>→<code class="inl">Ticket</code>, <code class="inl">pull_requests[].files</code>→<code class="inl">PullRequest#files_data</code>, <code class="inl">pull_requests[].tests</code>→<code class="inl">PullRequest#tests_data</code>, <code class="inl">coverage_percent</code> is already a column, <code class="inl">documents</code>→<code class="inl">Document</code>, <code class="inl">team[].metrics</code> is computed from tickets/PRs. The only genuinely new pieces are <code class="inl">rag</code> (embeddings index) and the per-file <code class="inl">diff</code> (pull from GitLab on demand).</div>
+
+<p><b>Pruning matters.</b> A <code class="inl">ContextAssembler</code> builds the tree, then trims to a token budget per service: code review gets the PR diffs + conventions + RAG; the performance report gets <code class="inl">team[].metrics</code> + sprint but no source. This is the difference between "fits in 8k tokens and runs fast" and "overflows the context and is slow/garbage."</p>
+
+<!-- 5 SERVICES -->
+<h2 class="sec" id="svc-overview">5 · Service catalog</h2>
+<p>Eighteen services. The first nine are exactly what you asked for; S10–S18 are additions that fall out naturally once the context tree and model runtime exist. Every service follows the same contract: <b>name → what it is → context slice in → validated JSON out → who calls it.</b></p>
+
+<table>
+<thead><tr><th>#</th><th>Service</th><th>What it does</th><th>Primary model</th></tr></thead>
+<tbody>
+<tr><td class="svc-id">S1</td><td><a href="#s1">Repo Reader / Ingestor</a></td><td>Pull code &amp; tree from a GitLab URL, chunk + embed for RAG</td><td>nomic-embed</td></tr>
+<tr><td class="svc-id">S2</td><td><a href="#s2">Branch &amp; MR generator</a></td><td>Create branch from ticket, scaffold change, open MR</td><td>coder 14B</td></tr>
+<tr><td class="svc-id">S3</td><td><a href="#s3">Test runner orchestrator</a></td><td>Trigger CI / local tests, normalize results</td><td>(no LLM) + 7B summary</td></tr>
+<tr><td class="svc-id">S4</td><td><a href="#s4">Code review generator</a></td><td>Review an MR diff, produce structured findings</td><td>coder 14B/32B</td></tr>
+<tr><td class="svc-id">S5</td><td><a href="#s5">Ticket → solution</a></td><td>Read a ticket, propose an implementation plan</td><td>reasoner 14B</td></tr>
+<tr><td class="svc-id">S6</td><td><a href="#s6">Performance reporter</a></td><td>Team + per-user metrics narrative &amp; charts</td><td>reasoner 8B</td></tr>
+<tr><td class="svc-id">S7</td><td><a href="#s7">Document rewriter</a></td><td>Rewrite/restructure a document to a goal</td><td>writer 14B/27B</td></tr>
+<tr><td class="svc-id">S8</td><td><a href="#s8">Chart &amp; media generator</a></td><td>Produce chart specs + diagrams/images for docs</td><td>14B + tools</td></tr>
+<tr><td class="svc-id">S9</td><td><a href="#s9">Chat terminal</a></td><td>Agentic chat that can call all other services</td><td>fast 7B + router</td></tr>
+<tr><td class="svc-id">S10</td><td><a href="#s-extra">Semantic code search (RAG)</a></td><td>Natural-language search over the codebase</td><td>embed + 7B</td></tr>
+<tr><td class="svc-id">S11</td><td><a href="#s-extra">Commit msg &amp; changelog</a></td><td>Conventional commits, release changelog</td><td>fast 7B</td></tr>
+<tr><td class="svc-id">S12</td><td><a href="#s-extra">Test generator</a></td><td>Gherkin features + unit tests from a ticket/diff</td><td>coder 14B</td></tr>
+<tr><td class="svc-id">S13</td><td><a href="#s-extra">Standup / meeting summarizer</a></td><td>Summarize activity into standup &amp; meeting notes</td><td>reasoner 8B</td></tr>
+<tr><td class="svc-id">S14</td><td><a href="#s-extra">Estimation assistant</a></td><td>Suggest story points + rationale from history</td><td>reasoner (R1) 14B</td></tr>
+<tr><td class="svc-id">S15</td><td><a href="#s-extra">Security / secret triage</a></td><td>Triage Trivy/secret findings, suggest fixes</td><td>coder 14B</td></tr>
+<tr><td class="svc-id">S16</td><td><a href="#s-extra">Release notes</a></td><td>Human-readable notes from merged MRs</td><td>writer 8B</td></tr>
+<tr><td class="svc-id">S17</td><td><a href="#s-extra">Onboarding explainer</a></td><td>"Explain this module / how do I run X"</td><td>7B + RAG</td></tr>
+<tr><td class="svc-id">S18</td><td><a href="#s-extra">Flaky-test detector</a></td><td>Spot intermittent failures across CI history</td><td>(stats) + 8B</td></tr>
+</tbody>
+</table>
+
+<!-- S1 -->
+<h2 class="sec" id="s1">S1 · Repo Reader / Ingestor</h2>
+<p><b>What it is.</b> The entry point. Given a GitLab project URL it clones/pulls the repo (read-only, via the bot token), walks the tree, and produces (a) a pruned file tree + key-file summaries for the context, and (b) <b>embeddings</b> of code/doc chunks stored in pgvector so every other service can do semantic retrieval (RAG). Re-runs incrementally on each push webhook.</p>
+<div class="grid2">
+<div class="card"><h4 style="margin-top:0">Data needed</h4><ul style="margin:0">
+<li><code class="inl">project.gitlab_url</code>, branch, bot token</li>
+<li>File contents + language detection</li>
+<li>Optional: existing index (for incremental update)</li>
+</ul></div>
+<div class="card"><h4 style="margin-top:0">How it runs</h4><ul style="margin:0">
+<li>Clone → chunk (by symbol/function, ~400 tokens) → embed → upsert to pgvector</li>
+<li>Summarize key files with the 7B model (one line each)</li>
+<li>Emit a manifest the ContextAssembler caches</li>
+</ul></div>
+</div>
+<h4>Output JSON</h4>
+<pre>{
+  <span class="key">"project_id"</span>: <span class="n">42</span>, <span class="key">"ref"</span>: <span class="s">"main"</span>, <span class="key">"commit"</span>: <span class="s">"a1b2c3d"</span>,
+  <span class="key">"files_indexed"</span>: <span class="n">318</span>, <span class="key">"chunks_embedded"</span>: <span class="n">2741</span>, <span class="key">"skipped"</span>: <span class="n">22</span>,   <span class="c">// binaries/vendored</span>
+  <span class="key">"languages"</span>: { <span class="key">"csharp"</span>: <span class="n">61</span>, <span class="key">"ruby"</span>: <span class="n">120</span>, <span class="key">"gherkin"</span>: <span class="n">40</span> },
+  <span class="key">"key_files"</span>: [
+    { <span class="key">"path"</span>: <span class="s">"src/PrintQueue.cs"</span>, <span class="key">"summary"</span>: <span class="s">"Core job queue; enqueue/dequeue + retry"</span> }
+  ],
+  <span class="key">"tree"</span>: [<span class="s">"src/"</span>, <span class="s">"src/services/"</span>, <span class="s">"features/"</span>, <span class="s">"spec/"</span>],
+  <span class="key">"index_status"</span>: <span class="s">"ready"</span>, <span class="key">"took_ms"</span>: <span class="n">8400</span>, <span class="key">"incremental"</span>: <span class="kw">true</span>
+}</pre>
+
+<!-- S2 -->
+<h2 class="sec" id="s2">S2 · Branch &amp; Merge-Request generator</h2>
+<p><b>What it is.</b> Turns a ticket into a working branch and an MR. Two modes: <b>scaffold</b> (create branch + a stub commit + open a draft MR with a checklist) and <b>attempt</b> (let the coder model write a first-pass change for small, well-specified tickets, then open the MR for human review). It never merges — humans + CI gate that.</p>
+<div class="grid2">
+<div class="card"><h4 style="margin-top:0">Data needed</h4><ul style="margin:0">
+<li>Ticket (title, description, acceptance criteria, type)</li>
+<li>Project conventions + branch-naming rule</li>
+<li>RAG chunks of the files likely to change</li>
+<li>Bot token with <code class="inl">write_repository</code></li>
+</ul></div>
+<div class="card"><h4 style="margin-top:0">Guardrails</h4><ul style="margin:0">
+<li>Branch name from a template: <code class="inl">feature/t-{id}-{slug}</code></li>
+<li>"attempt" mode capped to N files / M lines; else scaffold only</li>
+<li>Always draft MR; CI must pass before "ready"</li>
+</ul></div>
+</div>
+<h4>Output JSON</h4>
+<pre>{
+  <span class="key">"ticket_id"</span>: <span class="n">1010</span>, <span class="key">"mode"</span>: <span class="s">"attempt"</span>,
+  <span class="key">"branch"</span>: { <span class="key">"name"</span>: <span class="s">"feature/t-1010-pdf-export"</span>, <span class="key">"from"</span>: <span class="s">"main"</span>, <span class="key">"created"</span>: <span class="kw">true</span> },
+  <span class="key">"changes"</span>: [
+    { <span class="key">"path"</span>: <span class="s">"src/AddPdfExportService.cs"</span>, <span class="key">"action"</span>: <span class="s">"create"</span>,
+      <span class="key">"rationale"</span>: <span class="s">"new service implementing the export per AC"</span>,
+      <span class="key">"diff"</span>: <span class="s">"@@ … +58 -0"</span> }
+  ],
+  <span class="key">"merge_request"</span>: {
+    <span class="key">"iid"</span>: <span class="n">1010</span>, <span class="key">"title"</span>: <span class="s">"Draft: T-1010 Add PDF export for print queue jobs"</span>,
+    <span class="key">"url"</span>: <span class="s">"http://gitlab.local/devteam/print-tdi/-/merge_requests/1010"</span>,
+    <span class="key">"draft"</span>: <span class="kw">true</span>, <span class="key">"checklist"</span>: [<span class="s">"add tests"</span>, <span class="s">"update docs"</span>, <span class="s">"coverage ≥ 80%"</span>]
+  },
+  <span class="key">"confidence"</span>: <span class="n">0.62</span>, <span class="key">"needs_human"</span>: <span class="kw">true</span>,
+  <span class="key">"warnings"</span>: [<span class="s">"touched 1 file outside the predicted set"</span>]
+}</pre>
+
+<!-- S3 -->
+<h2 class="sec" id="s3">S3 · Test runner orchestrator</h2>
+<p><b>What it is.</b> Mostly <i>not</i> an LLM service — it triggers the real test suite (preferably by kicking a GitLab CI pipeline so tests run in the canonical environment) and normalizes the results into the same <code class="inl">tests_data</code> shape your <code class="inl">PullRequest</code> already uses. A small 7B pass turns raw failures into a human summary + likely cause.</p>
+<div class="grid2">
+<div class="card"><h4 style="margin-top:0">Data needed</h4><ul style="margin:0">
+<li>Branch / MR ref to test</li>
+<li><code class="inl">project.ci.test_command</code></li>
+<li>CI job artifacts: JUnit XML, coverage, Cucumber JSON</li>
+</ul></div>
+<div class="card"><h4 style="margin-top:0">Why CI, not local exec</h4><ul style="margin:0">
+<li>Reproducible env; no "works on my mini"</li>
+<li>Keeps the Mac mini's RAM for the models</li>
+<li>One source of truth for coverage</li>
+</ul></div>
+</div>
+<h4>Output JSON</h4>
+<pre>{
+  <span class="key">"ref"</span>: <span class="s">"feature/t-1010-pdf-export"</span>, <span class="key">"pipeline_id"</span>: <span class="n">88213</span>, <span class="key">"status"</span>: <span class="s">"failed"</span>,
+  <span class="key">"summary"</span>: { <span class="key">"total"</span>: <span class="n">142</span>, <span class="key">"passed"</span>: <span class="n">139</span>, <span class="key">"failed"</span>: <span class="n">2</span>, <span class="key">"skipped"</span>: <span class="n">1</span> },
+  <span class="key">"coverage_percent"</span>: <span class="n">79.4</span>,
+  <span class="key">"tests"</span>: [
+    { <span class="key">"name"</span>: <span class="s">"exports a valid PDF"</span>, <span class="key">"suite"</span>: <span class="s">"Cucumber"</span>, <span class="key">"status"</span>: <span class="s">"passed"</span>, <span class="key">"time_ms"</span>: <span class="n">120</span> },
+    { <span class="key">"name"</span>: <span class="s">"handles 50 jobs ≤ 2s"</span>, <span class="key">"suite"</span>: <span class="s">"Unit"</span>, <span class="key">"status"</span>: <span class="s">"failed"</span>,
+      <span class="key">"message"</span>: <span class="s">"expected ≤2000ms, got 2640ms"</span>, <span class="key">"file"</span>: <span class="s">"spec/perf_spec.rb:42"</span> }
+  ],
+  <span class="key">"ai_summary"</span>: <span class="s">"1 perf test over budget by 32%; likely the synchronous PDF render. Consider batching."</span>,
+  <span class="key">"likely_culprit_files"</span>: [<span class="s">"src/AddPdfExportService.cs"</span>]
+}</pre>
+
+<!-- S4 -->
+<h2 class="sec" id="s4">S4 · Code review generator</h2>
+<p><b>What it is.</b> The flagship. Given an MR diff + conventions + RAG context, it produces <b>structured findings</b> (not prose) — each anchored to a file+line, with a severity, category, explanation, and a suggested patch. Rails renders them in your existing Code Review page; CI posts them as MR discussion notes (§6).</p>
+<div class="grid2">
+<div class="card"><h4 style="margin-top:0">Data needed (context slice)</h4><ul style="margin:0">
+<li>PR/MR: title, description, linked ticket + AC</li>
+<li>Per-file <b>unified diff</b> + surrounding content</li>
+<li><code class="inl">project.conventions.pr_rules</code> + style guide</li>
+<li>RAG chunks of impacted symbols (callers/callees)</li>
+<li>Latest test + coverage result</li>
+</ul></div>
+<div class="card"><h4 style="margin-top:0">Output discipline</h4><ul style="margin:0">
+<li>Severity ∈ {blocker, major, minor, nit, praise}</li>
+<li>Category ∈ {bug, security, perf, style, test, design}</li>
+<li>Every finding has file+line; optional <code class="inl">suggestion</code> patch</li>
+<li>A <code class="inl">verdict</code> the UI shows as a badge</li>
+</ul></div>
+</div>
+<h4>Output JSON</h4>
+<pre>{
+  <span class="key">"mr_iid"</span>: <span class="n">1010</span>, <span class="key">"model"</span>: <span class="s">"qwen2.5-coder:14b"</span>, <span class="key">"reviewed_files"</span>: <span class="n">3</span>,
+  <span class="key">"verdict"</span>: <span class="s">"needs_work"</span>,           <span class="c">// approve | needs_work | request_changes</span>
+  <span class="key">"summary"</span>: <span class="s">"Solid structure; one resource leak and a missing negative test."</span>,
+  <span class="key">"findings"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="s">"f1"</span>, <span class="key">"file"</span>: <span class="s">"src/AddPdfExportService.cs"</span>, <span class="key">"line"</span>: <span class="n">47</span>,
+      <span class="key">"severity"</span>: <span class="s">"blocker"</span>, <span class="key">"category"</span>: <span class="s">"bug"</span>,
+      <span class="key">"title"</span>: <span class="s">"PdfWriter not disposed on exception path"</span>,
+      <span class="key">"detail"</span>: <span class="s">"If Process() throws, the writer leaks a file handle…"</span>,
+      <span class="key">"suggestion"</span>: <span class="s">"using var writer = new PdfWriter(stream);"</span>,
+      <span class="key">"confidence"</span>: <span class="n">0.9</span>
+    },
+    {
+      <span class="key">"id"</span>: <span class="s">"f2"</span>, <span class="key">"file"</span>: <span class="s">"features/pdf.feature"</span>, <span class="key">"line"</span>: <span class="kw">null</span>,
+      <span class="key">"severity"</span>: <span class="s">"major"</span>, <span class="key">"category"</span>: <span class="s">"test"</span>,
+      <span class="key">"title"</span>: <span class="s">"No scenario for invalid/empty queue"</span>,
+      <span class="key">"detail"</span>: <span class="s">"AC lists error handling but only the happy path is covered."</span>,
+      <span class="key">"suggestion"</span>: <span class="s">"Scenario: Export with empty queue → friendly error"</span>,
+      <span class="key">"confidence"</span>: <span class="n">0.78</span>
+    }
+  ],
+  <span class="key">"by_severity"</span>: { <span class="key">"blocker"</span>: <span class="n">1</span>, <span class="key">"major"</span>: <span class="n">1</span>, <span class="key">"minor"</span>: <span class="n">0</span>, <span class="key">"nit"</span>: <span class="n">2</span>, <span class="key">"praise"</span>: <span class="n">1</span> },
+  <span class="key">"covers_acceptance_criteria"</span>: <span class="kw">false</span>
+}</pre>
+<div class="callout warn"><b>Quality technique:</b> run the review twice (or with two models) and only surface findings that <i>both</i> passes agree on, or have a second model act as a skeptic that tries to refute each finding. This kills most "plausible but wrong" comments — the #1 failure mode of LLM review.</div>
+
+<!-- S5 -->
+<h2 class="sec" id="s5">S5 · Ticket → solution suggester</h2>
+<p><b>What it is.</b> Reads a ticket and the relevant code (via RAG) and proposes <b>an implementation plan</b>: which files to touch, the approach, risks, a test plan, and an estimate hint. This is what feeds S2 (branch/MR) and S12 (test gen).</p>
+<div class="grid2">
+<div class="card"><h4 style="margin-top:0">Data needed</h4><ul style="margin:0">
+<li>Ticket + acceptance criteria + labels</li>
+<li>RAG chunks of related modules</li>
+<li>Project conventions; similar past tickets/MRs</li>
+</ul></div>
+<div class="card"><h4 style="margin-top:0">Output discipline</h4><ul style="margin:0">
+<li>Ordered <code class="inl">steps</code> with target files</li>
+<li>Explicit <code class="inl">risks</code> &amp; <code class="inl">open_questions</code></li>
+<li>A <code class="inl">test_plan</code> S12 can consume</li>
+</ul></div>
+</div>
+<h4>Output JSON</h4>
+<pre>{
+  <span class="key">"ticket_id"</span>: <span class="n">1010</span>, <span class="key">"feasibility"</span>: <span class="s">"clear"</span>,   <span class="c">// clear | needs_clarification | risky</span>
+  <span class="key">"approach"</span>: <span class="s">"Add an AddPdfExportService that streams queue jobs to a PdfWriter…"</span>,
+  <span class="key">"steps"</span>: [
+    { <span class="key">"n"</span>: <span class="n">1</span>, <span class="key">"file"</span>: <span class="s">"src/AddPdfExportService.cs"</span>, <span class="key">"do"</span>: <span class="s">"new service + Handle()"</span> },
+    { <span class="key">"n"</span>: <span class="n">2</span>, <span class="key">"file"</span>: <span class="s">"src/PrintQueue.cs"</span>, <span class="key">"do"</span>: <span class="s">"expose ReadAllJobs()"</span> }
+  ],
+  <span class="key">"test_plan"</span>: [<span class="s">"Cucumber: happy path export"</span>, <span class="s">"Unit: 50 jobs ≤ 2s"</span>, <span class="s">"Cucumber: empty queue"</span>],
+  <span class="key">"risks"</span>: [<span class="s">"PDF render is CPU-bound; perf AC is tight"</span>],
+  <span class="key">"open_questions"</span>: [<span class="s">"A4 or Letter default?"</span>],
+  <span class="key">"estimate_hint_points"</span>: <span class="n">5</span>, <span class="key">"related_mrs"</span>: [<span class="n">803</span>, <span class="n">912</span>]
+}</pre>
+
+<!-- S6 -->
+<h2 class="sec" id="s6">S6 · Team &amp; per-user performance reporter</h2>
+<p><b>What it is.</b> Consumes <code class="inl">team[].metrics</code> + sprint history (computed deterministically by Rails — <i>the LLM does not invent numbers</i>) and produces (a) a narrative report, (b) per-user cards, and (c) <b>chart specs</b> S8 renders. This is what answers your questions: "who's the fastest deliverer? who estimates best? what's the sprint status?"</p>
+<div class="callout"><b>Critical design rule:</b> all numbers are computed in Ruby/SQL and passed <i>in</i>; the model only ranks, explains, and writes prose. This makes the report trustworthy and testable (the metrics have unit tests; the prose is checked for not fabricating figures).</div>
+<div class="grid2">
+<div class="card"><h4 style="margin-top:0">Data needed</h4><ul style="margin:0">
+<li>Per-user rolling metrics (cycle time, points, PRs, review turnaround, estimate accuracy, bug rate, coverage added)</li>
+<li>Sprint burndown + velocity history</li>
+<li>Time window + comparison baseline</li>
+</ul></div>
+<div class="card"><h4 style="margin-top:0">Answers it powers</h4><ul style="margin:0">
+<li><span class="tag acc">fastest deliverer</span> rank by cycle time + throughput</li>
+<li><span class="tag pur">best estimator</span> rank by estimate_accuracy</li>
+<li><span class="tag good">sprint status</span> burndown + risk flag</li>
+</ul></div>
+</div>
+<h4>Output JSON</h4>
+<pre>{
+  <span class="key">"window"</span>: <span class="s">"2026-05-08..2026-06-06"</span>, <span class="key">"sprint_id"</span>: <span class="n">7</span>,
+  <span class="key">"headline"</span>: <span class="s">"On track: 22/40 pts at day 6; throughput steady, 1 estimation risk."</span>,
+  <span class="key">"rankings"</span>: {
+    <span class="key">"fastest_delivery"</span>: [{ <span class="key">"user"</span>: <span class="s">"oren"</span>, <span class="key">"avg_cycle_time_days"</span>: <span class="n">2.4</span>, <span class="key">"rank"</span>: <span class="n">1</span> }],
+    <span class="key">"best_estimator"</span>: [{ <span class="key">"user"</span>: <span class="s">"maya"</span>, <span class="key">"estimate_accuracy"</span>: <span class="n">0.93</span>, <span class="key">"rank"</span>: <span class="n">1</span> }],
+    <span class="key">"most_throughput"</span>: [{ <span class="key">"user"</span>: <span class="s">"oren"</span>, <span class="key">"points_completed"</span>: <span class="n">31</span> }]
+  },
+  <span class="key">"per_user"</span>: [{
+    <span class="key">"user"</span>: <span class="s">"oren"</span>, <span class="key">"grade"</span>: <span class="s">"A"</span>,
+    <span class="key">"strengths"</span>: [<span class="s">"fast cycle time"</span>, <span class="s">"high coverage added"</span>],
+    <span class="key">"watch"</span>: [<span class="s">"review turnaround creeping up"</span>],
+    <span class="key">"metrics"</span>: { <span class="key">"points_completed"</span>: <span class="n">31</span>, <span class="key">"estimate_accuracy"</span>: <span class="n">0.86</span> }
+  }],
+  <span class="key">"sprint_status"</span>: { <span class="key">"committed"</span>: <span class="n">40</span>, <span class="key">"done"</span>: <span class="n">22</span>, <span class="key">"projected"</span>: <span class="n">38</span>, <span class="key">"risk"</span>: <span class="s">"low"</span> },
+  <span class="key">"charts"</span>: [
+    { <span class="key">"type"</span>: <span class="s">"burndown"</span>, <span class="key">"x"</span>: [<span class="s">"d1"</span>,<span class="s">"d2"</span>,<span class="s">"d3"</span>], <span class="key">"ideal"</span>: [<span class="n">40</span>,<span class="n">33</span>,<span class="n">26</span>], <span class="key">"actual"</span>: [<span class="n">40</span>,<span class="n">36</span>,<span class="n">30</span>] },
+    { <span class="key">"type"</span>: <span class="s">"bar"</span>, <span class="key">"title"</span>: <span class="s">"Points by dev"</span>, <span class="key">"data"</span>: { <span class="key">"oren"</span>: <span class="n">31</span>, <span class="key">"maya"</span>: <span class="n">19</span> } }
+  ]
+}</pre>
+
+<!-- S7 -->
+<h2 class="sec" id="s7">S7 · Document rewriter</h2>
+<p><b>What it is.</b> Takes an existing document (spec, README, risk doc) and rewrites it to a goal — "make it formal," "shorten by half," "restructure into sections," "translate to Hebrew," "fill gaps from the code." Returns structured blocks so the editor can diff/preview, plus a changelog of what it changed and why.</p>
+<div class="grid2">
+<div class="card"><h4 style="margin-top:0">Data needed</h4><ul style="margin:0">
+<li>Source document (markdown/HTML) + its <code class="inl">kind</code></li>
+<li>Instruction / target style + length</li>
+<li>Optional RAG context (to ground facts in code)</li>
+</ul></div>
+<div class="card"><h4 style="margin-top:0">Output discipline</h4><ul style="margin:0">
+<li>Block list (heading/paragraph/list/code/chart-placeholder)</li>
+<li><code class="inl">changes</code> log for review</li>
+<li>Never drops facts silently — flags removals</li>
+</ul></div>
+</div>
+<h4>Output JSON</h4>
+<pre>{
+  <span class="key">"document_id"</span>: <span class="n">5</span>, <span class="key">"instruction"</span>: <span class="s">"Make formal, add a risks section, EN→HE keep code"</span>,
+  <span class="key">"language"</span>: <span class="s">"he"</span>, <span class="key">"format"</span>: <span class="s">"markdown"</span>,
+  <span class="key">"blocks"</span>: [
+    { <span class="key">"type"</span>: <span class="s">"heading"</span>, <span class="key">"level"</span>: <span class="n">1</span>, <span class="key">"text"</span>: <span class="s">"מפרט: ייצוא PDF"</span> },
+    { <span class="key">"type"</span>: <span class="s">"paragraph"</span>, <span class="key">"text"</span>: <span class="s">"…"</span> },
+    { <span class="key">"type"</span>: <span class="s">"chart_placeholder"</span>, <span class="key">"ref"</span>: <span class="s">"chart:export_perf"</span> }   <span class="c">// filled by S8</span>
+  ],
+  <span class="key">"changes"</span>: [
+    { <span class="key">"kind"</span>: <span class="s">"added"</span>, <span class="key">"what"</span>: <span class="s">"Risks section"</span> },
+    { <span class="key">"kind"</span>: <span class="s">"rewrote"</span>, <span class="key">"what"</span>: <span class="s">"Overview → formal tone"</span> },
+    { <span class="key">"kind"</span>: <span class="s">"flagged"</span>, <span class="key">"what"</span>: <span class="s">"Dropped outdated v1 note — confirm"</span> }
+  ],
+  <span class="key">"word_count"</span>: { <span class="key">"before"</span>: <span class="n">740</span>, <span class="key">"after"</span>: <span class="n">420</span> }
+}</pre>
+
+<!-- S8 -->
+<h2 class="sec" id="s8">S8 · Chart &amp; media generator</h2>
+<p><b>What it is.</b> Produces <b>chart specifications</b> (data + type + labels) and diagram/source for documents — not pixel rasters from the LLM (models can't draw reliably). The LLM decides <i>what</i> chart fits and emits a spec; a deterministic renderer (Chartkick/Vega/Mermaid/SVG) turns it into the actual image. For "images," it generates Mermaid/Graphviz/SVG diagrams; for true raster art you'd add a local Stable Diffusion model (optional, see §13 perf note).</p>
+<div class="grid2">
+<div class="card"><h4 style="margin-top:0">Data needed</h4><ul style="margin:0">
+<li>The dataset (from S6 or a query)</li>
+<li>Intent ("show velocity trend", "architecture of X")</li>
+<li>Target medium (PNG/SVG/Mermaid)</li>
+</ul></div>
+<div class="card"><h4 style="margin-top:0">Renderers (deterministic)</h4><ul style="margin:0">
+<li>Charts → Chartkick / Vega-Lite spec</li>
+<li>Diagrams → Mermaid / Graphviz → SVG</li>
+<li>Raster (optional) → local SD via ComfyUI</li>
+</ul></div>
+</div>
+<h4>Output JSON</h4>
+<pre>{
+  <span class="key">"artifacts"</span>: [
+    { <span class="key">"ref"</span>: <span class="s">"chart:export_perf"</span>, <span class="key">"renderer"</span>: <span class="s">"vega-lite"</span>, <span class="key">"type"</span>: <span class="s">"line"</span>,
+      <span class="key">"title"</span>: <span class="s">"Export time vs job count"</span>,
+      <span class="key">"data"</span>: [{ <span class="key">"jobs"</span>: <span class="n">10</span>, <span class="key">"ms"</span>: <span class="n">480</span> }, { <span class="key">"jobs"</span>: <span class="n">50</span>, <span class="key">"ms"</span>: <span class="n">2640</span> }],
+      <span class="key">"encoding"</span>: { <span class="key">"x"</span>: <span class="s">"jobs"</span>, <span class="key">"y"</span>: <span class="s">"ms"</span> },
+      <span class="key">"alt_text"</span>: <span class="s">"Export time grows super-linearly past 30 jobs"</span> },
+    { <span class="key">"ref"</span>: <span class="s">"diagram:flow"</span>, <span class="key">"renderer"</span>: <span class="s">"mermaid"</span>,
+      <span class="key">"source"</span>: <span class="s">"flowchart LR; Queue--&gt;Service--&gt;PdfWriter--&gt;File"</span> }
+  ],
+  <span class="key">"insert_into_document"</span>: <span class="n">5</span>
+}</pre>
+
+<!-- S9 -->
+<h2 class="sec" id="s9">S9 · Chat terminal (the agent)</h2>
+<p><b>What it is.</b> The chat window in your app, but it behaves like a <b>terminal client</b>: the user types natural language <i>or</i> slash-commands, and an agent loop decides which of S1–S18 (its "tools") to call, runs them, streams results, and can chain them. "Review MR 1010", "create a branch for T-1042 and draft the MR", "run the tests on my branch", "who's the fastest deliverer this sprint?", "rewrite the spec doc in Hebrew and add a burndown chart."</p>
+
+<figure>
+<svg viewBox="0 0 900 250" font-family="JetBrains Mono, monospace" font-size="12">
+  <rect x="0" y="0" width="900" height="250" rx="10" fill="#0a0e14"/>
+  <rect x="20" y="20" width="140" height="50" rx="8" fill="#161b22" stroke="#2a3a52"/><text x="38" y="42" fill="#7aa2f7">User message</text><text x="38" y="58" fill="#9aa7b4" font-size="10">"review MR 1010"</text>
+  <rect x="200" y="20" width="150" height="50" rx="8" fill="#161b22" stroke="#2f4a2f"/><text x="218" y="42" fill="#9ece6a">Router (7B)</text><text x="218" y="58" fill="#9aa7b4" font-size="10">pick tool + args</text>
+  <rect x="390" y="20" width="150" height="50" rx="8" fill="#161b22" stroke="#4a3f2a"/><text x="408" y="42" fill="#e0af68">Tool call</text><text x="408" y="58" fill="#9aa7b4" font-size="10">S4 code review</text>
+  <rect x="580" y="20" width="150" height="50" rx="8" fill="#161b22" stroke="#3a2f52"/><text x="598" y="42" fill="#bb9af7">Validated JSON</text><text x="598" y="58" fill="#9aa7b4" font-size="10">findings[]</text>
+  <rect x="770" y="20" width="110" height="50" rx="8" fill="#161b22" stroke="#2b3340"/><text x="788" y="42" fill="#56d4dd">Stream</text><text x="788" y="58" fill="#9aa7b4" font-size="10">to chat UI</text>
+  <line x1="160" y1="45" x2="198" y2="45" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <line x1="350" y1="45" x2="388" y2="45" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <line x1="540" y1="45" x2="578" y2="45" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <line x1="730" y1="45" x2="768" y2="45" stroke="#7aa2f7" marker-end="url(#arr)"/>
+  <text x="20" y="115" fill="#9aa7b4">Loop: the agent may call several tools in sequence, feeding each result back into the router until the task is done,</text>
+  <text x="20" y="135" fill="#9aa7b4">then it composes a final natural-language reply (with links to the MR, the report, the rendered chart, etc.).</text>
+  <rect x="20" y="160" width="860" height="70" rx="8" fill="#11161e" stroke="#2b3340"/>
+  <text x="36" y="185" fill="#9ece6a">$ devteam&gt; create a branch for T-1042 and draft the MR</text>
+  <text x="36" y="205" fill="#cdd6e0">→ S5 plan ✓  → S2 branch feature/t-1042-… ✓  → S12 test stubs ✓  → MR !1042 (draft) opened</text>
+  <text x="36" y="222" fill="#7aa2f7">  https://gitlab.local/devteam/print-tdi/-/merge_requests/1042</text>
+</svg>
+<figcaption>The chat terminal is an agent loop over the other services as tools. Slash-commands (<code>/review</code>, <code>/branch</code>, <code>/test</code>, <code>/report</code>, <code>/doc</code>) map directly to tools; free text goes through the router.</figcaption>
+</figure>
+
+<h4>Tool-call + response JSON (one turn)</h4>
+<pre>{
+  <span class="key">"turn_id"</span>: <span class="s">"t_8821"</span>, <span class="key">"user"</span>: <span class="s">"review MR 1010"</span>,
+  <span class="key">"plan"</span>: [{ <span class="key">"tool"</span>: <span class="s">"S4.code_review"</span>, <span class="key">"args"</span>: { <span class="key">"mr_iid"</span>: <span class="n">1010</span> } }],
+  <span class="key">"tool_results"</span>: [{ <span class="key">"tool"</span>: <span class="s">"S4.code_review"</span>, <span class="key">"ok"</span>: <span class="kw">true</span>, <span class="key">"ref"</span>: <span class="s">"review:1010"</span> }],
+  <span class="key">"reply_markdown"</span>: <span class="s">"Reviewed MR !1010 — verdict **needs_work**: 1 blocker (writer leak), 1 missing test. [Open review]"</span>,
+  <span class="key">"citations"</span>: [<span class="s">"src/AddPdfExportService.cs:47"</span>],
+  <span class="key">"actions_taken"</span>: [], <span class="key">"confirm_required"</span>: <span class="kw">false</span>
+}</pre>
+<div class="callout warn"><b>Safety:</b> any tool that <i>writes</i> (S2 branch/MR, S7 doc save) returns <code class="inl">confirm_required:true</code> and shows a diff before acting, unless the user pre-authorized in settings. Read-only tools (review, report, search) run freely.</div>
+
+<!-- EXTRA -->
+<h2 class="sec" id="s-extra">S10–S18 · Additional services</h2>
+<div class="grid2">
+<div class="card"><span class="svc-id">S10 · Semantic code search (RAG)</span><h4 style="margin:6px 0">"Where do we handle retries?"</h4><p style="font-size:.9rem;margin:0">Embeds the query, pulls top-k chunks from pgvector, returns ranked file+line hits with snippets. Powers every other service's grounding.</p>
+<pre style="margin-top:8px">{ <span class="key">"hits"</span>:[{ <span class="key">"path"</span>:<span class="s">"src/PrintQueue.cs"</span>,<span class="key">"lines"</span>:<span class="s">"40-90"</span>,<span class="key">"score"</span>:<span class="n">0.83</span>,<span class="key">"snippet"</span>:<span class="s">"…"</span> }] }</pre></div>
+
+<div class="card"><span class="svc-id">S11 · Commit msg &amp; changelog</span><h4 style="margin:6px 0">Conventional commits</h4><p style="font-size:.9rem;margin:0">From a staged diff → a conventional-commit message; from a tag range → a grouped changelog.</p>
+<pre style="margin-top:8px">{ <span class="key">"type"</span>:<span class="s">"feat"</span>,<span class="key">"scope"</span>:<span class="s">"export"</span>,
+  <span class="key">"subject"</span>:<span class="s">"add PDF export for print queue"</span>,
+  <span class="key">"body"</span>:<span class="s">"…"</span>,<span class="key">"breaking"</span>:<span class="kw">false</span> }</pre></div>
+
+<div class="card"><span class="svc-id">S12 · Test generator</span><h4 style="margin:6px 0">Gherkin + unit tests</h4><p style="font-size:.9rem;margin:0">From a ticket/diff/plan → <code class="inl">.feature</code> scenarios and unit-test stubs. Feeds straight into your existing Gherkin editor.</p>
+<pre style="margin-top:8px">{ <span class="key">"features"</span>:[{ <span class="key">"path"</span>:<span class="s">"features/pdf.feature"</span>,
+  <span class="key">"gherkin"</span>:<span class="s">"Feature: …\n Scenario: …"</span> }],
+  <span class="key">"unit"</span>:[{ <span class="key">"path"</span>:<span class="s">"spec/pdf_spec.rb"</span>,<span class="key">"code"</span>:<span class="s">"…"</span> }] }</pre></div>
+
+<div class="card"><span class="svc-id">S13 · Standup / meeting summarizer</span><h4 style="margin:6px 0">Auto standup</h4><p style="font-size:.9rem;margin:0">From yesterday's commits/MRs/ticket moves → per-person "did / doing / blockers". Also summarizes meeting transcripts.</p>
+<pre style="margin-top:8px">{ <span class="key">"date"</span>:<span class="s">"2026-06-06"</span>,<span class="key">"people"</span>:[{ <span class="key">"user"</span>:<span class="s">"oren"</span>,
+  <span class="key">"did"</span>:[<span class="s">"merged !1003"</span>],<span class="key">"doing"</span>:[<span class="s">"T-1010"</span>],<span class="key">"blockers"</span>:[] }] }</pre></div>
+
+<div class="card"><span class="svc-id">S14 · Estimation assistant</span><h4 style="margin:6px 0">Points + rationale</h4><p style="font-size:.9rem;margin:0">Uses a reasoning model + history of similar tickets to suggest points with an explanation and a confidence band.</p>
+<pre style="margin-top:8px">{ <span class="key">"ticket_id"</span>:<span class="n">1042</span>,<span class="key">"points"</span>:<span class="n">3</span>,<span class="key">"range"</span>:[<span class="n">2</span>,<span class="n">5</span>],
+  <span class="key">"rationale"</span>:<span class="s">"similar to T-803 (3pts)…"</span>,<span class="key">"confidence"</span>:<span class="n">0.7</span> }</pre></div>
+
+<div class="card"><span class="svc-id">S15 · Security / secret triage</span><h4 style="margin:6px 0">Triage Trivy findings</h4><p style="font-size:.9rem;margin:0">Takes scanner output, deduplicates, ranks by real-world risk, and proposes fixes/patches.</p>
+<pre style="margin-top:8px">{ <span class="key">"findings"</span>:[{ <span class="key">"cve"</span>:<span class="s">"CVE-…"</span>,<span class="key">"severity"</span>:<span class="s">"high"</span>,
+  <span class="key">"reachable"</span>:<span class="kw">true</span>,<span class="key">"fix"</span>:<span class="s">"bump lib to 2.3.1"</span> }] }</pre></div>
+
+<div class="card"><span class="svc-id">S16 · Release notes</span><h4 style="margin:6px 0">Human-readable notes</h4><p style="font-size:.9rem;margin:0">From merged MRs in a range → grouped, audience-friendly release notes (features / fixes / internal).</p></div>
+
+<div class="card"><span class="svc-id">S17 · Onboarding explainer</span><h4 style="margin:6px 0">"Explain this module"</h4><p style="font-size:.9rem;margin:0">RAG + 7B → a guided explanation of a file/subsystem and "how do I run / test this" answers for new joiners.</p></div>
+
+<div class="card"><span class="svc-id">S18 · Flaky-test detector</span><h4 style="margin:6px 0">Stats + narrative</h4><p style="font-size:.9rem;margin:0">Scans CI history for tests that pass/fail on identical code; ranks flakiness, suggests quarantine candidates.</p></div>
+</div>
+
+<!-- 6 CI -->
+<h2 class="sec" id="ci">6 · Connecting to CI/CD (GitLab)</h2>
+<p>There are two integration patterns; use both. A <b>bot account</b> (a dedicated GitLab user) with a <b>project access token</b> is the identity for all writes (branches, MR notes, approvals).</p>
+
+<h3>Pattern A — Webhook-driven (event → Rails → AI → GitLab)</h3>
+<p>GitLab fires a webhook on MR open/update, push, or pipeline finish. Rails receives it, verifies the secret token, enqueues a Sidekiq job, the AI service runs, and the result is posted back to GitLab via its REST API <i>and</i> stored in your app.</p>
+
+<figure>
+<svg viewBox="0 0 900 280" font-family="JetBrains Mono, monospace" font-size="12">
+  <rect x="0" y="0" width="900" height="280" rx="10" fill="#0a0e14"/>
+  <!-- lanes -->
+  <text x="60" y="30" fill="#7aa2f7">GitLab</text>
+  <text x="280" y="30" fill="#9ece6a">Rails webhook</text>
+  <text x="500" y="30" fill="#e0af68">Sidekiq + AI svc</text>
+  <text x="720" y="30" fill="#bb9af7">Ollama</text>
+  <line x1="90" y1="40" x2="90" y2="250" stroke="#2b3340"/>
+  <line x1="320" y1="40" x2="320" y2="250" stroke="#2b3340"/>
+  <line x1="560" y1="40" x2="560" y2="250" stroke="#2b3340"/>
+  <line x1="780" y1="40" x2="780" y2="250" stroke="#2b3340"/>
+  <!-- messages -->
+  <line x1="90" y1="70" x2="320" y2="70" stroke="#7aa2f7" marker-end="url(#arr)"/><text x="100" y="64" fill="#9aa7b4">MR opened (webhook + secret)</text>
+  <line x1="320" y1="105" x2="560" y2="105" stroke="#9ece6a" marker-end="url(#arr)"/><text x="330" y="99" fill="#9aa7b4">enqueue ReviewJob(mr_iid)</text>
+  <line x1="560" y1="140" x2="90" y2="140" stroke="#e0af68" marker-end="url(#arr)"/><text x="200" y="134" fill="#9aa7b4">GET MR diff (API, bot token)</text>
+  <line x1="560" y1="175" x2="780" y2="175" stroke="#e0af68" marker-end="url(#arr)"/><text x="570" y="169" fill="#9aa7b4">code review (DevContext)</text>
+  <line x1="780" y1="205" x2="560" y2="205" stroke="#bb9af7" marker-end="url(#arr)"/><text x="600" y="199" fill="#9aa7b4">findings JSON</text>
+  <line x1="560" y1="238" x2="90" y2="238" stroke="#e0af68" marker-end="url(#arr)"/><text x="160" y="232" fill="#9aa7b4">POST MR discussions + approve/unapprove</text>
+</svg>
+<figcaption>The AI never holds long-lived credentials in CI; it uses the bot token to read the diff and post discussion notes back onto the merge request.</figcaption>
+</figure>
+
+<pre><span class="c"># config/routes.rb</span>
+<span class="k">post</span> <span class="s">"/webhooks/gitlab"</span>, to: <span class="s">"gitlab_webhooks#receive"</span>
+
+<span class="c"># app/controllers/gitlab_webhooks_controller.rb</span>
+<span class="k">class</span> GitlabWebhooksController &lt; ActionController::API
+  <span class="k">def</span> receive
+    head(:unauthorized) and return unless valid_token?            <span class="c"># X-Gitlab-Token</span>
+    <span class="k">case</span> request.headers[<span class="s">"X-Gitlab-Event"</span>]
+    <span class="k">when</span> <span class="s">"Merge Request Hook"</span> <span class="k">then</span> Ai::ReviewMergeRequestJob.perform_later(params[:object_attributes][:iid])
+    <span class="k">when</span> <span class="s">"Pipeline Hook"</span>      <span class="k">then</span> Ai::SummarizePipelineJob.perform_later(params[:object_attributes][:id])
+    <span class="k">end</span>
+    head :ok
+  <span class="k">end</span>
+<span class="k">end</span></pre>
+
+<h3>Pattern B — Pipeline-job-driven (CI calls the AI)</h3>
+<p>A stage in <code class="inl">.gitlab-ci.yml</code> calls the AI service over the LAN and posts the result. Good for gating ("fail the pipeline if a blocker is found") and for keeping the review in the pipeline log.</p>
+<pre><span class="c"># .gitlab-ci.yml</span>
+<span class="key">ai_review</span>:
+  <span class="key">stage</span>: review
+  <span class="key">rules</span>: [{ <span class="key">if</span>: <span class="s">'$CI_PIPELINE_SOURCE == "merge_request_event"'</span> }]
+  <span class="key">script</span>:
+    - <span class="c"># call the on-prem AI service; it reads the MR + posts notes back</span>
+    - |
+      curl -fsS -X POST http://mac-mini.local:8800/services/code_review \
+        -H "Authorization: Bearer $AI_TOKEN" \
+        -d "{\"project_id\":$CI_PROJECT_ID,\"mr_iid\":$CI_MERGE_REQUEST_IID}" \
+        -o review.json
+    - ruby ci/post_review.rb review.json     <span class="c"># post discussions; exit 1 on blocker</span>
+  <span class="key">allow_failure</span>: <span class="kw">true</span>     <span class="c"># start advisory; flip to blocking once trusted</span></pre>
+
+<div class="grid3">
+<div class="card"><h4 style="margin-top:0">Creating a branch from a ticket</h4><p style="margin:0;font-size:.9rem">User clicks "AI: start work" on a ticket → Rails calls S2 → bot creates <code class="inl">feature/t-{id}-…</code> via the Branches API → opens a draft MR → links it back to the ticket (your <code class="inl">PullRequest</code> row).</p></div>
+<div class="card"><h4 style="margin-top:0">Triggering tests</h4><p style="margin:0;font-size:.9rem">S3 calls the Pipelines API (<code class="inl">POST /projects/:id/pipeline?ref=…</code>); the pipeline-finish webhook returns results → normalized into <code class="inl">tests_data</code> + coverage.</p></div>
+<div class="card"><h4 style="margin-top:0">Posting a review</h4><p style="margin:0;font-size:.9rem">Each finding becomes a positioned MR <i>discussion</i> (Discussions API) anchored to file+line; the verdict drives <code class="inl">approve</code>/<code class="inl">unapprove</code>.</p></div>
+</div>
+
+<!-- 7 PERF -->
+<h2 class="sec" id="perf">7 · Performance on a 32 GB Mac mini</h2>
+<p>Generation speed is dominated by <b>memory bandwidth</b>, then model size. Below are realistic ranges for Apple Silicon Mac mini (M-series, Metal, Q4_K_M). An M5-class chip with higher bandwidth lands at the upper end or above; treat these as conservative.</p>
+
+<figure class="chart">
+  <div class="bar-row"><span class="bar-label">Qwen2.5-Coder 7B</span><div class="bar-track"><div class="bar-fill" style="width:96%;background:var(--accent2)">~60 tok/s</div></div></div>
+  <div class="bar-row"><span class="bar-label">Llama 3.1 8B</span><div class="bar-track"><div class="bar-fill" style="width:92%;background:var(--accent2)">~58 tok/s</div></div></div>
+  <div class="bar-row"><span class="bar-label">DeepSeek-Coder-V2-Lite 16B (MoE)</span><div class="bar-track"><div class="bar-fill" style="width:72%;background:var(--accent2)">~45 tok/s</div></div></div>
+  <div class="bar-row"><span class="bar-label">Phi-4 14B</span><div class="bar-track"><div class="bar-fill" style="width:52%;background:var(--accent)">~32 tok/s</div></div></div>
+  <div class="bar-row"><span class="bar-label">Qwen2.5-Coder 14B</span><div class="bar-track"><div class="bar-fill" style="width:48%;background:var(--accent)">~30 tok/s</div></div></div>
+  <div class="bar-row"><span class="bar-label">Codestral 22B</span><div class="bar-track"><div class="bar-fill" style="width:28%;background:var(--warn)">~17 tok/s</div></div></div>
+  <div class="bar-row"><span class="bar-label">Gemma 2 27B</span><div class="bar-track"><div class="bar-fill" style="width:24%;background:var(--warn)">~15 tok/s</div></div></div>
+  <div class="bar-row"><span class="bar-label">Qwen2.5-Coder 32B</span><div class="bar-track"><div class="bar-fill" style="width:18%;background:var(--bad)">~11 tok/s</div></div></div>
+  <figcaption>Approximate single-stream generation throughput (tokens/sec). Higher = more responsive. Prompt ingestion ("prefill") is faster than generation but still grows with context length.</figcaption>
+</figure>
+
+<h3>What that means for real tasks</h3>
+<table>
+<thead><tr><th>Task</th><th>Model</th><th>~Input tok</th><th>~Output tok</th><th>Wall time</th></tr></thead>
+<tbody>
+<tr><td>Chat reply / Q&amp;A</td><td>7B</td><td class="num">1–3k</td><td class="num">200</td><td class="num">2–5 s</td></tr>
+<tr><td>Commit message</td><td>7B</td><td class="num">1k</td><td class="num">80</td><td class="num">1–3 s</td></tr>
+<tr><td>Ticket → solution plan</td><td>14B</td><td class="num">3–5k</td><td class="num">600</td><td class="num">20–40 s</td></tr>
+<tr><td>Code review (400-line MR)</td><td>14B</td><td class="num">6–9k</td><td class="num">800</td><td class="num">40–80 s</td></tr>
+<tr><td>Code review (deep)</td><td>32B</td><td class="num">8–12k</td><td class="num">1k</td><td class="num">2–4 min</td></tr>
+<tr><td>Test generation</td><td>14B</td><td class="num">4k</td><td class="num">700</td><td class="num">30–50 s</td></tr>
+<tr><td>Performance report (narrative)</td><td>8B</td><td class="num">3k</td><td class="num">700</td><td class="num">15–30 s</td></tr>
+<tr><td>Embed a 300-file repo (one-off)</td><td>nomic</td><td class="num">—</td><td class="num">—</td><td class="num">1–3 min</td></tr>
+</tbody>
+</table>
+
+<div class="grid3">
+<div class="card"><h4 style="margin-top:0;color:var(--warn)">Concurrency</h4><p style="margin:0;font-size:.92rem">Plan for <b>1 heavy + 1 light</b> request at a time. Ollama can hold ~2 models hot in 32&nbsp;GB; a third forces an unload/reload stall. Use the Sidekiq queue to serialize heavy jobs.</p></div>
+<div class="card"><h4 style="margin-top:0;color:var(--accent)">KV cache &amp; context</h4><p style="margin:0;font-size:.92rem">Long contexts eat RAM and slow prefill. Cap most services at <b>8k–16k tokens</b> via pruning + RAG rather than stuffing whole files.</p></div>
+<div class="card"><h4 style="margin-top:0;color:var(--accent2)">Batch the heavy stuff</h4><p style="margin:0;font-size:.92rem">Run nightly: full re-index, performance reports, flaky-test scan, release notes. Interactive hours stay free for chat + review.</p></div>
+</div>
+
+<div class="callout"><b>Bottom line for 32 GB:</b> excellent for chat, search, ticket analysis, test/commit generation, and standard MR review on the 14B model. The 32B deep-review is usable but belongs in a queue. If AI review becomes a blocking CI gate for a busy team, that's the moment to move the model runtime to a <b>64 GB Mac mini / Mac Studio</b> (or add a second mini as a dedicated inference node) — the architecture doesn't change, only the <code class="inl">OLLAMA_HOST</code>.</div>
+
+<!-- 8 STACK A -->
+<h2 class="sec" id="stackA">8 · Build plan — Stack A (recommended: Python AI core)</h2>
+<p>A thin Python AI service alongside Rails. Best-in-class LLM tooling (structured output, RAG, agents) lives in Python; Rails stays the UI + system of record + orchestrator.</p>
+<table>
+<thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Model runtime</td><td>Ollama (Metal)</td><td>One-command local models, hot-swap, OpenAI-compatible API</td></tr>
+<tr><td>AI service</td><td>FastAPI + Pydantic</td><td>Typed endpoints; Pydantic = JSON-schema validation for free</td></tr>
+<tr><td>Structured output</td><td>Instructor / Outlines</td><td>Forces the model to emit schema-valid JSON, with retries</td></tr>
+<tr><td>RAG / agents</td><td>LlamaIndex (light) or hand-rolled</td><td>Chunking, retrieval, tool routing for S9</td></tr>
+<tr><td>Embeddings store</td><td>Postgres + pgvector</td><td>Same DB family as Rails; no extra service</td></tr>
+<tr><td>GitLab</td><td><code class="inl">python-gitlab</code></td><td>Branches, MRs, discussions, pipelines</td></tr>
+<tr><td>UI + orchestration</td><td>Rails 8 + Sidekiq</td><td>Your existing app; jobs + webhooks + chat UI (Turbo Streams)</td></tr>
+<tr><td>Transport</td><td>HTTP/JSON on the LAN + bearer token</td><td>Rails ↔ FastAPI ↔ Ollama</td></tr>
+<tr><td>Observability</td><td>Structured logs + run table</td><td>Every model call recorded for eval/replay</td></tr>
+</tbody>
+</table>
+<div class="callout good"><b>When to pick A:</b> you want the strongest structured-output + agent ecosystem, expect to iterate heavily on prompts/RAG, or foresee non-Ruby ML work later. Cost: one more process to run and deploy.</div>
+
+<!-- 9 STACK B -->
+<h2 class="sec" id="stackB">9 · Build plan — Stack B (Ruby / Rails-native)</h2>
+<p>Everything inside the Rails app — no second language or process. The "AI service layer" is a set of Ruby service objects (you already started this: <code class="inl">Ai::OllamaClient</code>, <code class="inl">Ai::*Service</code>, <code class="inl">AiReview</code>).</p>
+<table>
+<thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Model runtime</td><td>Ollama (Metal)</td><td>Same as A; reach it via HTTP</td></tr>
+<tr><td>Client</td><td><code class="inl">Ai::OllamaClient</code> (yours) / <code class="inl">ruby-openai</code></td><td>Ollama exposes an OpenAI-compatible endpoint</td></tr>
+<tr><td>Structured output</td><td>JSON schema + <code class="inl">dry-schema</code> / <code class="inl">json-schema</code> + retry</td><td>Validate; re-prompt on mismatch (you do a version of this in <code class="inl">AiReview</code>)</td></tr>
+<tr><td>RAG / embeddings</td><td><code class="inl">neighbor</code> gem + pgvector</td><td>Native ActiveRecord vector search</td></tr>
+<tr><td>Agents (S9)</td><td><code class="inl">langchainrb</code> or a hand-rolled tool router</td><td>Tool calling in Ruby; small surface, easy to test</td></tr>
+<tr><td>GitLab</td><td><code class="inl">gitlab</code> gem</td><td>Branches, MRs, discussions, pipelines</td></tr>
+<tr><td>Jobs</td><td>Sidekiq / ActiveJob</td><td>Serialize heavy model calls; webhook fan-out</td></tr>
+<tr><td>UI</td><td>Hotwire (Turbo Streams)</td><td>Stream chat + review results into the page (you already use this)</td></tr>
+</tbody>
+</table>
+<div class="callout good"><b>When to pick B:</b> one team, one language, one deploy; you value simplicity and you've already built <code class="inl">Ai::OllamaClient</code> + the test-review flow. Trade-off: Ruby's LLM tooling is younger than Python's, so you'll write a bit more structured-output/agent glue yourself (but it's not much, and it's very testable).</div>
+
+<div class="callout"><b>Recommendation:</b> start with <b>Stack B</b> — you already have the bones (<code class="inl">Ai::OllamaClient</code>, <code class="inl">AiReview</code>, the Gherkin editor + review page). It gets you S4/S5/S7/S9 fastest with zero new infra. Introduce the <b>Stack A</b> FastAPI core <i>only</i> if/when RAG quality or agent complexity outgrows the Ruby glue. The service contracts (the JSON in §5) are identical either way, so the migration is mechanical.</div>
+
+<!-- 10 STORIES -->
+<h2 class="sec" id="stories">10 · Story list with a test plan per story</h2>
+<p>Organized as epics. Each story names its <b>acceptance criteria</b> and <b>how it's tested</b>. The test column maps to the pyramid in §11. "Cucumber" means an end-to-end <code class="inl">.feature</code> drives the app (and, with stubbed model output, runs in CI deterministically).</p>
+
+<h3>Epic A — Foundations</h3>
+<table>
+<thead><tr><th>Story</th><th>Acceptance criteria</th><th>How we test it</th></tr></thead>
+<tbody>
+<tr><td><b>A1</b> Ollama client + model router</td><td>Can call any role (fast/coder/reasoner); times out gracefully; records each call</td><td><span class="tag acc">RSpec unit</span> with a stubbed HTTP server (WebMock); a contract test against a live model nightly</td></tr>
+<tr><td><b>A2</b> Schema-validated output wrapper</td><td>Given a JSON schema, returns a valid object or raises after N retries</td><td><span class="tag acc">RSpec unit</span>: feed malformed → valid fixtures; assert retry + final raise</td></tr>
+<tr><td><b>A3</b> DevContext assembler + pruning</td><td>Builds the tree from models; prunes to a token budget per scope</td><td><span class="tag acc">RSpec unit</span> on shape + token cap; golden JSON snapshot</td></tr>
+<tr><td><b>A4</b> Run/eval log table</td><td>Every model call stored (prompt hash, model, tokens, latency, ok)</td><td><span class="tag acc">RSpec model</span> + request spec; verify a row per call</td></tr>
+</tbody>
+</table>
+
+<h3>Epic B — Code intelligence (S1, S10, S4)</h3>
+<table>
+<thead><tr><th>Story</th><th>Acceptance criteria</th><th>How we test it</th></tr></thead>
+<tbody>
+<tr><td><b>B1</b> Repo ingest + embed (S1)</td><td>Index a repo → chunks in pgvector; incremental on push</td><td><span class="tag acc">RSpec</span> with a tiny fixture repo; assert chunk count + re-index diff; <span class="tag good">Cucumber</span> "index a project" happy path</td></tr>
+<tr><td><b>B2</b> Semantic search (S10)</td><td>NL query returns ranked file+line hits</td><td><span class="tag acc">RSpec</span> against seeded embeddings (deterministic); assert top hit</td></tr>
+<tr><td><b>B3</b> Code review (S4)</td><td>MR diff → findings JSON with severity/file/line + verdict</td><td><span class="tag acc">RSpec</span> with recorded model output (VCR-style); <span class="tag good">Cucumber</span>: "review an MR shows findings + verdict badge"; <span class="tag pur">LLM-as-judge</span> nightly on a labelled set</td></tr>
+<tr><td><b>B4</b> Two-pass / skeptic review</td><td>Only findings confirmed by 2 passes are surfaced</td><td><span class="tag acc">RSpec</span>: stub pass-1/pass-2 → assert intersection logic</td></tr>
+</tbody>
+</table>
+
+<h3>Epic C — Workflow automation (S2, S3, S5, S12)</h3>
+<table>
+<thead><tr><th>Story</th><th>Acceptance criteria</th><th>How we test it</th></tr></thead>
+<tbody>
+<tr><td><b>C1</b> Ticket → solution (S5)</td><td>Ticket → plan JSON (steps/files/test_plan/risks)</td><td><span class="tag acc">RSpec</span> with recorded output + schema; <span class="tag good">Cucumber</span>: "suggest a solution for a ticket"</td></tr>
+<tr><td><b>C2</b> Branch + draft MR (S2)</td><td>Creates branch + draft MR via bot; links to ticket; never merges</td><td><span class="tag acc">RSpec</span> with stubbed <code class="inl">gitlab</code> gem; assert API calls + <code class="inl">PullRequest</code> row; <span class="tag good">Cucumber</span>: "start work on a ticket creates a draft MR"</td></tr>
+<tr><td><b>C3</b> Test runner (S3)</td><td>Triggers pipeline; normalizes results to <code class="inl">tests_data</code>+coverage</td><td><span class="tag acc">RSpec</span> with a fixture JUnit/Cucumber JSON; assert normalization; <span class="tag good">Cucumber</span>: "run tests shows pass/fail summary"</td></tr>
+<tr><td><b>C4</b> Test generator (S12)</td><td>Ticket/diff → <code class="inl">.feature</code> + unit stubs; opens in Gherkin editor</td><td><span class="tag acc">RSpec</span> schema + parseable Gherkin (gherkin lint); <span class="tag good">Cucumber</span>: "generate tests for a ticket → editor pre-filled"</td></tr>
+</tbody>
+</table>
+
+<h3>Epic D — Insight &amp; docs (S6, S7, S8, S13, S14)</h3>
+<table>
+<thead><tr><th>Story</th><th>Acceptance criteria</th><th>How we test it</th></tr></thead>
+<tbody>
+<tr><td><b>D1</b> Metrics computation</td><td>Deterministic per-user/team metrics from tickets+PRs</td><td><span class="tag acc">RSpec</span> with seeded data; exact-number assertions (no LLM)</td></tr>
+<tr><td><b>D2</b> Performance report (S6)</td><td>Rankings + narrative; numbers match D1 (no fabrication)</td><td><span class="tag acc">RSpec</span>: assert every number in prose ∈ input set; <span class="tag good">Cucumber</span>: "who is the fastest deliverer?" returns the right person</td></tr>
+<tr><td><b>D3</b> Document rewriter (S7)</td><td>Rewrites to instruction; returns blocks + change log; flags removals</td><td><span class="tag acc">RSpec</span> schema + "no fact dropped silently"; <span class="tag good">Cucumber</span>: "rewrite this doc in Hebrew"</td></tr>
+<tr><td><b>D4</b> Charts &amp; media (S8)</td><td>Emits valid chart spec; renderer produces SVG/PNG</td><td><span class="tag acc">RSpec</span>: validate spec; render → assert non-empty SVG; visual snapshot</td></tr>
+<tr><td><b>D5</b> Estimation assistant (S14)</td><td>Points + range + rationale from history</td><td><span class="tag acc">RSpec</span> with recorded output; <span class="tag pur">eval</span>: MAE vs historical actuals nightly</td></tr>
+</tbody>
+</table>
+
+<h3>Epic E — Chat terminal (S9) &amp; CI</h3>
+<table>
+<thead><tr><th>Story</th><th>Acceptance criteria</th><th>How we test it</th></tr></thead>
+<tbody>
+<tr><td><b>E1</b> Tool registry + router</td><td>NL/slash-command → correct tool + args</td><td><span class="tag acc">RSpec</span>: routing table cases; assert chosen tool</td></tr>
+<tr><td><b>E2</b> Agent loop + confirm-on-write</td><td>Chains tools; write tools require confirm + show diff</td><td><span class="tag acc">RSpec</span>: scripted multi-tool turn; <span class="tag good">Cucumber</span>: "/review 1010 streams findings", "/branch T-1042 asks for confirmation"</td></tr>
+<tr><td><b>E3</b> Streaming chat UI</td><td>Turbo-streams tokens + results into the page</td><td><span class="tag good">Cucumber</span> (system/JS) on the chat view; assert streamed content appears</td></tr>
+<tr><td><b>E4</b> GitLab webhook intake</td><td>Verified webhook → enqueues the right job</td><td><span class="tag acc">Request spec</span>: post signed payloads; assert job enqueued; reject bad token</td></tr>
+<tr><td><b>E5</b> CI <code class="inl">ai_review</code> job posts back</td><td>Pipeline calls AI; findings posted as MR discussions; blocker → exit 1</td><td><span class="tag acc">RSpec</span> on <code class="inl">post_review.rb</code> with stubbed API; <span class="tag good">Cucumber</span> against a mock GitLab; staging smoke test</td></tr>
+</tbody>
+</table>
+
+<div class="callout"><b>Build order:</b> A → B3 (review, your highest-value win and you already have a head start) → C1/C2 → D1/D2 → S9 chat → CI wiring. Ship each epic behind a feature flag.</div>
+
+<!-- 11 CUCUMBER -->
+<h2 class="sec" id="cucumber">11 · Testing strategy &amp; using Cucumber</h2>
+<p>The hard part of testing AI features is that model output is <b>non-deterministic</b>. The strategy is to <i>push determinism to the edges</i>: validate structure always, record/replay model calls in CI, and reserve live-model checks for a separate nightly "eval" suite.</p>
+
+<figure>
+<svg viewBox="0 0 760 320" font-family="JetBrains Mono, monospace" font-size="12">
+  <polygon points="380,20 120,300 640,300" fill="none" stroke="#2b3340"/>
+  <line x1="205" y1="210" x2="555" y2="210" stroke="#2b3340"/>
+  <line x1="270" y1="130" x2="490" y2="130" stroke="#2b3340"/>
+  <text x="330" y="80" fill="#f7768e">Eval / LLM-as-judge</text><text x="250" y="98" fill="#9aa7b4" font-size="10">nightly · live model · labelled sets · trends</text>
+  <text x="300" y="175" fill="#9ece6a">Cucumber E2E</text><text x="235" y="193" fill="#9aa7b4" font-size="10">user flows, model stubbed → deterministic in CI</text>
+  <text x="300" y="255" fill="#7aa2f7">RSpec request / integration</text><text x="250" y="272" fill="#9aa7b4" font-size="10">endpoints, schema validation, job enqueue</text>
+  <text x="320" y="293" fill="#bb9af7" font-size="11">RSpec unit (assemblers, routers, metrics)</text>
+</svg>
+<figcaption>Test pyramid for AI features. The base is fast deterministic unit/integration tests; Cucumber covers user-visible flows with stubbed model output; a small nightly eval suite uses the real model to track quality over time.</figcaption>
+</figure>
+
+<h3>Five techniques that make LLM features testable</h3>
+<ol>
+<li><b>Schema validation always.</b> Every service output is checked against its JSON schema (§5). A malformed response is a test failure, independent of content. This alone catches most regressions.</li>
+<li><b>Record &amp; replay (VCR-style).</b> Capture real model responses once, replay them in CI so tests are deterministic and offline. Re-record intentionally when prompts change.</li>
+<li><b>Property/invariant assertions.</b> E.g. S6: "every number in the narrative appears in the input metrics"; S4: "every finding has a file that exists in the diff"; S7: "no source fact dropped without a flag." These hold regardless of wording.</li>
+<li><b>Golden snapshots with tolerance.</b> For stable prompts at temperature 0, snapshot the structure (keys, counts, severities) — not exact prose.</li>
+<li><b>LLM-as-judge eval (nightly, separate suite).</b> Run the live model on a labelled set; a judge model (or rules) scores precision/recall of review findings, estimation MAE, etc. Track as a trend, gate releases on regressions — never block PR CI on it.</li>
+</ol>
+
+<h3>Can we use Cucumber? — Yes, and it fits perfectly</h3>
+<p>You already run Cucumber and have a Gherkin editor. Cucumber is ideal for the <b>user-facing flows</b> of these services because the features double as living documentation. Stub the model in the test env (return a recorded fixture) so scenarios are deterministic; keep the live-model checks in the nightly eval suite.</p>
+<pre><span class="c"># features/ai_code_review.feature</span>
+<span class="k">Feature:</span> AI code review on a merge request
+  <span class="k">Background:</span>
+    <span class="k">Given</span> the local AI model is stubbed to return a recorded review
+    <span class="k">And</span> a project "Print TDI" with an open MR !1010 touching "src/AddPdfExportService.cs"
+
+  <span class="k">Scenario:</span> Reviewer sees structured findings and a verdict
+    <span class="k">When</span> I request an AI review of MR !1010
+    <span class="k">Then</span> I should see a verdict badge "Needs work"
+    <span class="k">And</span> I should see a "blocker" finding on "src/AddPdfExportService.cs" line 47
+    <span class="k">And</span> each finding should have a severity and a category
+
+  <span class="k">Scenario:</span> A blocker fails the CI gate
+    <span class="k">Given</span> the AI review contains a "blocker" finding
+    <span class="k">When</span> the CI "ai_review" job runs
+    <span class="k">Then</span> the job exits non-zero
+    <span class="k">And</span> the finding is posted as an MR discussion on line 47</pre>
+
+<pre><span class="c"># features/ai_chat_terminal.feature</span>
+<span class="k">Feature:</span> Chat terminal drives the AI services
+  <span class="k">Scenario:</span> Ask for the fastest deliverer
+    <span class="k">Given</span> seeded metrics where "Oren" has the lowest cycle time
+    <span class="k">When</span> I type "who is the fastest deliverer this sprint?" in the chat
+    <span class="k">Then</span> the reply should name "Oren"
+    <span class="k">And</span> the reply should cite his average cycle time
+
+  <span class="k">Scenario:</span> Creating a branch asks for confirmation
+    <span class="k">When</span> I type "/branch T-1042"
+    <span class="k">Then</span> I should be asked to confirm before any write
+    <span class="k">And</span> no branch is created until I confirm</pre>
+
+<div class="callout good"><b>Net:</b> RSpec for units/contracts (fast, deterministic), <b>Cucumber for the human-visible flows</b> (review, chat, branch-from-ticket, doc rewrite, "who's fastest") with the model stubbed, and a separate nightly <b>eval suite</b> on the live model for quality trends. The same <code class="inl">.feature</code> files you write here can themselves be <i>generated</i> by S12 — the loop closes.</div>
+
+<!-- 12 ROADMAP -->
+<h2 class="sec" id="roadmap">12 · Roadmap</h2>
+<figure>
+<svg viewBox="0 0 880 250" font-family="JetBrains Mono, monospace" font-size="12">
+  <rect x="0" y="0" width="880" height="250" rx="10" fill="#0a0e14"/>
+  <!-- axis -->
+  <line x1="150" y1="30" x2="150" y2="220" stroke="#2b3340"/>
+  <text x="200" y="22" fill="#9aa7b4">wk 1-2</text><text x="360" y="22" fill="#9aa7b4">wk 3-5</text><text x="540" y="22" fill="#9aa7b4">wk 6-8</text><text x="720" y="22" fill="#9aa7b4">wk 9-12</text>
+  <line x1="170" y1="30" x2="170" y2="220" stroke="#1c232e"/><line x1="350" y1="30" x2="350" y2="220" stroke="#1c232e"/><line x1="530" y1="30" x2="530" y2="220" stroke="#1c232e"/><line x1="710" y1="30" x2="710" y2="220" stroke="#1c232e"/>
+  <!-- bars -->
+  <rect x="170" y="40" width="150" height="22" rx="5" fill="#9ece6a"/><text x="10" y="56" fill="#cdd6e0">Epic A · Foundations</text>
+  <rect x="250" y="70" width="220" height="22" rx="5" fill="#7aa2f7"/><text x="10" y="86" fill="#cdd6e0">Epic B · Review + search</text>
+  <rect x="350" y="100" width="220" height="22" rx="5" fill="#e0af68"/><text x="10" y="116" fill="#cdd6e0">Epic C · Branch/test/gen</text>
+  <rect x="430" y="130" width="200" height="22" rx="5" fill="#bb9af7"/><text x="10" y="146" fill="#cdd6e0">Epic D · Reports + docs</text>
+  <rect x="530" y="160" width="200" height="22" rx="5" fill="#56d4dd"/><text x="10" y="176" fill="#cdd6e0">Epic E · Chat + CI gate</text>
+  <rect x="650" y="190" width="180" height="22" rx="5" fill="#f7768e"/><text x="10" y="206" fill="#cdd6e0">Hardening + eval suite</text>
+</svg>
+<figcaption>Indicative 12-week plan for one or two engineers, Stack B. Each epic ships behind a flag; AI review starts advisory (<code>allow_failure: true</code>) and becomes a gate only after the eval suite shows acceptable precision.</figcaption>
+</figure>
+
+<!-- 13 APPENDIX -->
+<h2 class="sec" id="appendix">13 · Appendix</h2>
+<h3>Getting the models</h3>
+<pre><span class="c"># install once</span>
+brew install ollama && ollama serve &amp;
+
+<span class="c"># pull the recommended roster</span>
+ollama pull qwen2.5-coder:14b      <span class="c"># default coder / review</span>
+ollama pull qwen2.5-coder:7b       <span class="c"># fast / interactive</span>
+ollama pull llama3.1:8b            <span class="c"># general reasoning / writing</span>
+ollama pull nomic-embed-text       <span class="c"># embeddings for RAG</span>
+ollama pull qwen2.5-coder:32b      <span class="c"># optional: deep review (queued)</span>
+
+<span class="c"># keep two models hot to avoid reload stalls</span>
+curl http://localhost:11434/api/generate -d '{"model":"qwen2.5-coder:14b","keep_alive":"30m","prompt":""}'</pre>
+
+<h3>Forcing JSON output (Ollama)</h3>
+<pre>curl http://localhost:11434/api/chat -d '{
+  "model": "qwen2.5-coder:14b",
+  "format": "json",                 <span class="c">// or pass a JSON schema in newer builds</span>
+  "options": { "temperature": 0 },  <span class="c">// determinism for tests</span>
+  "messages": [
+    { "role": "system", "content": "Return ONLY JSON matching the CodeReview schema." },
+    { "role": "user", "content": "&lt;DevContext slice + diff&gt;" }
+  ]
+}'</pre>
+
+<h3>Notes &amp; caveats on the numbers</h3>
+<ul>
+<li>Model sizes are for <code class="inl">Q4_K_M</code>; other quants shift memory/quality. Q5/Q6 are higher quality but larger/slower; Q3 is smaller but degrades noticeably.</li>
+<li>tokens/sec are <b>single-stream estimates</b> for Apple Silicon Mac mini with Metal; your exact chip, quant, context length, and thermals will move them. Benchmark on your box with <code class="inl">ollama run --verbose</code>.</li>
+<li>True image generation (raster art) is a separate workload — add a local Stable Diffusion (ComfyUI) only if you genuinely need it; it competes for the same RAM, so schedule it off interactive hours.</li>
+<li>All model traffic stays on the LAN; the only external dependency is the one-time model download.</li>
+</ul>
+
+<div class="foot">
+  <b>AI for DevTeam</b> — on-prem LLM platform blueprint · generated for the DevTeam Hub Rails 8 app ·
+  services S1–S18, DevContext schema v1.0, Stacks A/B, story + test plan, Cucumber strategy ·
+  numbers are estimates — benchmark on your hardware. · 2026-06-06
+</div>
+
+</main>
+</div>
+</body>
+</html>

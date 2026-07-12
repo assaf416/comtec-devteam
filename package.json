@@ -1,0 +1,26 @@
+{
+  "name": "app",
+  "private": true,
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  },
+  "scripts": {
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",
+    "build:css": "sass ./app/assets/stylesheets/application.bulma.scss:./app/assets/builds/application.css ./app/assets/stylesheets/mobile.scss:./app/assets/builds/mobile.css --no-source-map --load-path=node_modules"
+  },
+  "dependencies": {
+    "@fullcalendar/core": "^6.1.20",
+    "@fullcalendar/daygrid": "^6.1.20",
+    "@fullcalendar/list": "^6.1.20",
+    "@fullcalendar/timegrid": "^6.1.20",
+    "@hotwired/stimulus": "^3.2.2",
+    "@hotwired/turbo-rails": "^8.0.23",
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.8",
+    "bulma": "^1.0.4",
+    "chart.js": "^4.5.1",
+    "chartkick": "^5.0.1",
+    "sass": "^1.100.0",
+    "trix": "^2.1.19"
+  }
+}

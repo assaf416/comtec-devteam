@@ -1,0 +1,126 @@
+<%
+  status_colors = { "succeeded" => "success", "failed" => "danger", "in_progress" => "primary",
+                    "pending" => "secondary", "rolled_back" => "warning" }
+  badge = status_colors.fetch(@deployment.status, "secondary")
+%>
+
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-2">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <%= link_to project_deployments_path(@project), class: "btn btn-sm btn-outline-secondary" do %>
+        <i class="bi bi-arrow-left"></i> All Deployments
+      <% end %>
+      <h2 class="mb-0"><%= @project.name %> — v<%= @deployment.version %></h2>
+      <span class="badge bg-<%= badge %>"><%= @deployment.status.humanize %></span>
+    </div>
+    <small class="text-muted">
+      <i class="bi bi-server me-1"></i><%= @deployment.deploy_type&.humanize %>
+      &nbsp;·&nbsp;
+      <i class="bi bi-cloud me-1"></i><%= @deployment.environment.capitalize %>
+      <% if @deployment.deployed_at %>
+        &nbsp;·&nbsp;
+        <i class="bi bi-calendar-check me-1"></i><%= @deployment.deployed_at.strftime("%b %-d, %Y %H:%M") %>
+      <% end %>
+    </small>
+  </div>
+  <div class="d-flex gap-2">
+    <%= link_to edit_deployment_path(@deployment), class: "btn btn-outline-secondary btn-sm" do %>
+      <i class="bi bi-pencil me-1"></i>Edit
+    <% end %>
+    <%= button_to deployment_path(@deployment), method: :delete,
+          class: "btn btn-outline-danger btn-sm",
+          form: { data: { turbo_confirm: "Delete this deployment record?" } } do %>
+      <i class="bi bi-trash3 me-1"></i>Delete
+    <% end %>
+  </div>
+</div>
+
+<div class="row g-4">
+  <%# ── Details card ── %>
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold"><i class="bi bi-info-circle me-1"></i>Details</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <tbody>
+            <tr><th class="ps-3 text-muted fw-normal" style="width:160px">Version</th><td><code><%= @deployment.version %></code></td></tr>
+            <tr><th class="ps-3 text-muted fw-normal">Environment</th><td><span class="badge bg-secondary"><%= @deployment.environment.capitalize %></span></td></tr>
+            <tr><th class="ps-3 text-muted fw-normal">Deploy Type</th><td><%= @deployment.deploy_type&.humanize %></td></tr>
+            <tr><th class="ps-3 text-muted fw-normal">Status</th><td><span class="badge bg-<%= badge %>"><%= @deployment.status.humanize %></span></td></tr>
+            <% if @deployment.machine_name.present? %>
+              <tr><th class="ps-3 text-muted fw-normal">Machine</th><td><code><%= @deployment.machine_name %></code></td></tr>
+            <% end %>
+            <% if @deployment.server_name.present? || @deployment.ip_address.present? %>
+              <tr><th class="ps-3 text-muted fw-normal">Server</th><td>
+                <% if @deployment.ip_address.present? %>
+                  <%= link_to "#{@deployment.server_name.presence || @deployment.ip_address} (#{@deployment.ip_address})", server_path(ip: @deployment.ip_address) %>
+                <% else %><%= @deployment.server_name %><% end %>
+                <% if @deployment.server_id.present? %><span class="text-muted fs-7"> · <%= @deployment.server_id %></span><% end %>
+              </td></tr>
+            <% end %>
+            <% if @deployment.server_os.present? %>
+              <tr><th class="ps-3 text-muted fw-normal">Server OS</th><td><%= @deployment.server_os %></td></tr>
+            <% end %>
+            <% if @deployment.os_status_hash.any? %>
+              <% st = @deployment.os_status_hash %>
+              <tr><th class="ps-3 text-muted fw-normal">OS status (at deploy)</th><td class="fs-7">
+                CPU <%= st["cpu"] %>% · MEM <%= st["mem"] %>% · DISK <%= st["disk"] %>%
+                <% if st["errors"].to_i.positive? %><span class="badge bg-danger ms-1"><%= st["errors"] %> errors</span><% end %>
+              </td></tr>
+            <% end %>
+            <% if @deployment.log_file_url.present? %>
+              <tr><th class="ps-3 text-muted fw-normal">Log file</th><td><code class="fs-7"><%= @deployment.log_file_url %></code></td></tr>
+            <% end %>
+            <tr><th class="ps-3 text-muted fw-normal">Deployed By</th><td><%= @deployment.deployed_by&.name || "—" %></td></tr>
+            <tr><th class="ps-3 text-muted fw-normal">Deployed At</th><td><%= @deployment.deployed_at&.strftime("%b %-d, %Y %H:%M") || "—" %></td></tr>
+            <% if @deployment.client_account %>
+              <tr><th class="ps-3 text-muted fw-normal">Client Account</th><td><%= @deployment.client_account.name %></td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Notes card ── %>
+  <% if @deployment.notes.present? %>
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-semibold"><i class="bi bi-sticky me-1"></i>Notes</div>
+        <div class="card-body">
+          <%= simple_format @deployment.notes %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# ── Env Vars card ── %>
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold"><i class="bi bi-sliders me-1"></i> Environment Variables</span>
+        <span class="badge bg-secondary"><%= Array(@deployment.env_vars).count { |r| r["key"].present? } %> vars</span>
+      </div>
+      <% env_rows = Array(@deployment.env_vars).select { |r| r["key"].present? } %>
+      <% if env_rows.any? %>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr><th class="ps-3">Key</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <% env_rows.each do |row| %>
+                <tr>
+                  <td class="ps-3 font-monospace fw-semibold text-nowrap"><%= row["key"] %></td>
+                  <td class="font-monospace text-break"><%= row["value"] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="card-body text-muted">No environment variables defined.</div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,105 @@
+<% content_for :title, "All CI Runs" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-0">⚙️ All CI Runs</h1>
+      <p class="text-muted mb-0">Cross-project build history</p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to ci_dashboard_path, class: "btn btn-outline-secondary btn-sm" do %>← CI Overview<% end %>
+  </div>
+</div>
+
+<%# ── Filters ────────────────────────────────────────────────────────── %>
+<div class="card p-3 mb-3">
+  <%= form_with url: ci_runs_all_path, method: :get, local: true, class: "row g-2 align-items-end" do |f| %>
+    <div class="col-md-4">
+      <%= f.label :project_id, "Project", class: "form-label mb-1 small fw-semibold" %>
+      <%= f.select :project_id,
+            options_from_collection_for_select(@projects, :id, :name, params[:project_id]),
+            { include_blank: "All Projects" },
+            class: "form-select form-select-sm" %>
+    </div>
+    <div class="col-md-3">
+      <%= f.label :status, "Status", class: "form-label mb-1 small fw-semibold" %>
+      <%= f.select :status,
+            CiRun.statuses.keys.map { |s| [ s.humanize, s ] },
+            { include_blank: "All Statuses" },
+            class: "form-select form-select-sm" %>
+    </div>
+    <div class="col-md-3">
+      <%= f.label :branch, "Branch", class: "form-label mb-1 small fw-semibold" %>
+      <%= f.text_field :branch, value: params[:branch], placeholder: "e.g. main", class: "form-control form-control-sm" %>
+    </div>
+    <div class="col-md-2 d-flex gap-1">
+      <%= f.submit "Filter", class: "btn btn-primary btn-sm flex-grow-1" %>
+      <%= link_to "Clear", ci_runs_all_path, class: "btn btn-outline-secondary btn-sm" %>
+    </div>
+  <% end %>
+</div>
+
+<%# ── Runs table ─────────────────────────────────────────────────────── %>
+<div class="card p-3">
+  <% if @ci_runs.any? %>
+    <table class="table table-hover w-100 fs-7">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Project</th>
+          <th>Branch</th>
+          <th>Commit</th>
+          <th>Status</th>
+          <th>Tests</th>
+          <th>Duration</th>
+          <th>Triggered by</th>
+          <th>Started</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @ci_runs.each do |run| %>
+          <tr class="<%= run.failed? ? 'table-danger' : run.passed? ? '' : '' %>">
+            <td class="fw-semibold">
+              <%= link_to "##{run.build_number}", ci_run_path(run), class: "text-primary" %>
+            </td>
+            <td>
+              <%= link_to run.project.name, project_path(run.project), class: "text-decoration-none" %>
+            </td>
+            <td><code class="fs-7"><%= run.branch_name.presence || "—" %></code></td>
+            <td><code class="fs-7 text-muted"><%= run.commit_sha&.first(8) || "—" %></code></td>
+            <td><%= status_tag(run.status) %></td>
+            <td>
+              <% tr = run.test_results.first %>
+              <% if tr %>
+                <span class="text-success fw-semibold"><%= tr.passed %>✓</span>
+                <% if tr.failed > 0 %><span class="text-danger ms-1"><%= tr.failed %>✗</span><% end %>
+                <% if tr.skipped > 0 %><span class="text-muted ms-1"><%= tr.skipped %>⊘</span><% end %>
+              <% else %>—<% end %>
+            </td>
+            <td><%= run.duration ? "#{run.duration}m" : "—" %></td>
+            <td><%= run.triggered_by&.display_name || "—" %></td>
+            <td class="text-muted"><%= run.started_at&.strftime("%d/%m %H:%M") || "—" %></td>
+            <td>
+              <%= link_to ci_run_path(run), class: "btn btn-sm btn-outline-secondary" do %>👁<% end %>
+              <% if run.log_url.present? %>
+                <%= link_to run.log_url, target: "_blank", rel: "noopener noreferrer", class: "btn btn-sm btn-outline-secondary ms-1" do %>📋<% end %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <span class="text-muted small">
+        Showing <%= @ci_runs.offset_value + 1 %>–<%= [ @ci_runs.offset_value + @ci_runs.length, @ci_runs.total_count ].min %>
+        of <%= @ci_runs.total_count %> runs
+      </span>
+      <%= paginate @ci_runs %>
+    </div>
+  <% else %>
+    <p class="text-muted mb-0">No CI runs found for the selected filters.</p>
+  <% end %>
+</div>

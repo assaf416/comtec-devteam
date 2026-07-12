@@ -1,0 +1,76 @@
+<div class="level">
+  <div class="level-left"><h1 class="fw-bold"><%= t("customers.title") %></h1></div>
+  <div class="level-right">
+    <%= link_to t("customers.new"), new_customer_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="card p-3 mb-3">
+  <%= form_with url: customers_path, method: :get, local: true, class: "row align-items-center" do |f| %>
+    <div class="col-5">
+      <div class="mb-3">
+        <div class=" has-icons-left">
+          <%= f.text_field :q, value: params[:q], class: "input", placeholder: t("customers.search_placeholder") %>
+          <span class="icon is-left"><i class="fas fa-search"></i></span>
+        </div>
+      </div>
+    </div>
+    <div class="col-3">
+      <label class="checkcard p-3 mb-3">
+        <%= f.check_box :active_only, checked: params[:active_only] == "1", value: "1" %>
+        <%= t("customers.active_only") %>
+      </label>
+    </div>
+    <div class="col-2">
+      <%= f.submit t("common.search"), class: "btn btn-info w-100" %>
+    </div>
+  <% end %>
+</div>
+
+<% if @customers.any? %>
+  <table class="table table-striped table-hover w-100">
+    <thead>
+      <tr>
+        <th><%= t("customers.name") %></th>
+        <th><%= t("customers.company") %></th>
+        <th><%= t("customers.email") %></th>
+        <th><%= t("customers.open_tickets") %></th>
+        <th><%= t("customers.installations") %></th>
+        <th><%= t("common.status") %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @customers.each do |customer| %>
+        <tr>
+          <td><strong><%= link_to customer.name, customer %></strong></td>
+          <td><%= customer.company %></td>
+          <td><%= mail_to customer.email, customer.email %></td>
+          <td>
+            <%= link_to customer.customer_tickets.open_tickets.count, customer_customer_tickets_path(customer), class: "badge bg-info text-dark is-light" %>
+          </td>
+          <td>
+            <%= link_to customer.installations.active.count, customer_installations_path(customer), class: "badge bg-success-subtle text-success" %>
+          </td>
+          <td>
+            <% if customer.active? %>
+              <span class="badge bg-success-subtle text-success">Active</span>
+            <% else %>
+              <span class="badge bg-light text-dark">Inactive</span>
+            <% end %>
+          </td>
+          <td class="text-end">
+            <%= actions_dropdown do |d| %>
+              <% d.link t('common.view'), customer, icon: '👁' %>
+              <% d.link t('common.actions.edit'), edit_customer_path(customer), icon: '✏️' %>
+              <% d.divider %>
+              <% d.delete t('common.delete'), customer, confirm: t('common.confirm_delete') %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <div class="alert alert-info is-light"><%= t("customers.none_found") %></div>
+<% end %>

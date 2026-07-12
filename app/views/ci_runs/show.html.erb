@@ -1,0 +1,58 @@
+<% content_for :title, "CI Run ##{@ci_run.build_number}" %>
+
+<div class="level">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold">Build #<%= @ci_run.build_number %></h1>
+      <p class="subfw-bold fs-6">
+        <%= @project.name %> · <code><%= @ci_run.branch_name %></code>
+        <% if @ci_run.commit_sha.present? %> · <code><%= @ci_run.commit_sha.first(8) %></code><% end %>
+      </p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= status_tag(@ci_run.status) %>
+    <% if @ci_run.log_url.present? %>
+      <%= link_to "View Full Log", @ci_run.log_url, target: "_blank", class: "btn btn-secondary btn-sm is-light ms-2" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-8">
+    <div class="card p-3 mb-3">
+      <table class="table w-100 is-borderless fs-7">
+        <tr><th>Status</th><td><%= status_tag(@ci_run.status) %></td></tr>
+        <tr><th>Branch</th><td><code><%= @ci_run.branch_name %></code></td></tr>
+        <tr><th>Commit</th><td><code><%= @ci_run.commit_sha %></code></td></tr>
+        <tr><th>Started</th><td><%= @ci_run.started_at&.strftime('%d/%m/%Y %H:%M:%S') || '—' %></td></tr>
+        <tr><th>Finished</th><td><%= @ci_run.finished_at&.strftime('%d/%m/%Y %H:%M:%S') || '—' %></td></tr>
+        <tr><th>Duration</th><td><%= @ci_run.duration ? "#{@ci_run.duration} min" : "—" %></td></tr>
+        <tr><th>Triggered By</th><td><%= @ci_run.triggered_by&.display_name || 'Automated' %></td></tr>
+        <% if @ci_run.ticket %>
+          <tr><th>Ticket</th><td><%= link_to "##{@ci_run.ticket.id} #{@ci_run.ticket.title}", @ci_run.ticket %></td></tr>
+        <% end %>
+      </table>
+    </div>
+
+    <% if @test_results.any? %>
+      <div class="card p-3 mb-3" id="test-results">
+        <h3 class="subfw-bold">Test Results</h3>
+        <% @test_results.each do |tr| %>
+          <div class="level mb-2">
+            <div class="level-left"><strong><%= tr.suite_name %></strong></div>
+            <div class="level-right">
+              <span class="badge bg-success-subtle text-success me-1"><%= tr.passed %> ✓ passed</span>
+              <% if tr.failed > 0 %><span class="badge bg-danger is-light me-1"><%= tr.failed %> ✗ failed</span><% end %>
+              <% if tr.skipped > 0 %><span class="badge bg-light text-dark"><%= tr.skipped %> ⊘ skipped</span><% end %>
+              <span class="badge bg-info text-dark is-light ms-1"><%= tr.total %> total</span>
+            </div>
+          </div>
+          <progress class="progress <%= tr.failed > 0 ? 'is-danger' : 'is-success' %>"
+                    value="<%= tr.passed %>" max="<%= tr.total %>">
+          </progress>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

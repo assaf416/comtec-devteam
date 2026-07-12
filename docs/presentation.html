@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTeam Hub – מצגת המוצר</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --navy:   #0d1b2a;
+      --dark:   #1a1d2e;
+      --blue:   #4a90d9;
+      --blue2:  #74b0f0;
+      --green:  #38c96d;
+      --red:    #e84545;
+      --orange: #f5a623;
+      --purple: #7b68ee;
+      --text:   #2d3748;
+      --muted:  #718096;
+      --border: #e2e8f0;
+      --bg:     #f8f9fb;
+    }
+    *  { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Heebo', 'Arial Hebrew', Arial, sans-serif;
+      direction: rtl;
+      background: #fff;
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    /* ── TOP NAV ─────────────────────────────────────────────────────────── */
+    .top-nav {
+      position: sticky; top: 0; z-index: 200;
+      background: var(--dark);
+      display: flex; align-items: center;
+      padding: 0 2rem; height: 54px; gap: 0.25rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    }
+    .top-nav .brand {
+      font-size: 1rem; font-weight: 900; color: #fff;
+      text-decoration: none; margin-left: 1.5rem; flex-shrink: 0;
+      letter-spacing: -0.02em;
+    }
+    .top-nav .brand span { color: var(--blue2); }
+    .top-nav a {
+      color: rgba(255,255,255,0.65); text-decoration: none;
+      font-size: 0.78rem; padding: 0.3rem 0.65rem;
+      border-radius: 4px; white-space: nowrap;
+      transition: background .15s, color .15s;
+    }
+    .top-nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    /* ── HERO ────────────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(150deg, #0a1628 0%, #1a2f5a 55%, #1e3a6e 100%);
+      color: #fff; text-align: center;
+      padding: 7rem 2rem 6rem;
+    }
+    .hero-logo {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px; padding: 0.5rem 1.2rem;
+      font-size: 0.85rem; font-weight: 700; color: var(--blue2);
+      margin-bottom: 2rem; letter-spacing: 0.04em;
+    }
+    .hero h1 {
+      font-size: 3.2rem; font-weight: 900;
+      margin-bottom: 1.25rem; line-height: 1.2;
+    }
+    .hero h1 .accent { color: var(--blue2); }
+    .hero .subtitle {
+      font-size: 1.15rem; opacity: .80;
+      max-width: 680px; margin: 0 auto 3rem;
+      line-height: 1.8;
+    }
+    .hero-stats {
+      display: flex; justify-content: center;
+      gap: 2.5rem; flex-wrap: wrap;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      padding-top: 2.5rem; margin-top: 1rem;
+    }
+    .hero-stat .num { font-size: 2.4rem; font-weight: 900; color: var(--blue2); display: block; }
+    .hero-stat .lbl { font-size: 0.82rem; opacity: .65; margin-top: .15rem; }
+
+    /* ── SECTION WRAPPERS ─────────────────────────────────────────────────── */
+    .section       { max-width: 1080px; margin: 0 auto; padding: 5rem 2rem; }
+    .section-full  { padding: 5rem 3rem; }
+    .section-dark  { background: var(--dark); }
+    .section-navy  { background: var(--navy); }
+    .section-blue  { background: linear-gradient(135deg, #0f1f3d 0%, #1a3a6e 100%); }
+    .section-alt   { background: var(--bg); }
+
+    /* ── TITLES ──────────────────────────────────────────────────────────── */
+    .section-badge {
+      display: inline-block; background: var(--blue);
+      color: #fff; font-size: 0.7rem; font-weight: 700;
+      padding: .2rem .7rem; border-radius: 3px;
+      letter-spacing: .06em; text-transform: uppercase;
+      margin-bottom: .6rem;
+    }
+    .section-dark  .section-badge,
+    .section-navy  .section-badge,
+    .section-blue  .section-badge { background: rgba(74,144,217,0.3); color: var(--blue2); }
+
+    .section-title {
+      font-size: 1.9rem; font-weight: 800; margin-bottom: .4rem; color: var(--dark);
+    }
+    .section-dark  .section-title,
+    .section-navy  .section-title,
+    .section-blue  .section-title { color: #fff; }
+
+    .section-sub {
+      font-size: .95rem; color: var(--muted); margin-bottom: 2.5rem; max-width: 650px;
+    }
+    .section-dark  .section-sub,
+    .section-navy  .section-sub,
+    .section-blue  .section-sub { color: rgba(255,255,255,.6); }
+
+    /* ── TOC ─────────────────────────────────────────────────────────────── */
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: .85rem; margin-top: 1.5rem;
+    }
+    .toc-item {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .9rem 1.1rem; background: #fff;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      text-decoration: none; color: var(--text);
+      font-size: .87rem; font-weight: 500;
+      transition: border-color .15s, box-shadow .15s, transform .15s;
+    }
+    .toc-item:hover {
+      border-color: var(--blue);
+      box-shadow: 0 4px 14px rgba(74,144,217,.18);
+      transform: translateY(-2px);
+    }
+    .toc-num {
+      width: 28px; height: 28px; background: var(--dark); color: #fff;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 800; flex-shrink: 0;
+    }
+
+    /* ── CARDS ───────────────────────────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+      gap: 1.25rem; margin-top: 1.5rem;
+    }
+    .card {
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 1.35rem;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .card:hover { box-shadow: 0 8px 28px rgba(0,0,0,.1); transform: translateY(-3px); }
+    .card-icon   { font-size: 1.8rem; margin-bottom: .65rem; }
+    .card-title  { font-size: 1rem; font-weight: 700; margin-bottom: .4rem; color: var(--dark); }
+    .card-desc   { font-size: .85rem; color: var(--muted); line-height: 1.65; }
+
+    .card-dark {
+      background: rgba(255,255,255,.04);
+      border-color: rgba(255,255,255,.1);
+    }
+    .card-dark .card-title { color: #fff; }
+    .card-dark .card-desc  { color: rgba(255,255,255,.6); }
+
+    /* ── TABLES ──────────────────────────────────────────────────────────── */
+    .styled-table { width: 100%; border-collapse: collapse; margin-top: 1.25rem; font-size: .88rem; }
+    .styled-table th {
+      background: var(--dark); color: #fff;
+      padding: .7rem 1rem; text-align: right; font-weight: 600;
+    }
+    .styled-table td {
+      padding: .65rem 1rem; border-bottom: 1px solid var(--border); text-align: right;
+    }
+    .styled-table tr:nth-child(even) td { background: #f9fafc; }
+    .styled-table tr:hover td { background: #ebf4ff; }
+
+    /* ── BADGES ──────────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block; padding: 2px 9px; border-radius: 12px;
+      font-size: .71rem; font-weight: 700;
+    }
+    .badge-green  { background: #c6f6d5; color: #276749; }
+    .badge-red    { background: #fed7d7; color: #c53030; }
+    .badge-yellow { background: #fefcbf; color: #975a16; }
+    .badge-blue   { background: #bee3f8; color: #2c5282; }
+    .badge-grey   { background: #e2e8f0; color: #4a5568; }
+    .badge-purple { background: #e9d8fd; color: #553c9a; }
+
+    /* ── ARCHITECTURE DIAGRAM ────────────────────────────────────────────── */
+    .arch { background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; padding: 2rem; margin-top: 1.5rem; }
+    .arch-row { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; margin-bottom: .8rem; }
+    .arch-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; flex: 0 0 110px; }
+    .arch-box {
+      padding: .45rem 1rem; border-radius: 7px; font-size: .82rem; font-weight: 600;
+      display: inline-flex; align-items: center; gap: .35rem; border: 2px solid;
+    }
+    .ab-user   { background: #ebf4ff; border-color: #90cdf4; color: #2b6cb0; }
+    .ab-app    { background: #f0fff4; border-color: #9ae6b4; color: #276749; }
+    .ab-portal { background: #faf5ff; border-color: #d6bcfa; color: #553c9a; }
+    .ab-db     { background: #fffaf0; border-color: #fbd38d; color: #c05621; }
+    .ab-tool   { background: #fff5f5; border-color: #feb2b2; color: #c53030; }
+    .ab-int    { background: #e6fffa; border-color: #81e6d9; color: #276749; }
+    .arch-divider { border: none; border-top: 2px dashed var(--border); margin: .9rem 0; }
+
+    /* ── PIPELINE ────────────────────────────────────────────────────────── */
+    .pipeline {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0; margin-top: 1.5rem; flex-wrap: wrap;
+    }
+    .p-step { flex: 1; text-align: center; min-width: 90px; }
+    .p-icon {
+      width: 54px; height: 54px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin: 0 auto .5rem; border: 3px solid;
+    }
+    .p-label    { font-size: .78rem; font-weight: 700; color: var(--dark); }
+    .p-sublabel { font-size: .7rem; color: var(--muted); margin-top: .15rem; }
+    .p-arrow    { font-size: 1.3rem; color: #ccc; flex-shrink: 0; padding: 0 .25rem; }
+
+    /* ── SECURITY LAYERS ─────────────────────────────────────────────────── */
+    .sec-layers { display: flex; flex-direction: column; gap: .7rem; margin-top: 1.5rem; }
+    .sec-layer {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .85rem 1.2rem; border-radius: 8px;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+    }
+    .sec-layer-icon { font-size: 1.25rem; flex-shrink: 0; }
+    .sec-layer-info { flex: 1; }
+    .sec-layer-title { font-size: .9rem; font-weight: 700; color: #fff; }
+    .sec-layer-desc  { font-size: .77rem; color: rgba(255,255,255,.55); margin-top: .1rem; }
+    .sec-bar { width: 120px; flex-shrink: 0; }
+    .sec-bar-track { background: rgba(255,255,255,.12); border-radius: 4px; height: 6px; }
+    .sec-bar-fill  { background: var(--green); border-radius: 4px; height: 6px; }
+    .sec-bar-label { font-size: .68rem; color: rgba(255,255,255,.4); text-align: left; margin-top: .2rem; }
+
+    /* ── SCREENSHOT ──────────────────────────────────────────────────────── */
+    .screenshot-frame {
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12); margin-top: 1.25rem;
+    }
+    .screenshot-frame-bar {
+      background: var(--dark); padding: .55rem 1rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .screenshot-frame-bar .dot { width: 9px; height: 9px; border-radius: 50%; }
+    .dot-r { background: #e84545; }
+    .dot-y { background: #f5a623; }
+    .dot-g { background: #38c96d; }
+    .screenshot-frame-bar .title { color: rgba(255,255,255,.5); font-size: .72rem; margin-right: auto; }
+    .screenshot-frame img {
+      width: 100%; display: block;
+    }
+    .screenshot-tabs {
+      display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 1rem;
+    }
+    .screenshot-tabs button {
+      padding: .5rem 1.2rem; border: none; background: none;
+      font-family: inherit; font-size: .82rem; font-weight: 600;
+      color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; transition: all .15s;
+    }
+    .screenshot-tabs button.active {
+      color: var(--blue); border-bottom-color: var(--blue);
+    }
+
+    /* ── CHARTS ──────────────────────────────────────────────────────────── */
+    .chart-card {
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 1.5rem; margin-top: 1.25rem;
+    }
+    .chart-title { font-size: .88rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem; }
+
+    /* ── TWO / THREE COL ─────────────────────────────────────────────────── */
+    .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; align-items: start; }
+
+    /* ── FEATURE BARS ────────────────────────────────────────────────────── */
+    .feat-bar-row { display: flex; align-items: center; gap: .85rem; padding: .55rem 0; border-bottom: 1px solid var(--border); }
+    .feat-name { flex: 0 0 165px; font-size: .85rem; font-weight: 600; }
+    .feat-track { flex: 1; background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; }
+    .feat-fill  { height: 100%; border-radius: 4px; }
+    .feat-pct   { flex: 0 0 38px; font-size: .75rem; color: var(--muted); text-align: left; }
+
+    /* ── HIGHLIGHT BOX ───────────────────────────────────────────────────── */
+    .highlight-box {
+      background: rgba(74,144,217,.08); border: 1.5px solid rgba(74,144,217,.25);
+      border-radius: 10px; padding: 1.25rem 1.5rem; margin-top: 1.25rem;
+    }
+    .highlight-box.green { background: rgba(56,201,109,.08); border-color: rgba(56,201,109,.25); }
+    .highlight-box.red   { background: rgba(232,69,69,.07);   border-color: rgba(232,69,69,.2);   }
+
+    /* ── SUMMARY TILES ───────────────────────────────────────────────────── */
+    .summary-tile {
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px; padding: 1.5rem; text-align: center;
+    }
+    .summary-tile .s-icon { font-size: 2.2rem; margin-bottom: .6rem; }
+    .summary-tile .s-title { font-size: .95rem; font-weight: 700; color: #fff; margin-bottom: .35rem; }
+    .summary-tile .s-desc  { font-size: .8rem; color: rgba(255,255,255,.55); line-height: 1.6; }
+
+    /* ── SCREENSHOT GALLERY ──────────────────────────────────────────────── */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem; margin-top: 1.5rem;
+    }
+    .gallery-item {
+      border-radius: 10px; overflow: hidden;
+      border: 1.5px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0,0,0,.08);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .gallery-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.15);
+    }
+    .gallery-item img { width: 100%; display: block; }
+    .gallery-item .caption {
+      padding: .6rem 1rem; background: var(--dark);
+      color: #fff; font-size: .78rem; font-weight: 600;
+    }
+
+    /* ── FOOTER ──────────────────────────────────────────────────────────── */
+    footer { background: var(--navy); color: rgba(255,255,255,.4); text-align: center; padding: 2rem; font-size: .8rem; }
+
+    @media (max-width: 780px) {
+      .hero h1 { font-size: 2rem; }
+      .section { padding: 3rem 1.25rem; }
+      .two-col, .three-col, .pipeline { grid-template-columns: 1fr; flex-direction: column; }
+      .top-nav { overflow-x: auto; }
+      .feat-name { flex: 0 0 120px; }
+      .arch-label { flex: 0 0 80px; }
+      .sec-bar { display: none; }
+      .gallery-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     TOP NAV
+     ══════════════════════════════════════════════════════════════════════ -->
+<nav class="top-nav">
+  <a href="#hero" class="brand">🚀 <span>DevTeam</span> Hub</a>
+  <a href="#toc">תוכן עניינים</a>
+  <a href="#overview">סקירה</a>
+  <a href="#architecture">ארכיטקטורה</a>
+  <a href="#tools">כלים</a>
+  <a href="#screenshots-today">Today</a>
+  <a href="#screenshots-dashboard">Dashboard</a>
+  <a href="#screenshots-tickets">כרטיסים</a>
+  <a href="#screenshots-projects">פרויקטים</a>
+  <a href="#screenshots-ci">CI/CD</a>
+  <a href="#screenshots-reports">דוחות</a>
+  <a href="#security">אבטחה</a>
+  <a href="#code-review">סקירת קוד</a>
+  <a href="#logging">לוגים</a>
+  <a href="#portal">פורטל</a>
+  <a href="#summary">סיכום</a>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     HERO
+     ══════════════════════════════════════════════════════════════════════ -->
+<section id="hero" class="hero">
+  <div class="hero-logo">🏗️ DEVTEAM HUB &nbsp;·&nbsp; ON-PREMISES DEVELOPER PLATFORM</div>
+  <h1>פלטפורמת <span class="accent">ניהול צוות פיתוח</span><br>תוך-ארגונית מלאה</h1>
+  <p class="subtitle">
+    מערכת אחת לניהול מחזור חיי הפיתוח המלא:<br>
+    קוד, בדיקות, פריסות, כרטיסים, מסמכים, פגישות ותקשורת –
+    כולם פועלים על שרתים פנימיים, ללא תלות בענן.
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="num">17</span><div class="lbl">מודולים פונקציונליים</div></div>
+    <div class="hero-stat"><span class="num">22+</span><div class="lbl">טבלאות Database</div></div>
+    <div class="hero-stat"><span class="num">2</span><div class="lbl">ממשקי משתמש (צוות + לקוח)</div></div>
+    <div class="hero-stat"><span class="num">100%</span><div class="lbl">On-Premises – אפס ענן</div></div>
+    <div class="hero-stat"><span class="num">8</span><div class="lbl">כלים תוך-ארגוניים</div></div>
+    <div class="hero-stat"><span class="num">8</span><div class="lbl">שכבות אבטחה</div></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="toc" class="section-alt">
+  <div class="section">
+    <div class="section-badge">ניווט</div>
+    <div class="section-title">תוכן עניינים</div>
+    <div class="section-sub">לחצו על כל נושא כדי לדלג ישירות אליו</div>
+    <div class="toc-grid">
+      <a href="#overview" class="toc-item"><div class="toc-num">1</div>סקירה כללית</a>
+      <a href="#architecture" class="toc-item"><div class="toc-num">2</div>ארכיטקטורת המערכת</a>
+      <a href="#tools" class="toc-item"><div class="toc-num">3</div>כלים ותשתית On-Premises</a>
+      <a href="#screenshots-today" class="toc-item"><div class="toc-num">4</div>Today — דף אישי</a>
+      <a href="#screenshots-dashboard" class="toc-item"><div class="toc-num">5</div>Dashboard — לוח בקרה</a>
+      <a href="#screenshots-tickets" class="toc-item"><div class="toc-num">6</div>כרטיסים ומעקב משימות</a>
+      <a href="#screenshots-projects" class="toc-item"><div class="toc-num">7</div>פרויקטים וספרינטים</a>
+      <a href="#screenshots-ci" class="toc-item"><div class="toc-num">8</div>CI/CD — בדיקות ופריסות</a>
+      <a href="#screenshots-meetings" class="toc-item"><div class="toc-num">9</div>פגישות ויומן</a>
+      <a href="#screenshots-docs" class="toc-item"><div class="toc-num">10</div>מסמכים ותיעוד</a>
+      <a href="#screenshots-customers" class="toc-item"><div class="toc-num">11</div>ניהול לקוחות</a>
+      <a href="#screenshots-reports" class="toc-item"><div class="toc-num">12</div>דוחות וניתוח</a>
+      <a href="#screenshots-admin" class="toc-item"><div class="toc-num">13</div>ניהול מערכת</a>
+      <a href="#security" class="toc-item"><div class="toc-num">14</div>אבטחת המערכת</a>
+      <a href="#code-review" class="toc-item"><div class="toc-num">15</div>סקירת קוד אוטומטית</a>
+      <a href="#logging" class="toc-item"><div class="toc-num">16</div>לוגים — Grafana Loki</a>
+      <a href="#portal" class="toc-item"><div class="toc-num">17</div>פורטל לקוחות</a>
+      <a href="#cli" class="toc-item"><div class="toc-num">18</div>CLI ו-VS Code Extension</a>
+      <a href="#summary" class="toc-item"><div class="toc-num">19</div>סיכום ויתרונות</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     1. OVERVIEW
+     ══════════════════════════════════════════════════════════════════════ -->
+<section id="overview">
+  <div class="section">
+    <div class="section-badge">01 — סקירה</div>
+    <div class="section-title">מה זה DevTeam Hub?</div>
+    <div class="section-sub">פלטפורמת ניהול פיתוח משולבת המאחדת את כל הכלים הנחוצים לצוות פיתוח מקצועי</div>
+
+    <div class="two-col">
+      <div>
+        <p style="font-size:.95rem;line-height:1.8;color:#4a5568;margin-bottom:1.25rem;">
+          DevTeam Hub היא מערכת ניהול פיתוח <strong>תוך-ארגונית מלאה</strong>, המספקת לצוות הפיתוח
+          לוח בקרה אחד לניהול מחזור החיים המלא של מוצר תוכנה —
+          מהרעיון ועד הפריסה לסביבת הייצור.
+        </p>
+        <p style="font-size:.95rem;line-height:1.8;color:#4a5568;margin-bottom:1.25rem;">
+          המערכת פועלת <strong>על שרתים פנימיים בלבד</strong>, ומתממשקת עם כלים On-Premises
+          כגון Gitea, Jenkins, SonarQube, Ollama, Grafana Loki ו-Jitsi — ללא שליחת נתונים רגישים לענן.
+        </p>
+        <p style="font-size:.95rem;line-height:1.8;color:#4a5568;">
+          בנוסף, המערכת כוללת <strong>פורטל לקוחות נפרד</strong>, <strong>מערכת דוחות מלאה</strong>,
+          <strong>CLI ו-VS Code Extension</strong> המאפשרים ניהול מלא מתוך ה-IDE ושורת הפקודה.
+        </p>
+      </div>
+      <div>
+        <div class="chart-card">
+          <div class="chart-title">כיסוי מודולים לפי קטגוריה</div>
+          <canvas id="moduleChart" height="260"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="cards-grid" style="margin-top:2.5rem;">
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <div class="card-title">ניהול פרויקטים</div>
+        <div class="card-desc">ספרינטים, Milestones, סרגל צד עם CI dots, יצירת פרויקט וספרינט מהירה</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎫</div>
+        <div class="card-title">כרטיסים ו-Stories</div>
+        <div class="card-desc">תצוגת All Tickets עם פילטרים חוצי-פרויקטים, עדיפויות, סטטוסים, קישור ל-CI ו-PR</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚙️</div>
+        <div class="card-title">CI/CD Monitoring</div>
+        <div class="card-desc">CI Dashboard עם גרפים, תוצאות בדיקות, לוגים, התראות על כשלים</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚀</div>
+        <div class="card-title">ניהול פריסות</div>
+        <div class="card-desc">מעקב פריסה לפי סביבה, גרסה, סוג (web/docker/installer), סטטוס</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">דוחות ומגמות</div>
+        <div class="card-desc">CI Summary, Deployments, Test Coverage, Sprint Velocity, Estimation Accuracy</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <div class="card-title">תקשורת צוות</div>
+        <div class="card-desc">חדרי צ'אט Slack-style עם קישורי הפניה לכרטיסים, CI, פריסות ו-PR</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">👥</div>
+        <div class="card-title">פורטל לקוחות</div>
+        <div class="card-desc">ממשק ייעודי ומוגן ללקוחות: כרטיסים, הודעות, Milestones, מסמכים</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📅</div>
+        <div class="card-title">פגישות ו-Today View</div>
+        <div class="card-desc">לוח יומי אישי, ניהול פגישות עם Jitsi, iCal, לוח שנה מלא</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <div class="card-title">CLI & VS Code</div>
+        <div class="card-desc">כלי שורת פקודה <code>dt</code> ותוסף VS Code לניהול כרטיסים, CI ולוגים מה-IDE</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     2. ARCHITECTURE
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="architecture" class="section-alt">
+<div class="section">
+  <div class="section-badge">02 — ארכיטקטורה</div>
+  <div class="section-title">ארכיטקטורת המערכת</div>
+  <div class="section-sub">סקירה של רכיבי המערכת, הממשקים והאינטגרציות התוך-ארגוניות</div>
+
+  <div class="arch">
+    <div class="arch-row">
+      <div class="arch-label">משתמשים</div>
+      <div class="arch-box ab-user">👨‍💻 מפתחים / צוות</div>
+      <div class="arch-box ab-user">👤 לקוחות (CustomerUser)</div>
+      <div class="arch-box ab-user">🔧 CLI / VS Code</div>
+    </div>
+    <hr class="arch-divider">
+    <div class="arch-row">
+      <div class="arch-label">אפליקציה</div>
+      <div class="arch-box ab-app">🏗️ DevTeam Hub (Rails 8.1)</div>
+      <div class="arch-box ab-portal">🌐 Customer Portal (/portal)</div>
+      <div class="arch-box ab-int">🔐 Devise Auth (2 מודלים)</div>
+      <div class="arch-box ab-int">📡 REST API (v1)</div>
+    </div>
+    <div class="arch-row" style="padding-right:115px;">
+      <div class="arch-box ab-app">📊 Dashboard &amp; Today View</div>
+      <div class="arch-box ab-app">🎫 Tickets &amp; Sprints</div>
+      <div class="arch-box ab-app">💬 Chat Channels</div>
+      <div class="arch-box ab-app">📄 Documents</div>
+      <div class="arch-box ab-app">📈 Reports</div>
+    </div>
+    <hr class="arch-divider">
+    <div class="arch-row">
+      <div class="arch-label">אחסון</div>
+      <div class="arch-box ab-db">🗄️ SQLite3 (dev)</div>
+      <div class="arch-box ab-db">📎 Active Storage (קבצים)</div>
+      <div class="arch-box ab-db">⚡ Solid Queue (jobs)</div>
+      <div class="arch-box ab-db">💾 Solid Cache</div>
+    </div>
+    <hr class="arch-divider">
+    <div class="arch-row">
+      <div class="arch-label">כלי On-Prem</div>
+      <div class="arch-box ab-tool">🦊 Gitea (Git)</div>
+      <div class="arch-box ab-tool">🔧 Jenkins (CI/CD)</div>
+      <div class="arch-box ab-tool">📹 Jitsi (וידאו)</div>
+      <div class="arch-box ab-tool">🔍 SonarQube</div>
+    </div>
+    <div class="arch-row" style="padding-right:115px;">
+      <div class="arch-box ab-tool">🤖 Ollama AI</div>
+      <div class="arch-box ab-tool">📋 Grafana Loki</div>
+      <div class="arch-box ab-tool">📊 Grafana</div>
+      <div class="arch-box ab-tool">🐛 Sentry</div>
+    </div>
+    <div class="arch-row" style="padding-right:115px;align-items:flex-start;">
+      <div style="font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:.4rem;">
+        ⬆️ Webhooks (push, PR, build events)
+        <span style="background:#fff5f5;border:1px solid #feb2b2;color:#c53030;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:700;">HMAC Verified</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:2.5rem;">
+    <div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--dark);">📦 Stack טכנולוגי</h3>
+      <table class="styled-table">
+        <thead><tr><th>שכבה</th><th>טכנולוגיה</th><th>גרסה</th></tr></thead>
+        <tbody>
+          <tr><td>Backend</td><td>Ruby on Rails</td><td>8.1.3</td></tr>
+          <tr><td>שפה</td><td>Ruby</td><td>3.4.5</td></tr>
+          <tr><td>DB</td><td>SQLite3</td><td>~2.0</td></tr>
+          <tr><td>Frontend JS</td><td>Hotwire (Turbo + Stimulus)</td><td>—</td></tr>
+          <tr><td>CSS</td><td>Bootstrap 5 + Custom SCSS</td><td>5.3.8</td></tr>
+          <tr><td>Auth</td><td>Devise</td><td>4.9</td></tr>
+          <tr><td>Authorization</td><td>Pundit</td><td>2.4</td></tr>
+          <tr><td>Background Jobs</td><td>Solid Queue</td><td>—</td></tr>
+          <tr><td>Charts</td><td>Chartkick + Groupdate</td><td>—</td></tr>
+          <tr><td>Notifications</td><td>Noticed</td><td>~2.0</td></tr>
+          <tr><td>Error Tracking</td><td>Sentry</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--dark);">🔗 אינטגרציות Webhook</h3>
+      <table class="styled-table">
+        <thead><tr><th>כלי</th><th>אירוע</th><th>פעולה</th></tr></thead>
+        <tbody>
+          <tr><td>Gitea</td><td>push</td><td>עדכון branch, commit SHA</td></tr>
+          <tr><td>Gitea</td><td>pull_request</td><td>יצירת / עדכון PR, קישור לכרטיס</td></tr>
+          <tr><td>Gitea</td><td>release</td><td>עדכון גרסה בפרויקט</td></tr>
+          <tr><td>Jenkins</td><td>build_complete</td><td>עדכון CiRun, תוצאות בדיקות</td></tr>
+          <tr><td>Jenkins</td><td>build_failed</td><td>התראה + Notification לצוות</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     3. ON-PREMISES TOOLS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="tools" class="section-full section-dark">
+<div class="section">
+  <div class="section-badge">03 — כלים</div>
+  <div class="section-title">כלים ותשתית On-Premises</div>
+  <div class="section-sub">כל הכלים פועלים על שרתים פנימיים ברשת הארגון — ללא תלות בשירותי ענן</div>
+
+  <div class="cards-grid">
+    <div class="card card-dark">
+      <div class="card-icon">🦊</div>
+      <div class="card-title">Gitea — שרת Git</div>
+      <div class="card-desc">
+        חלופה תוך-ארגונית ל-GitHub. ניהול repos, branches, PRs — מסונכרן ל-DevTeam Hub דרך Webhooks.
+      </div>
+    </div>
+    <div class="card card-dark">
+      <div class="card-icon">🔧</div>
+      <div class="card-title">Jenkins — CI/CD</div>
+      <div class="card-desc">
+        שרת אוטומציה לבניה, בדיקות ופריסה. כל build מדווח ל-DevTeam Hub — כולל סטטוס, תוצאות בדיקות ולוגים.
+      </div>
+    </div>
+    <div class="card card-dark">
+      <div class="card-icon">📹</div>
+      <div class="card-title">Jitsi — וידאו</div>
+      <div class="card-desc">
+        שרת וידאו-ועידה בקוד פתוח. פגישות צוות, Stand-ups — עם Join אוטומטי מתוך DevTeam Hub וייצוא iCal.
+      </div>
+    </div>
+    <div class="card card-dark">
+      <div class="card-icon">🔍</div>
+      <div class="card-title">SonarQube — סקירת קוד</div>
+      <div class="card-desc">
+        ניתוח סטטי אוטומטי עם Quality Gates, OWASP SAST, code smells. תמיכה ב-8+ שפות.
+      </div>
+    </div>
+    <div class="card card-dark">
+      <div class="card-icon">🤖</div>
+      <div class="card-title">Ollama — AI Code Review</div>
+      <div class="card-desc">
+        סקירת קוד מבוססת AI — 100% מקומית. מודל Qwen2.5-Coder 32B. סקירת diff לכל PR.
+      </div>
+    </div>
+    <div class="card card-dark">
+      <div class="card-icon">📋</div>
+      <div class="card-title">Grafana Loki — לוגים</div>
+      <div class="card-desc">
+        איסוף לוגים מרכזי בפורמט JSON אחיד. correlation IDs, סינון labels, 30 ימי retention, 256 MB RAM.
+      </div>
+    </div>
+    <div class="card card-dark">
+      <div class="card-icon">📊</div>
+      <div class="card-title">Grafana — Dashboards</div>
+      <div class="card-desc">
+        דשבורדים והתראות ללוגים. סינון errors ו-warnings בזמן אמת, LogQL queries, התראות.
+      </div>
+    </div>
+    <div class="card card-dark">
+      <div class="card-icon">🐛</div>
+      <div class="card-title">Sentry — Error Tracking</div>
+      <div class="card-desc">
+        מעקב שגיאות ו-exceptions בזמן אמת. Stack traces, breadcrumbs, performance monitoring.
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight-box" style="margin-top:2rem;background:rgba(56,201,109,.06);border-color:rgba(56,201,109,.2);">
+    <strong style="color:#fff;">🔒 יתרון ה-On-Premises:</strong>
+    <p style="color:rgba(255,255,255,.7);font-size:.88rem;margin-top:.5rem;line-height:1.7;">
+      כל הנתונים הארגוניים — קוד, כרטיסים, CI logs, deployment history, תקשורת פנימית —
+      נשארים בתוך הרשת הארגונית. אין תלות ב-SLA של ספק ענן חיצוני, אין עלויות per-seat,
+      ואין חשיפת קניין רוחני לצדדים שלישיים.
+    </p>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     4. TODAY PAGE — SCREENSHOTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<section id="screenshots-today">
+  <div class="section">
+    <div class="section-badge">04 — דף אישי</div>
+    <div class="section-title">Today — הדף האישי של המפתח</div>
+    <div class="section-sub">כל מפתח רואה את היום שלו במבט אחד: כרטיסים פעילים, פגישות, CI runs, פריסות ו-milestones</div>
+
+    <div class="gallery-grid">
+      <div class="gallery-item">
+        <img src="screenshots/he/01_today.png" alt="Today Page - Hebrew">
+        <div class="caption">🇮🇱 Today — גרסה עברית (RTL)</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/en/01_today.png" alt="Today Page - English">
+        <div class="caption">🇬🇧 Today — English version (LTR)</div>
+      </div>
+    </div>
+
+    <div class="highlight-box" style="margin-top:1.5rem;">
+      <strong>📋 תכולת הדף:</strong>
+      <p style="font-size:.88rem;color:#4a5568;margin-top:.5rem;line-height:1.7;">
+        כרטיסים פעילים של המפתח · פגישות היום עם כפתור Join ל-Jitsi · CI Runs ותוצאות בדיקות ·
+        פריסות שבוצעו היום · Milestones שעומדים לפוג · מסמכים שעודכנו · קישורים מהירים ל-Jenkins ול-Gitea
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     5. DASHBOARD — SCREENSHOTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="screenshots-dashboard" class="section-alt">
+<div class="section">
+  <div class="section-badge">05 — לוח בקרה</div>
+  <div class="section-title">Dashboard — לוח בקרה צוותי</div>
+  <div class="section-sub">תמונת מצב כוללת: פרויקטים, builds אחרונים, פריסות, כרטיסים פתוחים ו-activity feed</div>
+
+  <div class="gallery-grid">
+    <div class="gallery-item">
+      <img src="screenshots/he/02_dashboard.png" alt="Dashboard - Hebrew">
+      <div class="caption">🇮🇱 Dashboard — לוח בקרה צוותי</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/en/02_dashboard.png" alt="Dashboard - English">
+      <div class="caption">🇬🇧 Dashboard — Team overview</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     6. TICKETS — SCREENSHOTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<section id="screenshots-tickets">
+  <div class="section">
+    <div class="section-badge">06 — כרטיסים</div>
+    <div class="section-title">כרטיסים ומעקב משימות</div>
+    <div class="section-sub">תצוגות חוצות-פרויקטים עם פילטרים, עדיפויות, סטטוסים ותפריטי פעולה (⋮)</div>
+
+    <div class="gallery-grid">
+      <div class="gallery-item">
+        <img src="screenshots/he/03_all_tickets.png" alt="All Tickets - Hebrew">
+        <div class="caption">🎫 כל הכרטיסים — עם פילטרים (סטטוס, פרויקט, אחראי, בעלים)</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/04_my_tickets.png" alt="My Tickets">
+        <div class="caption">📌 הכרטיסים שלי — כרטיסים שהוקצו לי</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/05_late_tickets.png" alt="Late Tickets">
+        <div class="caption">⏰ כרטיסים באיחור — דדליינים שעברו</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/06_backlog.png" alt="Backlog">
+        <div class="caption">📋 Backlog — כרטיסים ממתינים</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/07_current_sprint.png" alt="Current Sprint">
+        <div class="caption">🏃 ספרינט נוכחי</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/08_ticket_detail.png" alt="Ticket Detail">
+        <div class="caption">📝 פרטי כרטיס — מלא עם CI, PR, תגיות ותגובות</div>
+      </div>
+    </div>
+
+    <div class="highlight-box" style="margin-top:1.5rem;">
+      <strong>✨ חדש — תפריטי פעולה Dropdown (⋮):</strong>
+      <p style="font-size:.88rem;color:#4a5568;margin-top:.5rem;line-height:1.7;">
+        כל טבלה במערכת משתמשת בתפריט Kebab (⋮) לפעולות שורה — עריכה, מחיקה, צפייה,
+        קישור — במקום כפתורים מוטבעים. העיצוב נקי ותומך בעברית (RTL).
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     7. PROJECTS & SPRINTS — SCREENSHOTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="screenshots-projects" class="section-alt">
+<div class="section">
+  <div class="section-badge">07 — פרויקטים</div>
+  <div class="section-title">פרויקטים וספרינטים</div>
+  <div class="section-sub">ניהול פרויקטים מלא עם חברי צוות, ספרינטים, CI runs, פריסות, PRs ומסמכים</div>
+
+  <div class="gallery-grid">
+    <div class="gallery-item">
+      <img src="screenshots/he/09_projects.png" alt="Projects List">
+      <div class="caption">📁 רשימת פרויקטים</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/10_project_detail.png" alt="Project Detail">
+      <div class="caption">📊 פרטי פרויקט — חברי צוות, סטטוס CI, ספרינטים</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/11_project_tickets.png" alt="Project Tickets">
+      <div class="caption">🎫 כרטיסים של פרויקט</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/14_project_sprints.png" alt="Project Sprints">
+      <div class="caption">🏃 ספרינטים של פרויקט</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/30_sprint_detail.png" alt="Sprint Detail">
+      <div class="caption">📋 פרטי ספרינט — כרטיסים, story points, סטטוס</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/15_project_pull_requests.png" alt="Pull Requests">
+      <div class="caption">🔀 Pull Requests — קישור ל-Gitea וסטטוס CI</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     8. CI/CD — SCREENSHOTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<section id="screenshots-ci">
+  <div class="section">
+    <div class="section-badge">08 — CI/CD</div>
+    <div class="section-title">CI/CD — בדיקות ופריסות</div>
+    <div class="section-sub">מעקב builds, תוצאות בדיקות, פריסות לכל הסביבות — עם קישורים ישירים ל-Jenkins</div>
+
+    <div class="gallery-grid">
+      <div class="gallery-item">
+        <img src="screenshots/he/17_ci_dashboard.png" alt="CI Dashboard">
+        <div class="caption">📊 CI Dashboard — גרפים, pass rate, מגמות</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/12_project_ci_runs.png" alt="CI Runs">
+        <div class="caption">⚙️ CI Runs — רשימת builds עם סטטוסים</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/28_ci_run_detail.png" alt="CI Run Detail">
+        <div class="caption">🔍 פרטי CI Run — תוצאות בדיקות בודדות</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/13_project_deployments.png" alt="Deployments">
+        <div class="caption">🚀 פריסות פרויקט — לפי סביבה וסוג</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/29_deployment_detail.png" alt="Deployment Detail">
+        <div class="caption">📦 פרטי פריסה — גרסה, סביבה, סטטוס</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/31_pull_request_detail.png" alt="PR Detail">
+        <div class="caption">🔀 פרטי Pull Request — CI, commits, Gitea link</div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-top:2rem;">
+      <div class="chart-card">
+        <div class="chart-title">אחוז הצלחת builds לפי חודש</div>
+        <canvas id="ciChart" height="220"></canvas>
+      </div>
+      <div>
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">נתוני CI Run במערכת</h3>
+        <table class="styled-table">
+          <thead><tr><th>שדה</th><th>תיאור</th></tr></thead>
+          <tbody>
+            <tr><td><code>build_number</code></td><td>מספר ה-build ב-Jenkins</td></tr>
+            <tr><td><code>status</code></td><td>pending / running / passed / failed / error</td></tr>
+            <tr><td><code>branch_name</code></td><td>Branch שעל גביו רץ ה-build</td></tr>
+            <tr><td><code>commit_sha</code></td><td>Commit hash מ-Gitea</td></tr>
+            <tr><td><code>started_at / finished_at</code></td><td>זמן ריצה ומשך</td></tr>
+            <tr><td><code>log_url</code></td><td>קישור ישיר ל-Jenkins log</td></tr>
+            <tr><td><code>test_results</code></td><td>תוצאות בדיקות (pass/fail/skip)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     9. MEETINGS & CALENDAR — SCREENSHOTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="screenshots-meetings" class="section-alt">
+<div class="section">
+  <div class="section-badge">09 — פגישות</div>
+  <div class="section-title">פגישות ויומן</div>
+  <div class="section-sub">ניהול פגישות עם Jitsi, לוח שנה מלא, ייצוא iCal, אג'נדות ומשתתפים</div>
+
+  <div class="gallery-grid">
+    <div class="gallery-item">
+      <img src="screenshots/he/18_meetings.png" alt="Meetings">
+      <div class="caption">📅 רשימת פגישות</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/19_meeting_detail.png" alt="Meeting Detail">
+      <div class="caption">🎥 פרטי פגישה — Jitsi join, אג'נדה, משתתפים</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/20_calendar.png" alt="Calendar">
+      <div class="caption">📆 יומן — תצוגת חודש עם פגישות וספרינטים</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/21_notifications.png" alt="Notifications">
+      <div class="caption">🔔 התראות — מעקב events בזמן אמת</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     10. DOCUMENTS — SCREENSHOTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<section id="screenshots-docs">
+  <div class="section">
+    <div class="section-badge">10 — מסמכים</div>
+    <div class="section-title">מסמכים ותיעוד</div>
+    <div class="section-sub">מסמכים טכניים עם Markdown, קטגוריות, תגיות, קבצים מצורפים וגרסאות</div>
+
+    <div class="gallery-grid">
+      <div class="gallery-item">
+        <img src="screenshots/he/22_documents.png" alt="Documents">
+        <div class="caption">📄 כל המסמכים — חוצה פרויקטים</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/16_project_documents.png" alt="Project Documents">
+        <div class="caption">📁 מסמכים לפי פרויקט</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/23_document_detail.png" alt="Document Detail">
+        <div class="caption">📝 פרטי מסמך — Markdown preview, תגובות, קבצים</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     11. CUSTOMERS — SCREENSHOTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="screenshots-customers" class="section-alt">
+<div class="section">
+  <div class="section-badge">11 — לקוחות</div>
+  <div class="section-title">ניהול לקוחות</div>
+  <div class="section-sub">ניהול לקוחות, כרטיסי תמיכה, התקנות תוכנה ומעקב גרסאות</div>
+
+  <div class="gallery-grid">
+    <div class="gallery-item">
+      <img src="screenshots/he/24_customers.png" alt="Customers">
+      <div class="caption">👥 רשימת לקוחות</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/25_customer_detail.png" alt="Customer Detail">
+      <div class="caption">👤 פרטי לקוח — פרטים, כרטיסים, התקנות</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/26_customer_tickets.png" alt="Customer Tickets">
+      <div class="caption">🎫 כרטיסי תמיכה — סטטוס, עדיפות, שיוך</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/27_installations.png" alt="Installations">
+      <div class="caption">💿 התקנות — מעקב גרסאות לפי לקוח וסביבה</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     12. REPORTS — SCREENSHOTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<section id="screenshots-reports">
+  <div class="section">
+    <div class="section-badge">12 — דוחות</div>
+    <div class="section-title">דוחות וניתוח</div>
+    <div class="section-sub">5 סוגי דוחות עם גרפים ומגמות — CI, פריסות, בדיקות, velocity ודיוק הערכות</div>
+
+    <div class="gallery-grid">
+      <div class="gallery-item">
+        <img src="screenshots/he/32_report_ci_summary.png" alt="CI Summary Report">
+        <div class="caption">📊 דוח CI Summary — builds, pass rate, ממוצע זמנים</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/33_report_deployments.png" alt="Deployments Report">
+        <div class="caption">🚀 דוח פריסות — תדירות לפי סביבה</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/34_report_test_coverage.png" alt="Test Coverage Report">
+        <div class="caption">🧪 דוח Test Coverage — מגמת pass rate</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/35_report_velocity.png" alt="Sprint Velocity Report">
+        <div class="caption">🏃 דוח Sprint Velocity — story points per sprint</div>
+      </div>
+      <div class="gallery-item">
+        <img src="screenshots/he/36_report_estimation.png" alt="Estimation Accuracy Report">
+        <div class="caption">🎯 דוח דיוק הערכות — actual vs. estimated</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     13. ADMIN — SCREENSHOTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="screenshots-admin" class="section-alt">
+<div class="section">
+  <div class="section-badge">13 — ניהול</div>
+  <div class="section-title">ניהול מערכת</div>
+  <div class="section-sub">ניהול משתמשים, תפקידים, חשבונות לקוח ופרופיל אישי</div>
+
+  <div class="gallery-grid">
+    <div class="gallery-item">
+      <img src="screenshots/he/37_admin_users.png" alt="Admin Users">
+      <div class="caption">👥 ניהול משתמשים — תפקידים והרשאות</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/38_admin_clients.png" alt="Admin Client Accounts">
+      <div class="caption">🏢 ניהול חשבונות לקוח — CRM</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/he/39_profile_edit.png" alt="Profile Edit">
+      <div class="caption">👤 עריכת פרופיל — שם, avatar, שפה</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     14. SECURITY
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="security" class="section-full section-navy">
+<div class="section">
+  <div class="section-badge">14 — אבטחה</div>
+  <div class="section-title">אבטחת המערכת</div>
+  <div class="section-sub">8 שכבות אבטחה המגנות על הנתונים, הגישה והתקשורת בכל רמות המערכת</div>
+
+  <div class="two-col">
+    <div class="sec-layers">
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🔑</div>
+        <div class="sec-layer-info">
+          <div class="sec-layer-title">אימות (Authentication) — Devise</div>
+          <div class="sec-layer-desc">שני מודלי Devise נפרדים: User (צוות) + CustomerUser (פורטל). סיסמאות bcrypt. Password reset.</div>
+        </div>
+        <div class="sec-bar"><div class="sec-bar-track"><div class="sec-bar-fill" style="width:95%"></div></div><div class="sec-bar-label">95%</div></div>
+      </div>
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🛡️</div>
+        <div class="sec-layer-info">
+          <div class="sec-layer-title">הרשאות (Authorization) — Pundit</div>
+          <div class="sec-layer-desc">Pundit policies על כל resource. היררכיית תפקידים: developer &lt; team_lead &lt; project_manager &lt; admin / qa.</div>
+        </div>
+        <div class="sec-bar"><div class="sec-bar-track"><div class="sec-bar-fill" style="width:88%"></div></div><div class="sec-bar-label">88%</div></div>
+      </div>
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🔒</div>
+        <div class="sec-layer-info">
+          <div class="sec-layer-title">CSRF Protection — Rails Built-in</div>
+          <div class="sec-layer-desc">כל form ו-AJAX מאומת עם CSRF token. Turbo שולח X-CSRF-Token אוטומטית.</div>
+        </div>
+        <div class="sec-bar"><div class="sec-bar-track"><div class="sec-bar-fill" style="width:100%"></div></div><div class="sec-bar-label">100%</div></div>
+      </div>
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🪝</div>
+        <div class="sec-layer-info">
+          <div class="sec-layer-title">Webhook Validation — HMAC Header</div>
+          <div class="sec-layer-desc">כל Webhook מ-Gitea ו-Jenkins מאומת עם secret header. בקשות ללא חתימה נדחות (403).</div>
+        </div>
+        <div class="sec-bar"><div class="sec-bar-track"><div class="sec-bar-fill" style="width:90%"></div></div><div class="sec-bar-label">90%</div></div>
+      </div>
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🏰</div>
+        <div class="sec-layer-info">
+          <div class="sec-layer-title">בידוד פורטל הלקוח</div>
+          <div class="sec-layer-desc">CustomerPortal::BaseController יורש מ-ActionController::Base — אין נגישות למשתנים פנימיים.</div>
+        </div>
+        <div class="sec-bar"><div class="sec-bar-track"><div class="sec-bar-fill" style="width:95%"></div></div><div class="sec-bar-label">95%</div></div>
+      </div>
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🧹</div>
+        <div class="sec-layer-info">
+          <div class="sec-layer-title">ניקוי קלט — Strong Parameters</div>
+          <div class="sec-layer-desc">כל controller מגדיר permit מפורש. HTML בצ'אט עובר html_escape.</div>
+        </div>
+        <div class="sec-bar"><div class="sec-bar-track"><div class="sec-bar-fill" style="width:85%"></div></div><div class="sec-bar-label">85%</div></div>
+      </div>
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🕐</div>
+        <div class="sec-layer-info">
+          <div class="sec-layer-title">ניהול Session — Devise</div>
+          <div class="sec-layer-desc">remember_me token מוצפן, timeout session, Rails Encrypted Cookies.</div>
+        </div>
+        <div class="sec-bar"><div class="sec-bar-track"><div class="sec-bar-fill" style="width:90%"></div></div><div class="sec-bar-label">90%</div></div>
+      </div>
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🌐</div>
+        <div class="sec-layer-info">
+          <div class="sec-layer-title">Modern Browser Enforcement</div>
+          <div class="sec-layer-desc">allow_browser versions: :modern דוחה דפדפנים ישנים. CSP meta tags מגנים מפני XSS.</div>
+        </div>
+        <div class="sec-bar"><div class="sec-bar-track"><div class="sec-bar-fill" style="width:80%"></div></div><div class="sec-bar-label">80%</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-card" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);">
+        <div class="chart-title" style="color:#fff;">כיסוי אבטחה לפי שכבה</div>
+        <canvas id="securityChart" height="300"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     15. CODE REVIEW
+     ══════════════════════════════════════════════════════════════════════ -->
+<section id="code-review">
+  <div class="section">
+    <div class="section-badge">15 — סקירת קוד</div>
+    <div class="section-title">סקירת קוד אוטומטית — SonarQube + AI</div>
+    <div class="section-sub">ניתוח סטטי מלא וסקירה מבוססת AI לכל השפות — פועל 100% On-Premises</div>
+
+    <div class="two-col">
+      <div>
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">סקירת קוד בשני שלבים</h3>
+        <table class="styled-table">
+          <thead><tr><th>כלי</th><th>תפקיד</th><th>עלות</th></tr></thead>
+          <tbody>
+            <tr><td>🔍 SonarQube CE</td><td>ניתוח סטטי, Quality Gates, OWASP SAST</td><td>חינם</td></tr>
+            <tr><td>🤖 Ollama AI</td><td>סקירת AI מקומית — לוגיקה, ארכיטקטורה, דפוסים</td><td>חינם</td></tr>
+            <tr><td>💻 SonarLint</td><td>תוסף IDE — VS Code ו-Visual Studio</td><td>חינם</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="font-size:1rem;font-weight:700;margin-top:1.5rem;margin-bottom:1rem;">Quality Gate — חסימת מיזוג</h3>
+        <table class="styled-table">
+          <thead><tr><th>מדד</th><th>סף</th></tr></thead>
+          <tbody>
+            <tr><td>כיסוי קוד חדש</td><td>≥ 70%</td></tr>
+            <tr><td>באגים חדשים</td><td>0</td></tr>
+            <tr><td>פגיעויות חדשות</td><td>0</td></tr>
+            <tr><td>שכפול קוד</td><td>≤ 3%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="chart-card">
+          <div class="chart-title">השוואת כלי סקירת קוד</div>
+          <canvas id="codeReviewPresChart" height="280"></canvas>
+        </div>
+
+        <div style="background:rgba(11,122,117,0.08);border:1px solid rgba(11,122,117,0.2);border-radius:12px;padding:1.25rem;margin-top:1rem;">
+          <h4 style="font-size:0.9rem;font-weight:700;color:#0b7a75;margin-bottom:.5rem;">🏗️ ארכיטקטורה</h4>
+          <pre style="background:#1a1d2e;color:#e6edf3;padding:1rem;border-radius:8px;font-size:0.78rem;direction:ltr;text-align:left;margin:0;"><code>Gitea ─webhook─▸ Jenkins ──▸ SonarQube (:9100)
+                     │              │
+                     ▼              ▼
+                  Ollama (:11434)  Quality Gate
+                     │             pass/fail
+                     ▼              │
+                  AI Review ───────▸│
+                  Comment     Post to PR</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     16. UNIFIED LOGGING
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="logging" class="section-alt">
+<div class="section">
+  <div class="section-badge">16 — לוגים</div>
+  <div class="section-title">לוגים מרכזיים — Grafana Loki + Promtail</div>
+  <div class="section-sub">פורמט JSON אחיד, correlation IDs, דשבורדים והתראות — 256 MB RAM בלבד</div>
+
+  <div class="two-col">
+    <div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">ארכיטקטורה</h3>
+      <pre style="background:#1a1d2e;color:#e6edf3;padding:1rem;border-radius:8px;font-size:0.72rem;direction:ltr;text-align:left;margin:0;line-height:1.6;"><code>Rails (lograge)  ──┐
+ASP.NET (Serilog)──┼─▸ Promtail ─▸ Loki :3100 ─▸ Grafana :3200
+NestJS (Pino)    ──┘        (shipper)    (storage)     (dashboards)
+Next.js (Pino)   ──┘
+.NET 4.8 (NLog)  ──┘</code></pre>
+
+      <div style="margin-top:1rem;">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:.75rem;">פורמט JSON אחיד</h3>
+        <pre style="background:#1a1d2e;color:#e6edf3;padding:1rem;border-radius:8px;font-size:0.72rem;direction:ltr;text-align:left;margin:0;line-height:1.5;"><code>{
+  "timestamp":      "2026-06-15T10:23:45.123Z",
+  "level":          "info",
+  "service":        "devteam-hub",
+  "correlation_id": "req-abc123",
+  "message":        "Ticket #42 created",
+  "context":        { "user_id": 5 }
+}</code></pre>
+      </div>
+    </div>
+    <div>
+      <div class="chart-card">
+        <div class="chart-title">השוואת כלי לוגים</div>
+        <canvas id="loggingPresChart" height="280"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:1.5rem;">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:.75rem;">פקודות CLI</h3>
+    <pre style="background:#1a1d2e;color:#e6edf3;padding:1rem;border-radius:8px;font-size:0.78rem;direction:ltr;text-align:left;margin:0;line-height:1.5;"><code>$ dt logs --service devteam-hub --level error
+  10:23:45  ERROR  devteam-hub       Ticket creation failed: DB timeout
+  10:19:12  ERROR  devteam-hub       Redis connection refused
+  2 entries
+
+$ dt logs services
+  Available log services:
+    • devteam-hub
+    • tdi2
+    • print-server
+
+$ dt logs stats
+  Log Statistics (last 24h)
+  Errors:   12
+  Warnings: 47</code></pre>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     17. CUSTOMER PORTAL
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="portal" class="section-full section-blue">
+<div class="section">
+  <div class="section-badge">17 — פורטל</div>
+  <div class="section-title">פורטל לקוחות</div>
+  <div class="section-sub">ממשק ייעודי ומבודד ללקוחות — עם אימות נפרד, layout נפרד ונתונים מסוננים</div>
+
+  <div class="two-col">
+    <div class="cards-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="card card-dark">
+        <div class="card-icon">🎫</div>
+        <div class="card-title">כרטיסי תמיכה</div>
+        <div class="card-desc">פתיחת כרטיסים, מעקב סטטוס, סינון לפי עדיפות ומצב</div>
+      </div>
+      <div class="card card-dark">
+        <div class="card-icon">💬</div>
+        <div class="card-title">שרשור הודעות</div>
+        <div class="card-desc">Chat מול הצוות — הודעות internal_only מוסתרות מהלקוח</div>
+      </div>
+      <div class="card card-dark">
+        <div class="card-icon">🏁</div>
+        <div class="card-title">Milestones</div>
+        <div class="card-desc">צפייה ב-Milestones, progress bar וסטטוס</div>
+      </div>
+      <div class="card card-dark">
+        <div class="card-icon">📄</div>
+        <div class="card-title">תיעוד</div>
+        <div class="card-desc">גישה למסמכים ציבוריים — Spec, Architecture, Runbook</div>
+      </div>
+    </div>
+    <div>
+      <h3 style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:1rem;">בידוד אבטחה של הפורטל</h3>
+      <table class="styled-table" style="font-size:.82rem;">
+        <thead><tr><th>היבט</th><th>מימוש</th></tr></thead>
+        <tbody>
+          <tr><td>Auth Model</td><td><code>CustomerUser</code> — Devise נפרד</td></tr>
+          <tr><td>Base Controller</td><td><code>ActionController::Base</code> (לא ApplicationController)</td></tr>
+          <tr><td>URL Prefix</td><td><code>/portal/</code></td></tr>
+          <tr><td>Layout</td><td><code>customer_portal.html.erb</code> — עיצוב ירוק נפרד</td></tr>
+          <tr><td>נתונים</td><td>מסוננים לפי customer_id — אין גישה לנתוני לקוחות אחרים</td></tr>
+          <tr><td>הודעות</td><td>internal_only: false בלבד — הצוות רואה הכל</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     18. CLI & VS CODE EXTENSION
+     ══════════════════════════════════════════════════════════════════════ -->
+<section id="cli">
+  <div class="section">
+    <div class="section-badge">18 — CLI & IDE</div>
+    <div class="section-title">CLI ו-VS Code Extension</div>
+    <div class="section-sub">ניהול מלא מתוך שורת הפקודה וה-IDE — ללא פתיחת דפדפן</div>
+
+    <div class="two-col">
+      <div>
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">כלי שורת פקודה — <code>dt</code></h3>
+        <pre style="background:#1a1d2e;color:#e6edf3;padding:1rem;border-radius:8px;font-size:0.78rem;direction:ltr;text-align:left;margin:0;line-height:1.5;"><code>$ dt tickets list
+  #42  [high]     OAuth Integration       in_progress
+  #41  [medium]   Fix memory leak         review
+  #40  [low]      Refactor DB queries     open
+
+$ dt ci list
+  #234  main             failed   4.2 min
+  #233  feature/oauth    passed   3.8 min
+
+$ dt deploy create --env production --version 2.5.0
+  Deployment #48 created: production v2.5.0
+
+$ dt logs --service devteam-hub --level error
+  10:23:45  ERROR  Ticket creation failed</code></pre>
+      </div>
+      <div>
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">REST API Endpoints</h3>
+        <table class="styled-table">
+          <thead><tr><th>Endpoint</th><th>פעולות</th></tr></thead>
+          <tbody>
+            <tr><td><code>/api/v1/tickets</code></td><td>list, show, create, update</td></tr>
+            <tr><td><code>/api/v1/ci_runs</code></td><td>list, show, create + test_results</td></tr>
+            <tr><td><code>/api/v1/deployments</code></td><td>list, show, create, update</td></tr>
+            <tr><td><code>/api/v1/pull_requests</code></td><td>list, show, create</td></tr>
+            <tr><td><code>/api/v1/projects</code></td><td>list, show</td></tr>
+            <tr><td><code>/api/v1/logs/*</code></td><td>query, services, push, stats</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     19. SUMMARY
+     ══════════════════════════════════════════════════════════════════════ -->
+<div id="summary" class="section-full section-dark">
+<div class="section">
+  <div class="section-badge">19 — סיכום</div>
+  <div class="section-title">סיכום ויתרונות</div>
+  <div class="section-sub">DevTeam Hub מספק ערך מיידי לצוותי פיתוח הדורשים שליטה מלאה על הכלים והנתונים שלהם</div>
+
+  <div class="three-col" style="margin-bottom:2.5rem;">
+    <div class="summary-tile">
+      <div class="s-icon">🏰</div>
+      <div class="s-title">100% On-Premises</div>
+      <div class="s-desc">כל הנתונים נשארים ברשת הארגונית. אין תלות בענן, אין SLA חיצוני, שליטה מלאה</div>
+    </div>
+    <div class="summary-tile">
+      <div class="s-icon">🔗</div>
+      <div class="s-title">8 אינטגרציות</div>
+      <div class="s-desc">Gitea, Jenkins, Jitsi, SonarQube, Ollama, Grafana, Loki, Sentry — הכל מסונכרן אוטומטית</div>
+    </div>
+    <div class="summary-tile">
+      <div class="s-icon">🛡️</div>
+      <div class="s-title">אבטחה מרובדת</div>
+      <div class="s-desc">8 שכבות: Devise, Pundit, CSRF, HMAC Webhook, בידוד פורטל, Strong Params, CSP, Modern Browser</div>
+    </div>
+    <div class="summary-tile">
+      <div class="s-icon">🔍</div>
+      <div class="s-title">סקירת קוד אוטומטית</div>
+      <div class="s-desc">SonarQube Quality Gates + Ollama AI — כל השפות, אפס עלות, 100% On-Prem</div>
+    </div>
+    <div class="summary-tile">
+      <div class="s-icon">📋</div>
+      <div class="s-title">לוגים מרכזיים</div>
+      <div class="s-desc">Grafana Loki + Promtail — פורמט JSON אחיד, correlation IDs, דשבורדים והתראות</div>
+    </div>
+    <div class="summary-tile">
+      <div class="s-icon">📊</div>
+      <div class="s-title">5 דוחות</div>
+      <div class="s-desc">CI Summary, Deployments, Test Coverage, Sprint Velocity, Estimation Accuracy</div>
+    </div>
+    <div class="summary-tile">
+      <div class="s-icon">👤</div>
+      <div class="s-title">פורטל לקוחות</div>
+      <div class="s-desc">ממשק מבודד ומאובטח ללקוחות — כרטיסים, הודעות, Milestones ומסמכים</div>
+    </div>
+    <div class="summary-tile">
+      <div class="s-icon">🔧</div>
+      <div class="s-title">CLI & VS Code</div>
+      <div class="s-desc">כלי שורת פקודה <code>dt</code> ותוסף VS Code — ניהול כרטיסים, CI ולוגים מה-IDE</div>
+    </div>
+    <div class="summary-tile">
+      <div class="s-icon">🌍</div>
+      <div class="s-title">עברית + אנגלית</div>
+      <div class="s-desc">תמיכה מלאה ב-RTL עם Bootstrap 5. העדפת שפה נשמרת בפרופיל המשתמש</div>
+    </div>
+  </div>
+
+  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:2rem;margin-top:1rem;">
+    <h3 style="color:#fff;font-size:1rem;font-weight:700;margin-bottom:1.25rem;">כיסוי פיצ'רים — מצב נוכחי (87% מהסטוריז הושלמו)</h3>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">ניהול פרויקטים</div><div class="feat-track"><div class="feat-fill" style="width:100%;background:var(--green);"></div></div><div class="feat-pct">100%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">CI/CD Monitoring</div><div class="feat-track"><div class="feat-fill" style="width:92%;background:var(--green);"></div></div><div class="feat-pct">92%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">סקירת קוד אוטומטית</div><div class="feat-track"><div class="feat-fill" style="width:90%;background:var(--green);"></div></div><div class="feat-pct">90%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">ניהול כרטיסים</div><div class="feat-track"><div class="feat-fill" style="width:93%;background:var(--green);"></div></div><div class="feat-pct">93%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">פריסות</div><div class="feat-track"><div class="feat-fill" style="width:100%;background:var(--green);"></div></div><div class="feat-pct">100%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">מסמכים טכניים</div><div class="feat-track"><div class="feat-fill" style="width:100%;background:var(--green);"></div></div><div class="feat-pct">100%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">דוחות ומגמות</div><div class="feat-track"><div class="feat-fill" style="width:100%;background:var(--green);"></div></div><div class="feat-pct">100%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">ניהול לקוחות</div><div class="feat-track"><div class="feat-fill" style="width:90%;background:var(--green);"></div></div><div class="feat-pct">90%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">פורטל לקוחות</div><div class="feat-track"><div class="feat-fill" style="width:100%;background:var(--green);"></div></div><div class="feat-pct">100%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">פגישות & Jitsi</div><div class="feat-track"><div class="feat-fill" style="width:83%;background:var(--blue);"></div></div><div class="feat-pct">83%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">Today & Dashboard</div><div class="feat-track"><div class="feat-fill" style="width:100%;background:var(--green);"></div></div><div class="feat-pct">100%</div></div>
+    <div class="feat-bar-row"><div class="feat-name" style="color:#fff;">CLI & VS Code</div><div class="feat-track"><div class="feat-fill" style="width:100%;background:var(--green);"></div></div><div class="feat-pct">100%</div></div>
+  </div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div style="margin-bottom:.5rem;">🚀 <strong style="color:rgba(255,255,255,.7);">DevTeam Hub</strong> — פלטפורמת ניהול פיתוח תוך-ארגונית</div>
+  <div>Built with Ruby on Rails 8.1 · Bootstrap 5 · Hotwire · Gitea · Jenkins · SonarQube · Ollama · Grafana Loki · Jitsi · Sentry</div>
+  <div style="margin-top:.5rem;font-size:.72rem;">כל הנתונים והקוד נשארים ברשת הארגונית שלך · אפס תלות בענן · 122 User Stories · 87% Completion</div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     CHARTS
+     ══════════════════════════════════════════════════════════════════════ -->
+<script>
+  Chart.defaults.font.family = "'Heebo', 'Arial Hebrew', Arial, sans-serif";
+  Chart.defaults.color = '#718096';
+
+  // 1. Module coverage — horizontal bar
+  new Chart(document.getElementById('moduleChart'), {
+    type: 'bar',
+    data: {
+      labels: ['ניהול פרויקטים', 'כרטיסים', 'CI/CD', 'פריסות', 'מסמכים', 'דוחות', 'פורטל לקוחות', 'CLI & Extension'],
+      datasets: [{
+        label: 'אחוז כיסוי',
+        data: [100, 93, 92, 100, 100, 100, 100, 100],
+        backgroundColor: ['#38c96d','#38c96d','#38c96d','#38c96d','#38c96d','#38c96d','#38c96d','#38c96d'],
+        borderRadius: 5,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { min: 0, max: 100, ticks: { callback: v => v + '%' } },
+        y: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // 2. CI success rate — line
+  new Chart(document.getElementById('ciChart'), {
+    type: 'line',
+    data: {
+      labels: ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני'],
+      datasets: [
+        {
+          label: '% הצלחה',
+          data: [82, 85, 88, 91, 87, 93],
+          borderColor: '#38c96d', backgroundColor: 'rgba(56,201,109,.1)',
+          borderWidth: 2.5, tension: 0.35, fill: true, pointRadius: 4
+        },
+        {
+          label: '% כשל',
+          data: [18, 15, 12, 9, 13, 7],
+          borderColor: '#e84545', backgroundColor: 'rgba(232,69,69,.08)',
+          borderWidth: 2, tension: 0.35, fill: true, pointRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+      scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } }
+    }
+  });
+
+  // 3. Security radar
+  new Chart(document.getElementById('securityChart'), {
+    type: 'radar',
+    data: {
+      labels: ['אימות', 'הרשאות', 'CSRF', 'Webhook', 'בידוד פורטל', 'ניקוי קלט', 'Session', 'Browser'],
+      datasets: [{
+        label: 'כיסוי אבטחה',
+        data: [95, 88, 100, 90, 95, 85, 90, 80],
+        backgroundColor: 'rgba(56,201,109,.18)',
+        borderColor: '#38c96d',
+        borderWidth: 2,
+        pointBackgroundColor: '#38c96d',
+        pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { display: false },
+          grid:  { color: 'rgba(255,255,255,.12)' },
+          angleLines: { color: 'rgba(255,255,255,.12)' },
+          pointLabels: { color: 'rgba(255,255,255,.75)', font: { size: 11 } }
+        }
+      }
+    }
+  });
+
+  // 4. Code Review tools comparison — radar
+  new Chart(document.getElementById('codeReviewPresChart'), {
+    type: 'radar',
+    data: {
+      labels: ['כיסוי שפות', 'On-Prem', 'Quality Gates', 'אבטחה (SAST)', 'דשבורד', 'Gitea', 'Jenkins', 'מחיר (10=חינם)'],
+      datasets: [
+        {
+          label: 'SonarQube CE',
+          data: [10, 10, 10, 9, 10, 8, 10, 10],
+          backgroundColor: 'rgba(11,122,117,0.15)',
+          borderColor: '#0b7a75',
+          borderWidth: 2,
+          pointBackgroundColor: '#0b7a75'
+        },
+        {
+          label: 'Ollama AI',
+          data: [10, 10, 3, 7, 2, 8, 8, 10],
+          backgroundColor: 'rgba(123,104,238,0.1)',
+          borderColor: '#7b68ee',
+          borderWidth: 2,
+          pointBackgroundColor: '#7b68ee'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+      scales: {
+        r: {
+          min: 0, max: 10,
+          ticks: { display: false },
+          grid: { color: 'rgba(0,0,0,0.06)' },
+          angleLines: { color: 'rgba(0,0,0,0.06)' },
+          pointLabels: { font: { size: 10 } }
+        }
+      }
+    }
+  });
+
+  // 5. Logging tools comparison chart
+  new Chart(document.getElementById('loggingPresChart'), {
+    type: 'radar',
+    data: {
+      labels: ['קלות התקנה', 'יעילות RAM', 'חיפוש (LogQL)', 'רב-שפות', 'Dashboards', 'On-Prem', 'CI אינטגרציה', 'מחיר (10=חינם)'],
+      datasets: [
+        {
+          label: 'Grafana Loki',
+          data: [9, 10, 8, 9, 10, 10, 9, 10],
+          backgroundColor: 'rgba(37,99,235,0.15)',
+          borderColor: '#2563eb',
+          borderWidth: 2,
+          pointBackgroundColor: '#2563eb'
+        },
+        {
+          label: 'ELK Stack',
+          data: [4, 3, 10, 9, 9, 8, 8, 7],
+          backgroundColor: 'rgba(230,126,34,0.1)',
+          borderColor: '#e67e22',
+          borderWidth: 2,
+          pointBackgroundColor: '#e67e22'
+        },
+        {
+          label: 'Graylog',
+          data: [5, 5, 8, 7, 7, 8, 6, 9],
+          backgroundColor: 'rgba(142,68,173,0.1)',
+          borderColor: '#8e44ad',
+          borderWidth: 2,
+          pointBackgroundColor: '#8e44ad'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+      scales: {
+        r: {
+          min: 0, max: 10,
+          ticks: { stepSize: 2 },
+          grid: { color: 'rgba(0,0,0,0.06)' },
+          angleLines: { color: 'rgba(0,0,0,0.06)' },
+          pointLabels: { font: { size: 10 } }
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

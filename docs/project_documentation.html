@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTeam Hub — Project Documentation v2.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0d1b2a;
+      --dark: #1a1d2e;
+      --blue: #4a90d9;
+      --blue2: #74b0f0;
+      --green: #38c96d;
+      --red: #e84545;
+      --orange: #f5a623;
+      --purple: #7b68ee;
+      --text: #2d3748;
+      --muted: #718096;
+      --border: #e2e8f0;
+      --bg: #f8f9fb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      line-height: 1.7;
+      background: #fff;
+    }
+
+    /* ── SIDEBAR NAV ────────────────────────────────────────────────── */
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 260px; background: var(--dark);
+      overflow-y: auto; padding: 1.5rem 0;
+      z-index: 100;
+      box-shadow: 2px 0 12px rgba(0,0,0,.15);
+    }
+    .sidebar-brand {
+      font-size: 1.1rem; font-weight: 900; color: #fff;
+      padding: 0 1.25rem 1rem; border-bottom: 1px solid rgba(255,255,255,.08);
+      margin-bottom: 1rem;
+    }
+    .sidebar-brand span { color: var(--blue2); }
+    .sidebar-section {
+      font-size: .62rem; text-transform: uppercase; letter-spacing: .08em;
+      color: rgba(255,255,255,.3); font-weight: 700;
+      padding: .8rem 1.25rem .25rem;
+    }
+    .sidebar a {
+      display: block; color: rgba(255,255,255,.6); text-decoration: none;
+      font-size: .8rem; padding: .3rem 1.25rem;
+      border-right: 3px solid transparent;
+      transition: all .15s;
+    }
+    .sidebar a:hover {
+      color: #fff; background: rgba(255,255,255,.06);
+      border-right-color: var(--blue);
+    }
+
+    /* ── MAIN CONTENT ────────────────────────────────────────────────── */
+    .main { margin-left: 260px; }
+    .header-banner {
+      background: linear-gradient(150deg, #0a1628 0%, #1a2f5a 55%, #1e3a6e 100%);
+      color: #fff; padding: 4rem 3rem 3rem;
+    }
+    .header-banner h1 { font-size: 2.4rem; font-weight: 900; margin-bottom: .5rem; }
+    .header-banner h1 span { color: var(--blue2); }
+    .header-banner .meta { font-size: .85rem; opacity: .6; }
+    .header-stats {
+      display: flex; gap: 2rem; margin-top: 2rem; flex-wrap: wrap;
+    }
+    .header-stat {
+      text-align: center;
+    }
+    .header-stat .num { font-size: 1.8rem; font-weight: 900; color: var(--blue2); display: block; }
+    .header-stat .lbl { font-size: .72rem; opacity: .6; }
+
+    .content { max-width: 900px; padding: 3rem; }
+
+    /* ── TYPOGRAPHY ─────────────────────────────────────────────────── */
+    h2 {
+      font-size: 1.6rem; font-weight: 800; color: var(--dark);
+      margin: 3rem 0 1rem; padding-bottom: .5rem;
+      border-bottom: 2px solid var(--border);
+    }
+    h2:first-child { margin-top: 0; }
+    h3 { font-size: 1.15rem; font-weight: 700; color: var(--dark); margin: 2rem 0 .75rem; }
+    h4 { font-size: .95rem; font-weight: 700; color: var(--dark); margin: 1.5rem 0 .5rem; }
+    p { margin-bottom: 1rem; font-size: .92rem; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+    li { margin-bottom: .35rem; font-size: .92rem; }
+    strong { font-weight: 700; }
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #f0f4f8; padding: 1px 6px; border-radius: 4px;
+      font-size: .82rem; color: #c53030;
+    }
+    pre {
+      background: var(--dark); color: #e6edf3;
+      padding: 1.25rem; border-radius: 8px;
+      overflow-x: auto; margin: 1rem 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; line-height: 1.6;
+    }
+    pre code { background: none; color: inherit; padding: 0; }
+    hr { border: none; border-top: 2px solid var(--border); margin: 3rem 0; }
+
+    /* ── TABLES ─────────────────────────────────────────────────────── */
+    table {
+      width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem;
+      font-size: .85rem;
+    }
+    th {
+      background: var(--dark); color: #fff;
+      padding: .6rem .85rem; text-align: left; font-weight: 600;
+    }
+    td {
+      padding: .55rem .85rem; border-bottom: 1px solid var(--border);
+    }
+    tr:nth-child(even) td { background: #f9fafc; }
+    tr:hover td { background: #ebf4ff; }
+
+    /* ── SCREENSHOT GALLERY ────────────────────────────────────────── */
+    .screenshot-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem; margin: 1.5rem 0;
+    }
+    .screenshot-card {
+      border: 1.5px solid var(--border); border-radius: 8px;
+      overflow: hidden; transition: transform .2s, box-shadow .2s;
+    }
+    .screenshot-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    }
+    .screenshot-card img { width: 100%; display: block; }
+    .screenshot-card .sc-caption {
+      padding: .5rem .75rem; background: var(--dark);
+      color: #fff; font-size: .72rem; font-weight: 600;
+    }
+    .screenshot-card .sc-caption .sc-num {
+      display: inline-block; background: var(--blue);
+      color: #fff; width: 22px; height: 22px; border-radius: 4px;
+      text-align: center; line-height: 22px; font-size: .65rem;
+      margin-right: .4rem;
+    }
+
+    /* ── BADGES ─────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: .68rem; font-weight: 700;
+    }
+    .badge-green  { background: #c6f6d5; color: #276749; }
+    .badge-blue   { background: #bee3f8; color: #2c5282; }
+    .badge-purple { background: #e9d8fd; color: #553c9a; }
+
+    /* ── RESPONSIVE ────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .content { padding: 2rem 1.25rem; }
+      .header-banner { padding: 2.5rem 1.25rem 2rem; }
+      .header-banner h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand">🚀 <span>DevTeam</span> Hub</div>
+  <div class="sidebar-section">Documentation</div>
+  <a href="#what-is">What Is DevTeam Hub?</a>
+  <a href="#tech-stack">Technology Stack</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#ui-features">UI Features & Navigation</a>
+  <a href="#models">Models & Database</a>
+  <a href="#routes">Key URL Routes</a>
+  <a href="#auth">Authentication & Auth</a>
+  <a href="#webhooks">Webhooks & Integrations</a>
+  <a href="#cli">CLI & VS Code Extension</a>
+  <a href="#tools">On-Premises Tools</a>
+  <a href="#ai-agent">AI Agent (Local LLM)</a>
+  <a href="#i18n">Internationalisation</a>
+  <a href="#screenshots">Screenshots</a>
+  <div class="sidebar-section">Resources</div>
+  <a href="presentation.html">Presentation (Hebrew)</a>
+  <a href="stories_backlog.md">Stories Backlog</a>
+  <a href="project_overview.md">Markdown Source</a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- HEADER -->
+<div class="header-banner">
+  <h1>🚀 <span>DevTeam Hub</span> — Project Documentation</h1>
+  <div class="meta">Version 2.0 · Last updated: May 25, 2026 · Ruby on Rails 8.1.3 · SQLite3 · Bootstrap 5 · Stimulus JS</div>
+  <div class="header-stats">
+    <div class="header-stat"><span class="num">17</span><div class="lbl">Modules</div></div>
+    <div class="header-stat"><span class="num">22+</span><div class="lbl">DB Tables</div></div>
+    <div class="header-stat"><span class="num">122</span><div class="lbl">User Stories</div></div>
+    <div class="header-stat"><span class="num">87%</span><div class="lbl">Completion</div></div>
+    <div class="header-stat"><span class="num">8</span><div class="lbl">On-Prem Tools</div></div>
+    <div class="header-stat"><span class="num">39</span><div class="lbl">Screenshots</div></div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- 1. WHAT IS DEVTEAM HUB -->
+<h2 id="what-is">1. What Is DevTeam Hub?</h2>
+<p>
+  DevTeam Hub is an internal developer-team management dashboard built with Ruby on Rails 8.
+  It centralises every aspect of a software-development team's day-to-day work into a single web application:
+</p>
+<ul>
+  <li><strong>Project & Sprint tracking</strong> — manage projects, iterations, and milestones with quick-create actions</li>
+  <li><strong>Ticket (issue) management</strong> — comprehensive work items with CI status badges, cross-project views, and advanced filtering</li>
+  <li><strong>Customer support</strong> — customer accounts, support tickets, and software installation records</li>
+  <li><strong>CI/CD integration</strong> — real-time Jenkins build results and Gitea repository events via webhooks</li>
+  <li><strong>Deployment tracking</strong> — web, Windows installer, Windows service, and Docker deploys</li>
+  <li><strong>Meeting management</strong> — schedule and join Jitsi video meetings from within the app</li>
+  <li><strong>Documentation</strong> — project-scoped knowledge base with Markdown rendering and document templates</li>
+  <li><strong>Pull Request tracking</strong> — PR records synced from Gitea with CI test result integration</li>
+  <li><strong>Notifications</strong> — in-app and email notifications for ticket assignments and CI failures</li>
+  <li><strong>Chat rooms</strong> — Slack-style team messaging channels with rich entity references</li>
+  <li><strong>Customer Portal</strong> — isolated, secure portal for customers to view project status, submit tickets, and communicate</li>
+  <li><strong>Reporting</strong> — CI summary, deployment summary, test coverage, sprint velocity, and estimation accuracy reports</li>
+  <li><strong>Calendar</strong> — full calendar view with meetings and sprint milestones</li>
+  <li><strong>Internationalisation</strong> — full English and Hebrew (RTL) support</li>
+  <li><strong>Today Page</strong> — personalised landing page for each developer showing their day at a glance</li>
+  <li><strong>Admin panel</strong> — user management and client account administration</li>
+  <li><strong>CLI & VS Code extension</strong> — <code>devteam</code> / <code>dt</code> command-line tool and IDE integration via REST API</li>
+</ul>
+<p>
+  The application targets small-to-medium software teams (5–30 developers) who want an on-premise,
+  self-hosted alternative to Jira + Confluence + Freshdesk combined.
+</p>
+
+<!-- 2. TECHNOLOGY STACK -->
+<h2 id="tech-stack">2. Technology Stack</h2>
+<table>
+  <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+  <tbody>
+    <tr><td>Framework</td><td>Ruby on Rails 8.1.3</td></tr>
+    <tr><td>Language</td><td>Ruby 3.4.5</td></tr>
+    <tr><td>Database</td><td>SQLite3 (~> 2.0)</td></tr>
+    <tr><td>Web server</td><td>Puma</td></tr>
+    <tr><td>Background jobs</td><td>Solid Queue</td></tr>
+    <tr><td>Cache</td><td>Solid Cache</td></tr>
+    <tr><td>WebSockets</td><td>Solid Cable</td></tr>
+    <tr><td>Frontend CSS</td><td>Bootstrap 5 + Custom SCSS</td></tr>
+    <tr><td>Frontend JS</td><td>Stimulus + Turbo (Hotwire)</td></tr>
+    <tr><td>Asset pipeline</td><td>Propshaft + jsbundling-rails + cssbundling-rails</td></tr>
+    <tr><td>Authentication</td><td>Devise (dual model: User + CustomerUser)</td></tr>
+    <tr><td>Authorisation</td><td>Pundit</td></tr>
+    <tr><td>HTTP client</td><td>Faraday</td></tr>
+    <tr><td>Pagination</td><td>Kaminari</td></tr>
+    <tr><td>Charts</td><td>Chartkick + Groupdate</td></tr>
+    <tr><td>Search</td><td>Ransack</td></tr>
+    <tr><td>Notifications</td><td>Noticed ~> 2.0</td></tr>
+    <tr><td>Error tracking</td><td>Sentry (sentry-ruby + sentry-rails)</td></tr>
+    <tr><td>Logging</td><td>Lograge (JSON format) → Grafana Loki</td></tr>
+    <tr><td>Markdown</td><td>Redcarpet</td></tr>
+    <tr><td>Calendar export</td><td>iCalendar</td></tr>
+    <tr><td>Tagging</td><td>acts-as-taggable-on</td></tr>
+    <tr><td>PDF generation</td><td>Prawn + prawn-table</td></tr>
+    <tr><td>File uploads</td><td>Active Storage (local disk)</td></tr>
+    <tr><td>Testing (unit)</td><td>RSpec + FactoryBot + Shoulda-matchers + Faker</td></tr>
+    <tr><td>Testing (BDD)</td><td>Cucumber-rails + Capybara</td></tr>
+    <tr><td>Deployment tooling</td><td>Kamal + Thruster</td></tr>
+    <tr><td>Containerisation</td><td>Docker + docker-compose</td></tr>
+  </tbody>
+</table>
+
+<!-- 3. ARCHITECTURE -->
+<h2 id="architecture">3. Application Architecture</h2>
+<pre><code>┌─────────────────────────────────────────────────┐
+│                  Browser / PWA                  │
+│         Turbo frames + Stimulus JS              │
+└─────────────┬───────────────────────────────────┘
+              │ HTTP / WebSocket
+┌─────────────▼───────────────────────────────────┐
+│              Puma (Rails 8 app)                 │
+│  ┌─────────┐ ┌──────────────┐ ┌──────────────┐ │
+│  │ Routes  │ │  Controllers │ │    Views     │ │
+│  └────┬────┘ └──────┬───────┘ └──────┬───────┘ │
+│       │             │                │          │
+│  ┌────▼─────────────▼────────────────▼───────┐  │
+│  │              Active Record Models         │  │
+│  └────────────────────┬──────────────────────┘  │
+│                       │                         │
+│          ┌────────────▼──────────┐              │
+│          │     SQLite3 DB        │              │
+│          └───────────────────────┘              │
+│                                                 │
+│  ┌──────────────────────────────────────────┐   │
+│  │  Solid Queue (background jobs)           │   │
+│  │  · TicketMailer jobs                     │   │
+│  │  · Notification dispatch                 │   │
+│  │  · Gitea branch creation                 │   │
+│  └──────────────────────────────────────────┘   │
+│                                                 │
+│  ┌──────────────────────────────────────────┐   │
+│  │  Customer Portal (/portal)               │   │
+│  │  · Isolated Devise model (CustomerUser)  │   │
+│  │  · Separate base controller &amp; layout     │   │
+│  │  · Tickets, Messages, Milestones, Docs   │   │
+│  └──────────────────────────────────────────┘   │
+│                                                 │
+│  ┌──────────────────────────────────────────┐   │
+│  │  REST API (api/v1/*)                     │   │
+│  │  · CLI &amp; VS Code Extension backend       │   │
+│  │  · Tickets, CI Runs, Deployments, PRs    │   │
+│  │  · Loki log proxy                        │   │
+│  └──────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────┘
+              │                   │
+     ┌────────▼───┐      ┌────────▼───────┐
+     │  Jenkins   │      │   Gitea server │
+     │  (webhooks)│      │  (webhooks)    │
+     └────────────┘      └────────────────┘
+              │
+     ┌────────▼───────────────────────────┐
+     │  SonarQube + Ollama AI             │
+     │  (code review pipeline)            │
+     └───────────────────────────────────┘
+              │
+     ┌────────▼───────────────────────────┐
+     │  Grafana Loki + Promtail           │
+     │  (centralised logging)             │
+     └───────────────────────────────────┘</code></pre>
+
+<h3>Key Design Choices</h3>
+<ul>
+  <li>Shallow-nested routes keep URLs short while maintaining resource context</li>
+  <li>Polymorphic <code>comments</code> and <code>notifications</code> reduce table count</li>
+  <li><code>serialize :params, coder: JSON</code> on <code>Notification#params</code> since SQLite has no native JSON column</li>
+  <li>Enum integers stored in DB for efficiency; all enums have named scopes</li>
+  <li>Dual Devise authentication models for team (User) and customer (CustomerUser) isolation</li>
+  <li>Kebab dropdown menus (<code>⋮</code>) for table row actions to reduce visual clutter</li>
+  <li>Bootstrap 5 with RTL support via <code>dir="rtl"</code> attribute</li>
+</ul>
+
+<!-- 4. UI FEATURES -->
+<h2 id="ui-features">4. UI Features & Navigation</h2>
+
+<h3>4.1 Sidebar Navigation</h3>
+<p>The application uses a Slack-style sidebar with the following sections:</p>
+<table>
+  <thead><tr><th>Section</th><th>Items</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Navigation</strong></td><td>Today, Dashboard, Meetings, Calendar, Notifications, Documents, Customers, Active Sprint</td></tr>
+    <tr><td><strong>Tickets</strong></td><td>All Tickets (with filters), My Tickets, Late Tickets, Backlog, Current Sprint</td></tr>
+    <tr><td><strong>Sprints</strong></td><td>Per-project sprint links</td></tr>
+    <tr><td><strong>Projects</strong></td><td>New Project button, project list with CI status dots (green/red/amber)</td></tr>
+    <tr><td><strong>Reports</strong></td><td>CI Summary, Deployments, Test Coverage, Sprint Velocity, Estimation Accuracy</td></tr>
+    <tr><td><strong>Admin</strong></td><td>Users, Client Accounts (admin-only)</td></tr>
+    <tr><td><strong>Team</strong></td><td>Team member list with avatars, quick meeting invite</td></tr>
+    <tr><td><strong>User</strong></td><td>Avatar, name, profile edit, language toggle, sign out</td></tr>
+  </tbody>
+</table>
+
+<h3>4.2 Action Dropdown Menus</h3>
+<p>
+  All data tables use kebab (<code>⋮</code>) dropdown menus for row actions (edit, delete, view, etc.)
+  instead of inline buttons. This reduces visual clutter and provides a consistent interaction pattern.
+  The menus are RTL-aware and automatically adjust alignment for Hebrew layouts.
+</p>
+
+<h3>4.3 Cross-Project Ticket Views</h3>
+<table>
+  <thead><tr><th>View</th><th>Path</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>All Tickets</td><td><code>/tickets</code></td><td>All tickets with filters for status, project, assignee, and owner</td></tr>
+    <tr><td>My Tickets</td><td><code>/tickets/mine</code></td><td>Tickets assigned to the current user</td></tr>
+    <tr><td>Late Tickets</td><td><code>/tickets/late</code></td><td>Overdue tickets</td></tr>
+    <tr><td>Backlog</td><td><code>/tickets/backlog</code></td><td>Tickets in backlog status</td></tr>
+    <tr><td>Current Sprint</td><td><code>/tickets/current_sprint</code></td><td>Tickets in the active sprint</td></tr>
+  </tbody>
+</table>
+
+<!-- 5. MODELS -->
+<h2 id="models">5. Models & Database</h2>
+<p>The application has 22+ database tables. Key models include:</p>
+<table>
+  <thead><tr><th>Model</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><strong>User</strong></td><td>Team members with roles (developer, team_lead, project_manager, admin, qa)</td></tr>
+    <tr><td><strong>Project</strong></td><td>Top-level container with CI status, Gitea repo link, member management</td></tr>
+    <tr><td><strong>Ticket</strong></td><td>Work items with status, priority, assignee, sprint, milestone, CI, PR linking</td></tr>
+    <tr><td><strong>Sprint</strong></td><td>Iteration containers (planning → active → completed/cancelled)</td></tr>
+    <tr><td><strong>Milestone</strong></td><td>Release gates linked to projects and tickets</td></tr>
+    <tr><td><strong>CiRun</strong></td><td>Jenkins build records with status, duration, log URL</td></tr>
+    <tr><td><strong>TestResult</strong></td><td>Individual test case outcomes per CI run</td></tr>
+    <tr><td><strong>Deployment</strong></td><td>Deploy events (web/installer/service/Docker) per environment</td></tr>
+    <tr><td><strong>Document</strong></td><td>Markdown articles with templates, attachments, and tagging</td></tr>
+    <tr><td><strong>Meeting</strong></td><td>Scheduled meetings with Jitsi, iCal export, attendance</td></tr>
+    <tr><td><strong>Customer</strong></td><td>External customer accounts with soft-delete</td></tr>
+    <tr><td><strong>CustomerTicket</strong></td><td>Support tickets with resolution tracking and internal linking</td></tr>
+    <tr><td><strong>Installation</strong></td><td>Software version tracking at customer sites with auto-outdating</td></tr>
+    <tr><td><strong>PullRequest</strong></td><td>PR records from Gitea with CI test results</td></tr>
+    <tr><td><strong>Branch</strong></td><td>Git branch records synced from Gitea</td></tr>
+    <tr><td><strong>Notification</strong></td><td>Polymorphic in-app notifications (STI support)</td></tr>
+    <tr><td><strong>Comment</strong></td><td>Polymorphic comments on tickets, documents, meetings, PRs</td></tr>
+    <tr><td><strong>ChatRoom / ChatMessage</strong></td><td>Slack-style messaging channels</td></tr>
+    <tr><td><strong>ClientAccount</strong></td><td>CRM-style account records</td></tr>
+    <tr><td><strong>CustomerUser</strong></td><td>Separate Devise model for customer portal authentication</td></tr>
+  </tbody>
+</table>
+
+<!-- 6. ROUTES -->
+<h2 id="routes">6. Key URL Routes</h2>
+<table>
+  <thead><tr><th>Path</th><th>Controller#Action</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>/</code></td><td>dashboard#index</td><td>Root, requires auth</td></tr>
+    <tr><td><code>/today</code></td><td>today#index</td><td>Developer's personalised day view</td></tr>
+    <tr><td><code>/dashboard</code></td><td>dashboard#index</td><td>Team-wide dashboard</td></tr>
+    <tr><td><code>/calendar</code></td><td>calendar#index</td><td>Full calendar view</td></tr>
+    <tr><td><code>/projects</code></td><td>projects#index</td><td>Project list</td></tr>
+    <tr><td><code>/projects/new</code></td><td>projects#new</td><td>Create new project</td></tr>
+    <tr><td><code>/projects/:id</code></td><td>projects#show</td><td>Project detail</td></tr>
+    <tr><td><code>/projects/:id/ci_dashboard</code></td><td>projects#ci_dashboard</td><td>CI stats page</td></tr>
+    <tr><td><code>/tickets</code></td><td>tickets#all</td><td>All tickets with filters</td></tr>
+    <tr><td><code>/tickets/mine</code></td><td>tickets#mine</td><td>My assigned tickets</td></tr>
+    <tr><td><code>/tickets/late</code></td><td>tickets#late</td><td>Overdue tickets</td></tr>
+    <tr><td><code>/meetings</code></td><td>meetings#index</td><td>Meeting list</td></tr>
+    <tr><td><code>/notifications</code></td><td>notifications#index</td><td>In-app notifications</td></tr>
+    <tr><td><code>/customers</code></td><td>customers#index</td><td>Customer list</td></tr>
+    <tr><td><code>/reports/*</code></td><td>reports controllers</td><td>CI, deployments, test coverage, velocity, estimation</td></tr>
+    <tr><td><code>/admin/users</code></td><td>admin/users#index</td><td>User management</td></tr>
+    <tr><td><code>/admin/client_accounts</code></td><td>admin/client_accounts#index</td><td>Client accounts</td></tr>
+    <tr><td><code>/portal</code></td><td>customer_portal/dashboard#index</td><td>Customer portal</td></tr>
+    <tr><td><code>/webhooks/gitea</code></td><td>webhooks#gitea</td><td>Gitea webhook</td></tr>
+    <tr><td><code>/webhooks/jenkins</code></td><td>webhooks#jenkins</td><td>Jenkins webhook</td></tr>
+    <tr><td><code>/api/v1/*</code></td><td>API controllers</td><td>REST API for CLI & extension</td></tr>
+  </tbody>
+</table>
+
+<!-- 7. AUTH -->
+<h2 id="auth">7. Authentication & Authorisation</h2>
+
+<h3>Devise (Dual Model)</h3>
+<p>
+  <strong>Team (User):</strong> database_authenticatable, registerable, recoverable, rememberable, validatable.
+  Post-login redirect → <code>today_path</code>.
+</p>
+<p>
+  <strong>Customers (CustomerUser):</strong> Separate Devise under <code>/portal</code>.
+  Isolated base controller, separate layout, scoped data access.
+</p>
+
+<h3>Pundit</h3>
+<ul>
+  <li>Policies on all resources</li>
+  <li>Role hierarchy: developer &lt; team_lead &lt; project_manager &lt; admin / qa</li>
+  <li><code>NotAuthorizedError</code> → redirect with flash</li>
+</ul>
+
+<!-- 8. WEBHOOKS -->
+<h2 id="webhooks">8. Webhooks & Integrations</h2>
+<table>
+  <thead><tr><th>Endpoint</th><th>Source</th><th>Verification</th></tr></thead>
+  <tbody>
+    <tr><td><code>POST /webhooks/gitea</code></td><td>Gitea server</td><td>HMAC-SHA256</td></tr>
+    <tr><td><code>POST /webhooks/jenkins</code></td><td>Jenkins</td><td>Secret token header</td></tr>
+    <tr><td><code>POST /webhooks/exception</code></td><td>Exception reporting</td><td>—</td></tr>
+  </tbody>
+</table>
+<p>Events: Gitea push → Branch, pull_request → PullRequest, issues → Ticket. Jenkins build → CiRun + notifications.</p>
+
+<!-- 9. CLI -->
+<h2 id="cli">9. CLI & VS Code Extension</h2>
+<p>REST API at <code>/api/v1/</code> powers the <code>devteam</code> / <code>dt</code> CLI and VS Code extension:</p>
+<ul>
+  <li><strong>Tickets:</strong> list, show, create, update</li>
+  <li><strong>CI Runs:</strong> list, show, create, with test results</li>
+  <li><strong>Deployments:</strong> list, show, create, update</li>
+  <li><strong>Pull Requests:</strong> list, show, create</li>
+  <li><strong>Logs:</strong> query Loki, list services, push logs, stats</li>
+  <li><strong>Projects:</strong> list, show</li>
+  <li><strong>Auth:</strong> token management</li>
+</ul>
+
+<!-- 10. TOOLS -->
+<h2 id="tools">10. On-Premises Tools</h2>
+<table>
+  <thead><tr><th>Tool</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Gitea</strong></td><td>Git server — repos, branches, PRs, code review</td></tr>
+    <tr><td><strong>Jenkins</strong></td><td>CI/CD — builds, tests, deployments</td></tr>
+    <tr><td><strong>Jitsi</strong></td><td>Video conferencing — meetings, stand-ups</td></tr>
+    <tr><td><strong>SonarQube</strong></td><td>Static code analysis — Quality Gates, OWASP SAST</td></tr>
+    <tr><td><strong>Ollama</strong></td><td>AI code review — Qwen2.5-Coder 32B, local</td></tr>
+    <tr><td><strong>Grafana Loki</strong></td><td>Centralised logging — JSON, correlation IDs</td></tr>
+    <tr><td><strong>Grafana</strong></td><td>Log dashboards and alerting</td></tr>
+    <tr><td><strong>Sentry</strong></td><td>Error tracking and monitoring</td></tr>
+  </tbody>
+</table>
+
+<!-- 11. AI AGENT -->
+<h2 id="ai-agent">11. AI Agent — Local LLM Integration</h2>
+<p>
+  DevTeam Hub embeds a <strong>local LLM running on an on-prem Mac mini</strong> (via
+  <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a>), reached over a plain REST
+  API on the LAN (<code>Ai::OllamaClient</code>, built on Faraday). <strong>No code, ticket text, or
+  customer data is ever sent to an external AI provider</strong> — inference stays on infrastructure
+  you control, which is exactly what air-gapped, regulated and NDA-bound teams need.
+</p>
+<p>
+  Every run is persisted as an auditable <code>AiReview</code> record (kind, status, verdict, score,
+  full response, prompt, duration). Services live in <code>app/services/ai/</code> and share a common
+  <code>Ai::BaseService</code> lifecycle; HTTP entry points are under <code>/tools/ai/*</code>.
+</p>
+<table>
+  <thead><tr><th>#</th><th>Service</th><th>What it does</th><th>Trigger</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><strong>Ticket readiness</strong></td><td>Verifies story-telling / Definition of Ready; auto-reassigns poorly-written tickets back to the owner</td><td>Ticket page · "✅ Check readiness"</td></tr>
+    <tr><td>2</td><td><strong>Code review</strong></td><td>Reviews a diff for bugs, security, lint &amp; best practice across Go / Ruby / C# / Node</td><td>Ticket page · "🔍 Code review"</td></tr>
+    <tr><td>3</td><td><strong>Cucumber test review</strong></td><td>Reviews <code>.feature</code> files; suggests changes and missing scenarios</td><td>Ticket page · "🧪 Test review"</td></tr>
+    <tr><td>4</td><td><strong>Estimation accuracy</strong></td><td>Estimated vs actual delivery time; bias, per-developer patterns, coaching</td><td>Sprint page · "📊 AI Estimation"</td></tr>
+    <tr><td>5</td><td><strong>Sprint analysis</strong></td><td>Live sprint-health read (on track? risks? next step?)</td><td>Sprint page · live panel</td></tr>
+    <tr><td>6</td><td><strong>Solution suggestion</strong></td><td>Reads a ticket and proposes an implementation approach</td><td>Ticket page · "💡 Suggest solution"</td></tr>
+    <tr><td>7</td><td><strong>Fix that bug</strong></td><td>Diagnoses a bug ticket and proposes a concrete, minimal fix + tests</td><td>Ticket page · "🐛 Fix that bug"</td></tr>
+    <tr><td>8</td><td><strong>Generate tasks &amp; estimations</strong></td><td>Breaks a story into estimable Tasks, calibrating estimates on the project's historical estimate-vs-actual data</td><td>Ticket page · "🧩 Generate tasks &amp; estimations"</td></tr>
+    <tr><td>9</td><td><strong>Status presentation</strong></td><td>Generates a slide-style project status presentation from live metrics, saved as a Document</td><td>Project page · "🤖 Status Presentation"</td></tr>
+    <tr><td>10</td><td><strong>Specification document</strong></td><td>Generates a structured spec from the project's user stories, saved as a Document</td><td>Project page · "🤖 Generate Spec"</td></tr>
+    <tr><td>11</td><td><strong>Chat with AI</strong></td><td>Project-scoped, OpenAI-style assistant. Loads the project's git repo, tickets, sprint, team messages and a per-developer performance summary as context — answers questions like "who delivers fastest / estimates best?" and "what's the current sprint status?", and drafts documents on demand</td><td>Project page · "💬 Chat with AI"</td></tr>
+  </tbody>
+</table>
+<p>
+  <strong>Tasks:</strong> stories break into <code>Task</code> records (small, estimable slices with
+  estimation / actual / start / complete timestamps). A story auto-seeds one task on creation, and
+  task completion drives the story's progress bar — making AI-generated breakdowns immediately useful.
+</p>
+<p>
+  <strong>Config:</strong> <code>OLLAMA_URL</code>, <code>OLLAMA_MODEL</code>,
+  <code>OLLAMA_TIMEOUT</code> (see <code>.env.example</code>). Full setup, CI usage and the roadmap of
+  additional services are in <code>docs/ai_integration.md</code>.
+</p>
+
+<!-- 12. I18N -->
+<h2 id="i18n">12. Internationalisation</h2>
+<ul>
+  <li><strong>Locales:</strong> English (<code>en</code>) and Hebrew (<code>he</code>) with full RTL support</li>
+  <li><strong>User preference:</strong> <code>preferred_language</code> on User model</li>
+  <li><strong>Detection order:</strong> <code>params[:locale]</code> → <code>current_user.preferred_language</code> → default</li>
+  <li><strong>Language toggle:</strong> available in sidebar footer</li>
+</ul>
+
+<!-- 13. SCREENSHOTS -->
+<h2 id="screenshots">13. Screenshots</h2>
+<p>Application screenshots are available in both languages. Below are the English (LTR) versions:</p>
+
+<h3>Today & Dashboard</h3>
+<div class="screenshot-gallery">
+  <div class="screenshot-card">
+    <img src="screenshots/en/01_today.png" alt="Today Page">
+    <div class="sc-caption"><span class="sc-num">01</span> Today (personal dashboard)</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/02_dashboard.png" alt="Dashboard">
+    <div class="sc-caption"><span class="sc-num">02</span> Dashboard (team overview)</div>
+  </div>
+</div>
+
+<h3>Tickets</h3>
+<div class="screenshot-gallery">
+  <div class="screenshot-card">
+    <img src="screenshots/en/03_all_tickets.png" alt="All Tickets">
+    <div class="sc-caption"><span class="sc-num">03</span> All Tickets (with filters)</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/04_my_tickets.png" alt="My Tickets">
+    <div class="sc-caption"><span class="sc-num">04</span> My Tickets</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/05_late_tickets.png" alt="Late Tickets">
+    <div class="sc-caption"><span class="sc-num">05</span> Late Tickets</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/06_backlog.png" alt="Backlog">
+    <div class="sc-caption"><span class="sc-num">06</span> Backlog</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/07_current_sprint.png" alt="Current Sprint">
+    <div class="sc-caption"><span class="sc-num">07</span> Current Sprint</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/08_ticket_detail.png" alt="Ticket Detail">
+    <div class="sc-caption"><span class="sc-num">08</span> Ticket Detail</div>
+  </div>
+</div>
+
+<h3>Projects & Sprints</h3>
+<div class="screenshot-gallery">
+  <div class="screenshot-card">
+    <img src="screenshots/en/09_projects.png" alt="Projects">
+    <div class="sc-caption"><span class="sc-num">09</span> Projects List</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/10_project_detail.png" alt="Project Detail">
+    <div class="sc-caption"><span class="sc-num">10</span> Project Detail</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/11_project_tickets.png" alt="Project Tickets">
+    <div class="sc-caption"><span class="sc-num">11</span> Project Tickets</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/14_project_sprints.png" alt="Project Sprints">
+    <div class="sc-caption"><span class="sc-num">14</span> Project Sprints</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/30_sprint_detail.png" alt="Sprint Detail">
+    <div class="sc-caption"><span class="sc-num">30</span> Sprint Detail</div>
+  </div>
+</div>
+
+<h3>CI/CD & Deployments</h3>
+<div class="screenshot-gallery">
+  <div class="screenshot-card">
+    <img src="screenshots/en/17_ci_dashboard.png" alt="CI Dashboard">
+    <div class="sc-caption"><span class="sc-num">17</span> CI Dashboard</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/12_project_ci_runs.png" alt="CI Runs">
+    <div class="sc-caption"><span class="sc-num">12</span> Project CI Runs</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/28_ci_run_detail.png" alt="CI Run Detail">
+    <div class="sc-caption"><span class="sc-num">28</span> CI Run Detail</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/13_project_deployments.png" alt="Deployments">
+    <div class="sc-caption"><span class="sc-num">13</span> Project Deployments</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/29_deployment_detail.png" alt="Deployment Detail">
+    <div class="sc-caption"><span class="sc-num">29</span> Deployment Detail</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/15_project_pull_requests.png" alt="Pull Requests">
+    <div class="sc-caption"><span class="sc-num">15</span> Pull Requests</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/31_pull_request_detail.png" alt="PR Detail">
+    <div class="sc-caption"><span class="sc-num">31</span> PR Detail</div>
+  </div>
+</div>
+
+<h3>Meetings, Calendar & Notifications</h3>
+<div class="screenshot-gallery">
+  <div class="screenshot-card">
+    <img src="screenshots/en/18_meetings.png" alt="Meetings">
+    <div class="sc-caption"><span class="sc-num">18</span> Meetings</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/19_meeting_detail.png" alt="Meeting Detail">
+    <div class="sc-caption"><span class="sc-num">19</span> Meeting Detail</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/20_calendar.png" alt="Calendar">
+    <div class="sc-caption"><span class="sc-num">20</span> Calendar</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/21_notifications.png" alt="Notifications">
+    <div class="sc-caption"><span class="sc-num">21</span> Notifications</div>
+  </div>
+</div>
+
+<h3>Documents</h3>
+<div class="screenshot-gallery">
+  <div class="screenshot-card">
+    <img src="screenshots/en/22_documents.png" alt="Documents">
+    <div class="sc-caption"><span class="sc-num">22</span> Documents (all)</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/16_project_documents.png" alt="Project Documents">
+    <div class="sc-caption"><span class="sc-num">16</span> Project Documents</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/23_document_detail.png" alt="Document Detail">
+    <div class="sc-caption"><span class="sc-num">23</span> Document Detail</div>
+  </div>
+</div>
+
+<h3>Customer Management</h3>
+<div class="screenshot-gallery">
+  <div class="screenshot-card">
+    <img src="screenshots/en/24_customers.png" alt="Customers">
+    <div class="sc-caption"><span class="sc-num">24</span> Customers</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/25_customer_detail.png" alt="Customer Detail">
+    <div class="sc-caption"><span class="sc-num">25</span> Customer Detail</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/26_customer_tickets.png" alt="Customer Tickets">
+    <div class="sc-caption"><span class="sc-num">26</span> Customer Tickets</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/27_installations.png" alt="Installations">
+    <div class="sc-caption"><span class="sc-num">27</span> Installations</div>
+  </div>
+</div>
+
+<h3>Reports</h3>
+<div class="screenshot-gallery">
+  <div class="screenshot-card">
+    <img src="screenshots/en/32_report_ci_summary.png" alt="CI Summary">
+    <div class="sc-caption"><span class="sc-num">32</span> Report: CI Summary</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/33_report_deployments.png" alt="Deployments Report">
+    <div class="sc-caption"><span class="sc-num">33</span> Report: Deployments</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/34_report_test_coverage.png" alt="Test Coverage">
+    <div class="sc-caption"><span class="sc-num">34</span> Report: Test Coverage</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/35_report_velocity.png" alt="Sprint Velocity">
+    <div class="sc-caption"><span class="sc-num">35</span> Report: Sprint Velocity</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/36_report_estimation.png" alt="Estimation Accuracy">
+    <div class="sc-caption"><span class="sc-num">36</span> Report: Estimation Accuracy</div>
+  </div>
+</div>
+
+<h3>Admin & Profile</h3>
+<div class="screenshot-gallery">
+  <div class="screenshot-card">
+    <img src="screenshots/en/37_admin_users.png" alt="Admin Users">
+    <div class="sc-caption"><span class="sc-num">37</span> Admin: Users</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/38_admin_clients.png" alt="Admin Clients">
+    <div class="sc-caption"><span class="sc-num">38</span> Admin: Client Accounts</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="screenshots/en/39_profile_edit.png" alt="Profile Edit">
+    <div class="sc-caption"><span class="sc-num">39</span> Profile Edit</div>
+  </div>
+</div>
+
+</div><!-- .content -->
+</div><!-- .main -->
+
+</body>
+</html>

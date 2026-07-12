@@ -1,0 +1,29 @@
+<%#
+  A consistent "you are here" header for show pages. Renders a typed pill
+  (so it's instantly clear *what kind* of record you're viewing) followed by a
+  breadcrumb trail.
+
+  locals:
+    type   - String label, e.g. "Project" / "Ticket" / "Sprint"
+    icon   - emoji shown in the pill, e.g. "📦"
+    color  - bootstrap bg-* suffix for the pill, e.g. "primary"
+    crumbs - Array of [label, path] pairs; the last one is the current page
+             (pass nil as its path). e.g. [["Projects", projects_path], [@project.name, nil]]
+%>
+<nav class="context-bar d-flex align-items-center flex-wrap gap-2 mb-2" aria-label="breadcrumb">
+  <span class="badge rounded-pill bg-<%= color %> text-uppercase" style="letter-spacing:.04em;">
+    <%= icon %> <%= type %>
+  </span>
+  <ol class="breadcrumb mb-0 fs-7">
+    <% crumbs.each_with_index do |(label, path), i| %>
+      <% last = (i == crumbs.size - 1) %>
+      <li class="breadcrumb-item <%= 'active fw-semibold' if last %>">
+        <% if path && !last %>
+          <%= link_to label, path, class: "text-decoration-none" %>
+        <% else %>
+          <%= label %>
+        <% end %>
+      </li>
+    <% end %>
+  </ol>
+</nav>

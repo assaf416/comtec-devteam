@@ -1,0 +1,22 @@
+<% content_for :title, "My Calendar" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <h1 class="fw-bold">📅 My Calendar</h1>
+  </div>
+  <div class="level-right">
+    <div class="d-flex gap-2 align-items-center fs-7">
+      <span class="badge rounded-pill" style="background:#4a90d9;">● Meetings</span>
+      <span class="badge rounded-pill" style="background:#e84545;">● Milestones</span>
+      <span class="badge rounded-pill" style="background:#38c96d;">● Sprints</span>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3 mb-3">
+  <div data-controller="calendar"
+       data-calendar-events-url-value="<%= calendar_events_path(format: :json) %>"
+       data-calendar-initial-view-value="dayGridMonth"
+       style="min-height: 600px;">
+  </div>
+</div>

@@ -1,0 +1,57 @@
+<% content_for :title, t('nav.meetings') %>
+
+<div class="level">
+  <div class="level-left"><h1 class="fw-bold"><%= t('nav.meetings') %></h1></div>
+  <div class="level-right"><%= link_to "Schedule Meeting", new_meeting_path, class: "btn btn-primary" %></div>
+</div>
+
+<% upcoming = @meetings.select { |m| m.scheduled_at >= Time.current && m.status != 'cancelled' } %>
+<% past = @meetings.select { |m| m.scheduled_at < Time.current || m.status == 'completed' } %>
+
+<% if upcoming.any? %>
+  <h2 class="subfw-bold mt-4">Upcoming</h2>
+  <div class="row">
+    <% upcoming.each do |meeting| %>
+      <div class="col-6">
+        <div class="card p-3 mb-3">
+          <div class="level">
+            <div class="level-left">
+              <div>
+                <p class="fw-bold fs-6"><%= link_to meeting.title, meeting %></p>
+                <p class="fs-7 text-muted">
+                  <%= meeting.scheduled_at.strftime('%A, %d/%m/%Y %H:%M') %>
+                  · <%= t("meetings.types.#{meeting.meeting_type}") %>
+                  <% if meeting.project %> · <%= meeting.project.name %><% end %>
+                </p>
+              </div>
+            </div>
+            <div class="level-right">
+              <%= link_to t("common.actions.join"), meeting.jitsi_url, target: "_blank", class: "btn btn-secondary btn-sm is-link" %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if past.any? %>
+  <h2 class="subfw-bold mt-4">Past Meetings</h2>
+  <table class="table table-hover w-100">
+    <thead>
+      <tr><th><%= t('table_headers.title') %></th><th><%= t('table_headers.type') %></th><th><%= t('table_headers.date') %></th><th><%= t('table_headers.project') %></th><th><%= t('table_headers.status') %></th><th><%= t('table_headers.recording') %></th></tr>
+    </thead>
+    <tbody>
+      <% past.first(20).each do |meeting| %>
+        <tr>
+          <td><%= link_to meeting.title, meeting %></td>
+          <td><%= t("meetings.types.#{meeting.meeting_type}") %></td>
+          <td><%= meeting.scheduled_at.strftime('%d/%m/%Y') %></td>
+          <td><%= meeting.project&.name || '—' %></td>
+          <td><%= status_tag(meeting.status) %></td>
+          <td><% if meeting.recording_url.present? %><%= link_to "▶", meeting.recording_url, target: "_blank" %><% end %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

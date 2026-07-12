@@ -1,0 +1,65 @@
+<% content_for :title, "Templates – #{@project.name}" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-0"><i class="bi bi-file-earmark-code me-2"></i>Document Templates — <%= @project.name %></h1>
+      <p class="text-muted small mb-0">Templates are reusable documents. Create a new document from any template below.</p>
+    </div>
+  </div>
+  <div class="level-right d-flex gap-2">
+    <%= link_to project_documents_path(@project), class: "btn btn-outline-secondary btn-sm" do %>
+      <i class="bi bi-arrow-left me-1"></i>All Documents
+    <% end %>
+    <%= link_to new_project_document_path(@project, template: true), class: "btn btn-warning btn-sm" do %>
+      <i class="bi bi-plus-lg me-1"></i>New Template
+    <% end %>
+  </div>
+</div>
+
+<% if @templates.any? %>
+  <div class="row g-3">
+    <% @templates.each do |tmpl| %>
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-warning shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="card-title mb-0"><%= link_to tmpl.title, document_path(tmpl) %></h5>
+              <span class="badge bg-warning text-dark ms-2 text-nowrap">
+                <i class="bi bi-file-earmark-code me-1"></i>Template
+              </span>
+            </div>
+            <p class="text-muted small mb-2">
+              <%= t("documents.types.#{tmpl.doc_type}") %> · v<%= tmpl.version_number.presence || '1.0' %>
+              · by <%= tmpl.author&.display_name || 'Unknown' %>
+            </p>
+            <% if tmpl.summary.present? %>
+              <p class="card-text small"><%= tmpl.summary.truncate(120) %></p>
+            <% end %>
+            <% count = tmpl.generated_documents.count %>
+            <% if count > 0 %>
+              <p class="text-muted small mb-0"><i class="bi bi-copy me-1"></i><%= count %> document(s) generated</p>
+            <% end %>
+          </div>
+          <div class="card-footer bg-transparent d-flex gap-2">
+            <%= link_to new_from_template_document_path(tmpl), class: "btn btn-sm btn-success flex-fill" do %>
+              <i class="bi bi-copy me-1"></i>Use Template
+            <% end %>
+            <%= link_to edit_document_path(tmpl), class: "btn btn-sm btn-outline-secondary" do %>
+              <i class="bi bi-pencil"></i>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-file-earmark-code display-4 d-block mb-3"></i>
+    <p>No templates yet.</p>
+    <p class="small">Open any document and click <strong>Save as Template</strong>, or create one directly.</p>
+    <%= link_to new_project_document_path(@project, template: true), class: "btn btn-warning" do %>
+      <i class="bi bi-plus-lg me-1"></i>Create First Template
+    <% end %>
+  </div>
+<% end %>

@@ -1,0 +1,66 @@
+<%# Tasks panel for a ticket. locals: ticket %>
+<% progress = ticket.task_progress %>
+<div class="card p-3 mb-3" id="tasks">
+  <div class="d-flex align-items-center mb-2">
+    <h3 class="subfw-bold mb-0">🧩 Tasks
+      <span class="text-muted fs-7">(<%= progress[:completed] %>/<%= progress[:total] %> done)</span>
+    </h3>
+    <% if ticket.total_tasks_estimation.to_f.positive? %>
+      <span class="badge bg-light text-dark ms-2" title="Total tasks estimation">⏱ <%= ticket.total_tasks_estimation %>h</span>
+    <% end %>
+    <span class="badge bg-success ms-auto"><%= progress[:percent] %>%</span>
+  </div>
+
+  <% if progress[:total].positive? %>
+    <div class="progress mb-3" style="height:6px;">
+      <div class="progress-bar bg-success" style="width:<%= progress[:percent] %>%"></div>
+    </div>
+  <% end %>
+
+  <% if ticket.tasks.ordered.any? %>
+    <% ticket.tasks.ordered.each do |task| %>
+      <div class="d-flex align-items-start gap-2 py-2 border-bottom">
+        <span class="badge <%= task.status_badge_class %> mt-1"><%= task.status.humanize %></span>
+        <div class="flex-grow-1">
+          <div class="<%= 'text-decoration-line-through text-muted' if task.completed? %>"><%= task.description %></div>
+          <div class="fs-7 text-muted">
+            <% if task.estimation.present? %>est: <%= task.estimation %><% end %>
+            <% if task.actual.present? %> · actual: <%= task.actual %><% end %>
+            <% if task.user %> · <%= task.user.display_name %><% end %>
+          </div>
+        </div>
+        <div class="d-flex gap-1">
+          <% if task.status == "not_started" %>
+            <%= button_to "▶", start_ticket_task_path(ticket, task), method: :patch,
+                  class: "btn btn-sm btn-outline-info", title: "Start" %>
+          <% end %>
+          <% unless task.completed? %>
+            <%= button_to "✓", complete_ticket_task_path(ticket, task), method: :patch,
+                  class: "btn btn-sm btn-outline-success", title: "Complete" %>
+          <% else %>
+            <%= button_to "↺", reopen_ticket_task_path(ticket, task), method: :patch,
+                  class: "btn btn-sm btn-outline-secondary", title: "Reopen" %>
+          <% end %>
+          <%= button_to "🗑", ticket_task_path(ticket, task), method: :delete,
+                class: "btn btn-sm btn-outline-danger", title: "Delete",
+                data: { turbo_confirm: "Delete this task?" } %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="text-muted fs-7">No tasks yet. Add one below, or use 🧩 <em>Generate tasks &amp; estimations</em>.</p>
+  <% end %>
+
+  <%# Add task %>
+  <%= form_with url: ticket_tasks_path(ticket), method: :post, class: "row g-2 mt-2" do %>
+    <div class="col-7">
+      <input type="text" name="task[description]" class="form-control form-control-sm" placeholder="New task…" required>
+    </div>
+    <div class="col-3">
+      <input type="text" name="task[estimation]" class="form-control form-control-sm" placeholder="est (e.g. 2h)">
+    </div>
+    <div class="col-2">
+      <%= submit_tag "Add", class: "btn btn-sm btn-primary w-100" %>
+    </div>
+  <% end %>
+</div>

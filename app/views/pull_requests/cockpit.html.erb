@@ -1,0 +1,112 @@
+<% content_for :title, "Merge cockpit ##{@pull_request.pr_number}" %>
+
+<%= render "shared/context_bar", type: "Pull Request", icon: "🔀", color: "primary",
+      crumbs: [
+        ["Projects", projects_path],
+        [@project.name, project_path(@project)],
+        ["PRs", project_pull_requests_path(@project)],
+        ["##{@pull_request.pr_number} · Merge", nil]
+      ] %>
+
+<div class="d-flex align-items-start justify-content-between mb-3">
+  <div>
+    <h2 class="fw-bold mb-1">🔀 Merge cockpit
+      <span class="text-muted">#<%= @pull_request.pr_number %></span>
+    </h2>
+    <div class="fw-semibold"><%= @pull_request.title %></div>
+    <%= link_to "Open full PR →", pull_request_path(@pull_request), class: "small text-decoration-none" %>
+  </div>
+  <span class="badge bg-<%= @analysis.state_color %> fs-6 align-self-center"><%= @analysis.state_label %></span>
+</div>
+
+<div data-controller="conflict-resolver">
+  <div class="row g-3">
+    <%# ── Mergeability checks ──────────────────────────────────────────────── %>
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-header"><strong><i class="bi bi-shield-check me-2"></i>Pre-merge checks</strong></div>
+        <ul class="list-group list-group-flush">
+          <% @analysis.checks.each do |name, c| %>
+            <li class="list-group-item d-flex align-items-center justify-content-between">
+              <span><%= c[:ok] ? "✅" : "❌" %> <%= name.to_s.humanize %></span>
+              <span class="text-muted fs-7"><%= c[:label] %></span>
+            </li>
+          <% end %>
+        </ul>
+        <div class="card-body">
+          <% if @pull_request.status == "merged" %>
+            <div class="alert alert-secondary mb-2 fs-7">Merged <%= @pull_request.merged_at&.strftime("%b %-d, %Y %H:%M") %>.</div>
+          <% else %>
+            <% unless @analysis.checks[:tests][:ok] %>
+              <div class="alert alert-warning py-2 fs-8 mb-2">Tests aren't green — merging anyway is allowed but discouraged.</div>
+            <% end %>
+            <div class="d-flex align-items-center gap-2">
+              <%= form_with url: merge_pull_request_path(@pull_request), method: :post do %>
+                <button type="submit" class="btn btn-success"
+                        data-conflict-resolver-target="mergeBtn"
+                        data-turbo-confirm="Merge ##{@pull_request.pr_number} into the target branch?">
+                  <i class="bi bi-git me-1"></i> Merge pull request
+                </button>
+              <% end %>
+              <span class="text-muted fs-7" data-conflict-resolver-target="summary"></span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Conflict resolver ────────────────────────────────────────────────── %>
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <strong><i class="bi bi-exclamation-diamond me-2"></i>Conflicts</strong>
+          <span class="badge bg-secondary"><%= @analysis.conflicts.size %></span>
+        </div>
+        <div class="card-body">
+          <% if @analysis.conflicts.empty? %>
+            <p class="text-success mb-0"><i class="bi bi-check-circle me-1"></i>No merge conflicts — this branch applies cleanly.</p>
+          <% else %>
+            <p class="fs-7 text-muted">For each file, take <strong>incoming</strong> or <strong>base</strong> (or hand-edit the result), then merge.</p>
+            <% @analysis.conflicts.each_with_index do |c, i| %>
+              <div class="border rounded mb-3" data-conflict-block
+                   data-ours="<%= c['ours'] %>" data-theirs="<%= c['theirs'] %>"
+                   data-conflict-resolver-target="block" data-resolved="false">
+                <div class="d-flex align-items-center justify-content-between px-2 py-1 bg-light border-bottom">
+                  <code class="small"><%= c["path"] %></code>
+                  <span class="badge bg-warning text-dark resolved-badge">conflict</span>
+                </div>
+                <div class="row g-0">
+                  <div class="col-6 border-end">
+                    <div class="px-2 py-1 fs-8 fw-semibold text-success">Incoming (this PR)</div>
+                    <pre class="m-0 p-2 fs-8" style="max-height:160px;overflow:auto;background:#0d1117;color:#9ece6a;"><%= c["ours"] %></pre>
+                    <button type="button" class="btn btn-sm btn-outline-success w-100 rounded-0"
+                            data-action="conflict-resolver#use" data-conflict-resolver-side-param="ours">Use incoming ↓</button>
+                  </div>
+                  <div class="col-6">
+                    <div class="px-2 py-1 fs-8 fw-semibold text-primary">Base (target)</div>
+                    <pre class="m-0 p-2 fs-8" style="max-height:160px;overflow:auto;background:#0d1117;color:#7aa2f7;"><%= c["theirs"] %></pre>
+                    <button type="button" class="btn btn-sm btn-outline-primary w-100 rounded-0"
+                            data-action="conflict-resolver#use" data-conflict-resolver-side-param="theirs">Use base ↓</button>
+                  </div>
+                </div>
+                <div class="px-2 py-1 fs-8 fw-semibold text-muted border-top">Resolved result</div>
+                <textarea data-result data-action="input->conflict-resolver#edit"
+                          class="form-control border-0 rounded-0 fs-8" rows="5"
+                          style="font-family:ui-monospace,monospace;" placeholder="Pick a side above or edit the merged result here…"></textarea>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  [data-conflict-block].resolved { border-color:#2f9e44 !important; }
+  [data-conflict-block].resolved .resolved-badge { display:none; }
+  [data-conflict-block].resolved::before {
+    content:"✓ resolved"; float:right; color:#2f9e44; font-size:.72rem; font-weight:700;
+    margin:.3rem .5rem;
+  }
+</style>

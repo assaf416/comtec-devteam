@@ -1,0 +1,931 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+#
+# dt — DevTeam Hub TUI client
+# Usage: dt <command> [subcommand] [args]
+#
+# Run `dt help` for a full list of commands.
+#
+
+require "net/http"
+require "uri"
+require "json"
+require "yaml"
+require "fileutils"
+require "open3"
+require "io/console"
+
+# ─── Configuration ─────────────────────────────────────────────────────────────
+
+module Dt
+  CONFIG_PATH = File.expand_path("~/.devteam.yml")
+  DEFAULT_HOST = "http://localhost:3000"
+  VERSION = "1.0.0"
+
+  def self.config
+    @config ||= File.exist?(CONFIG_PATH) ? YAML.load_file(CONFIG_PATH, permitted_classes: [ Symbol ]) : {}
+  end
+
+  def self.save_config(data)
+    FileUtils.mkdir_p(File.dirname(CONFIG_PATH))
+    File.write(CONFIG_PATH, data.to_yaml)
+    @config = data
+  end
+
+  def self.host  = config["host"] || DEFAULT_HOST
+  def self.token = config["token"]
+
+  # ─── API Client ──────────────────────────────────────────────────────────────
+
+  def self.api(method, path, body: nil, params: {})
+    uri = URI("#{host}/api/v1#{path}")
+    uri.query = URI.encode_www_form(params) if params.any?
+
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = uri.scheme == "https"
+    http.open_timeout = 5
+    http.read_timeout = 15
+
+    req = case method
+    when :get    then Net::HTTP::Get.new(uri)
+    when :post   then Net::HTTP::Post.new(uri)
+    when :patch  then Net::HTTP::Patch.new(uri)
+    when :delete then Net::HTTP::Delete.new(uri)
+    end
+
+    req["Authorization"] = "Bearer #{token}"
+    req["Content-Type"]  = "application/json"
+    req["Accept"]        = "application/json"
+    req.body = body.to_json if body
+
+    res = http.request(req)
+    data = JSON.parse(res.body) rescue { "raw" => res.body }
+
+    if res.code.to_i >= 400
+      abort paint(:red, "✗ API error #{res.code}: #{data['error'] || data.inspect}")
+    end
+
+    data
+  rescue Errno::ECONNREFUSED
+    abort paint(:red, "✗ Cannot connect to DevTeam Hub at #{host}. Is the server running?")
+  rescue Net::OpenTimeout, Net::ReadTimeout
+    abort paint(:red, "✗ Connection to #{host} timed out.")
+  end
+
+  # ─── Git helpers ─────────────────────────────────────────────────────────────
+
+  def self.git(cmd, capture: false)
+    full = "git #{cmd}"
+    if capture
+      out, _err, st = Open3.capture3(full)
+      st.success? ? out.strip : nil
+    else
+      system(full)
+    end
+  end
+
+  def self.current_branch
+    git("rev-parse --abbrev-ref HEAD", capture: true)
+  end
+
+  def self.ticket_id_from_branch(branch = nil)
+    branch ||= current_branch
+    m = branch&.match(%r{(?:feature|bugfix|hotfix|chore|spike)/T-(\d+)})
+    m&.[](1)&.to_i
+  end
+
+  def self.current_ticket_id!
+    tid = ticket_id_from_branch
+    abort paint(:yellow, "No ticket linked to current branch. Use: dt ticket checkout <ID>") unless tid
+    tid
+  end
+
+  # ─── TUI Display ─────────────────────────────────────────────────────────────
+
+  COLORS = {
+    red: 31, green: 32, yellow: 33, blue: 34,
+    magenta: 35, cyan: 36, white: 37, bold: 1, dim: 2
+  }.freeze
+
+  def self.tty? = $stdout.tty?
+
+  def self.paint(color, text)
+    return text unless tty?
+    "\e[#{COLORS[color]}m#{text}\e[0m"
+  end
+
+  def self.term_width
+    IO.console&.winsize&.last || 80
+  rescue
+    80
+  end
+
+  def self.hr(char = "─")
+    puts paint(:dim, char * [ term_width, 80 ].min)
+  end
+
+  def self.header(text)
+    puts
+    hr
+    puts paint(:bold, "  #{text}")
+    hr
+  end
+
+  def self.success(text)  = puts paint(:green, "  ✓ #{text}")
+  def self.warn(text)     = puts paint(:yellow, "  ⚠ #{text}")
+  def self.error(text)    = puts paint(:red, "  ✗ #{text}")
+  def self.info(text)     = puts paint(:cyan, "  #{text}")
+
+  def self.table(headers, rows)
+    return if rows.empty?
+    widths = headers.each_with_index.map do |h, i|
+      [ h.length, *rows.map { |r| (r[i] || "").to_s.gsub(/\e\[[0-9;]*m/, "").length } ].max
+    end
+
+    # Header
+    puts
+    puts "  " + headers.each_with_index.map { |h, i| paint(:bold, h.ljust(widths[i])) }.join("  ")
+    puts "  " + widths.map { |w| "─" * w }.join("──")
+
+    # Rows
+    rows.each do |row|
+      puts "  " + row.each_with_index.map { |c, i|
+        clean_len = c.to_s.gsub(/\e\[[0-9;]*m/, "").length
+        pad = widths[i] - clean_len
+        "#{c}#{' ' * [ pad, 0 ].max}"
+      }.join("  ")
+    end
+    puts
+  end
+
+  def self.box(title, pairs)
+    max_label = pairs.map { |k, _| k.length }.max || 0
+    puts
+    puts "  #{paint(:bold, "┌─ #{title}")}"
+    pairs.each do |label, value|
+      puts "  │ #{paint(:cyan, label.ljust(max_label))}  #{value}"
+    end
+    puts "  └─"
+    puts
+  end
+
+  STATUS_ICON = {
+    "backlog" => "📋", "open" => "○", "in_progress" => "▶",
+    "in_review" => "◎", "testing" => "🧪", "done" => "✓",
+    "closed" => "✓", "blocked" => "🚫", "cancelled" => "✗"
+  }.freeze
+
+  STATUS_COLOR = {
+    "backlog" => :dim, "open" => :white, "in_progress" => :cyan,
+    "in_review" => :magenta, "testing" => :yellow, "done" => :green,
+    "closed" => :green, "blocked" => :red, "cancelled" => :dim
+  }.freeze
+
+  PRIORITY_COLOR = {
+    "critical" => :red, "high" => :yellow, "medium" => :cyan, "low" => :dim
+  }.freeze
+
+  def self.fmt_status(s)
+    icon = STATUS_ICON[s] || "?"
+    paint(STATUS_COLOR[s] || :white, "#{icon} #{s&.gsub('_', ' ')}")
+  end
+
+  def self.fmt_priority(p)
+    paint(PRIORITY_COLOR[p] || :white, p&.upcase || "—")
+  end
+
+  def self.require_auth!
+    return if token
+    abort paint(:red, "Not configured. Run: dt setup")
+  end
+
+  # ─── Interactive prompts ─────────────────────────────────────────────────────
+
+  def self.prompt(label, default: nil)
+    default_hint = default ? " [#{default}]" : ""
+    print "  #{paint(:cyan, label)}#{default_hint}: "
+    answer = $stdin.gets&.strip
+    answer.nil? || answer.empty? ? default : answer
+  end
+
+  def self.choose(label, options)
+    puts "  #{paint(:cyan, label)}"
+    options.each_with_index do |opt, i|
+      puts "  #{paint(:bold, (i + 1).to_s.rjust(3))}  #{opt}"
+    end
+    print "  Choice: "
+    idx = $stdin.gets&.strip&.to_i
+    return nil if idx.nil? || idx < 1 || idx > options.length
+    options[idx - 1]
+  end
+
+  def self.confirm?(label)
+    print "  #{label} [y/N]: "
+    $stdin.gets&.strip&.downcase == "y"
+  end
+end
+
+# ─── Command Router ────────────────────────────────────────────────────────────
+
+module Dt
+  module Commands
+    # ── setup ──────────────────────────────────────────────────────────────────
+
+    def self.setup(_args)
+      Dt.header("DevTeam Hub — Setup")
+      host  = Dt.prompt("Hub URL", default: Dt::DEFAULT_HOST)
+      token = Dt.prompt("API token (from #{host}/api/v1/token)")
+      abort Dt.paint(:red, "  Token is required.") if token.nil? || token.empty?
+
+      Dt.save_config("host" => host, "token" => token)
+      Dt.instance_variable_set(:@config, nil) # reload
+      user = Dt.api(:get, "/me")
+      Dt.success("Authenticated as #{user['name']} (#{user['role']})")
+      puts "  Config saved to #{Dt::CONFIG_PATH}"
+    end
+
+    # ── ticket ─────────────────────────────────────────────────────────────────
+
+    def self.ticket(args)
+      sub = args.shift
+      case sub
+      when "list", "ls"         then ticket_list(args)
+      when "show", "info"       then ticket_show(args)
+      when "open"               then ticket_open(args)
+      when "cancel"             then ticket_cancel(args)
+      when "close"              then ticket_close(args)
+      when "update"             then ticket_update(args)
+      when "assign"             then ticket_assign(args)
+      when "move"               then ticket_move(args)
+      when "checkout", "co"     then ticket_checkout(args)
+      when "run"                then ticket_run_tests(args)
+      when "review", "code-review" then ticket_code_review(args)
+      when "commit"             then ticket_commit(args)
+      when nil
+        puts <<~USAGE
+          #{Dt.paint(:bold, "dt ticket")} <command> [args]
+
+          Commands:
+            list, ls                 List your tickets
+            show, info  <ID>         Show ticket details
+            open        <ID>         Reopen / set ticket to open
+            cancel      <ID>         Cancel a ticket
+            close       <ID>         Close a ticket
+            update      <ID> ...     Update ticket fields
+            assign      <ID> <user>  Assign ticket to a user
+            move        <ID> ...     Move ticket to a sprint
+            checkout, co <ID>        Checkout the ticket's branch
+            run         [ID]         Run tests for the ticket
+            review      [ID]         Code review the ticket's PR
+            commit      [ID]         Commit and push changes
+        USAGE
+      else
+        Dt.error("Unknown ticket command: #{sub}. Run: dt ticket")
+      end
+    end
+
+    def self.ticket_list(args)
+      Dt.require_auth!
+      params = { assignee: "me" }
+      params.delete(:assignee) if args.include?("--all") || args.include?("-a")
+      params[:status] = extract_opt(args, "--status", "-s")       if has_opt?(args, "--status", "-s")
+      params[:project_id] = extract_opt(args, "--project", "-p")  if has_opt?(args, "--project", "-p")
+
+      tickets = Dt.api(:get, "/tickets", params: params.compact)
+
+      if tickets.empty?
+        Dt.warn("No tickets found.")
+        return
+      end
+
+      rows = tickets.map do |t|
+        [
+          Dt.paint(:bold, "T-#{t['id']}"),
+          Dt.fmt_priority(t["priority"]),
+          Dt.fmt_status(t["status"]),
+          (t["title"] || "").slice(0, 50),
+          t.dig("project", "name") || "—",
+          t.dig("assignee", "name") || "—"
+        ]
+      end
+
+      Dt.header("Tickets")
+      Dt.table(%w[ID Priority Status Title Project Assignee], rows)
+    end
+
+    def self.ticket_show(args)
+      Dt.require_auth!
+      id = args.first || Dt.current_ticket_id!
+      t = Dt.api(:get, "/tickets/#{id}")
+
+      Dt.box("T-#{t['id']}: #{t['title']}", [
+        [ "Status",      Dt.fmt_status(t["status"]) ],
+        [ "Priority",    Dt.fmt_priority(t["priority"]) ],
+        [ "Kind",        t["kind"] ],
+        [ "Level",       t["level"] ],
+        [ "Project",     t.dig("project", "name") || "—" ],
+        [ "Sprint",      t.dig("sprint", "name") || "—" ],
+        [ "Assignee",    t.dig("assignee", "name") || "—" ],
+        [ "Branch",      t["branch_name"] || "—" ],
+        [ "PR",          t["pr_url"] || "—" ],
+        [ "Dev est.",    t["dev_estimate_hours"] ? "#{t['dev_estimate_hours']}h" : "—" ],
+        [ "QA est.",     t["tester_estimate_hours"] ? "#{t['tester_estimate_hours']}h" : "—" ],
+        [ "Actual",      t["actual_hours"] || "—" ],
+        [ "Points",      t["story_points"]&.to_s || "—" ]
+      ])
+
+      if (desc = t["description"]).to_s.length > 0
+        puts "  #{Dt.paint(:bold, 'Description')}"
+        puts "  #{desc}\n\n"
+      end
+      if (repro = t["how_to_reproduce"]).to_s.length > 0
+        puts "  #{Dt.paint(:bold, '🐛 How to Reproduce')}"
+        puts "  #{repro}\n\n"
+      end
+      if (plan = t["test_plan"]).to_s.length > 0
+        puts "  #{Dt.paint(:bold, '🧪 Test Plan')}"
+        puts "  #{plan}\n\n"
+      end
+    end
+
+    def self.ticket_open(args)
+      Dt.require_auth!
+      id = args.first || Dt.current_ticket_id!
+      t = Dt.api(:patch, "/tickets/#{id}", body: { ticket: { status: "open" } })
+      Dt.success("T-#{t['id']} → open")
+    end
+
+    def self.ticket_cancel(args)
+      Dt.require_auth!
+      id = args.first || Dt.current_ticket_id!
+      t = Dt.api(:patch, "/tickets/#{id}", body: { ticket: { status: "closed" } })
+      Dt.success("T-#{t['id']} → closed (cancelled)")
+    end
+
+    def self.ticket_close(args)
+      Dt.require_auth!
+      id = args.first || Dt.current_ticket_id!
+      t = Dt.api(:patch, "/tickets/#{id}", body: { ticket: { status: "done" } })
+      Dt.success("T-#{t['id']} → done")
+    end
+
+    def self.ticket_update(args)
+      Dt.require_auth!
+      id = args.shift || Dt.current_ticket_id!
+      body = {}
+
+      # Parse key-value args: dt ticket update 42 status done priority high
+      until args.empty?
+        key = args.shift
+        val = args.shift
+        case key
+        when "status"   then body[:status]   = val
+        when "priority" then body[:priority] = val
+        when "kind"     then body[:kind]     = val
+        when "level"    then body[:level]    = val
+        when "points"   then body[:story_points] = val.to_i
+        when "title"    then body[:title]    = val
+        when "close"    then body[:status]   = "done"
+        else Dt.warn("Unknown field: #{key}")
+        end
+      end
+
+      if body.empty?
+        Dt.warn("Nothing to update. Usage: dt ticket update <ID> status done")
+        return
+      end
+
+      t = Dt.api(:patch, "/tickets/#{id}", body: { ticket: body })
+      Dt.success("T-#{t['id']} updated → #{body.map { |k, v| "#{k}: #{v}" }.join(', ')}")
+    end
+
+    def self.ticket_assign(args)
+      Dt.require_auth!
+      id = args.shift || Dt.current_ticket_id!
+      # Remaining args form the assignee name: dt ticket assign 42 to John
+      assignee_args = args.reject { |a| a.downcase == "to" }
+
+      if assignee_args.empty?
+        # Assign to self
+        me = Dt.api(:get, "/me")
+        t = Dt.api(:patch, "/tickets/#{id}", body: { ticket: { assignee_id: me["id"] } })
+        Dt.success("T-#{t['id']} assigned to you (#{me['name']})")
+      else
+        # Look up user by name
+        name = assignee_args.join(" ")
+        projects = Dt.api(:get, "/projects")
+        # Use first project to find team members — the API will match
+        t = Dt.api(:get, "/tickets/#{id}")
+        members = Dt.api(:get, "/projects/#{t.dig('project', 'id')}")["members"] || []
+        match = members.find { |m| m["name"]&.downcase&.include?(name.downcase) }
+
+        if match
+          Dt.api(:patch, "/tickets/#{id}", body: { ticket: { assignee_id: match["id"] } })
+          Dt.success("T-#{id} assigned to #{match['name']}")
+        else
+          Dt.error("No team member matching '#{name}' found.")
+          Dt.info("Available: #{members.map { |m| m['name'] }.join(', ')}")
+        end
+      end
+    end
+
+    def self.ticket_move(args)
+      Dt.require_auth!
+      id = args.shift || Dt.current_ticket_id!
+      # dt ticket move 42 to sprint 5  OR  dt ticket move 42 sprint 5
+      filtered = args.reject { |a| a.downcase == "to" }
+      # Remove the word "sprint" if present
+      filtered.reject! { |a| a.downcase == "sprint" }
+      sprint_id = filtered.first
+
+      if sprint_id.nil?
+        Dt.warn("Usage: dt ticket move <ID> to sprint <SPRINT_ID>")
+        return
+      end
+
+      t = Dt.api(:patch, "/tickets/#{id}", body: { ticket: { sprint_id: sprint_id.to_i } })
+      Dt.success("T-#{t['id']} moved to sprint #{t.dig('sprint', 'name') || sprint_id}")
+    end
+
+    def self.ticket_checkout(args)
+      Dt.require_auth!
+      id = args.first
+      abort Dt.paint(:yellow, "Usage: dt ticket checkout <ID>") unless id
+
+      info = Dt.api(:post, "/checkout", body: { ticket_id: id.to_i, assign: true })
+
+      branch = info["branch"]
+      base   = info["base"]
+
+      Dt.header("Checkout T-#{info['ticket_id']}")
+      Dt.info("#{info['title']}")
+      Dt.info("Branch: #{Dt.paint(:bold, branch)}")
+      puts
+
+      local = Dt.git("branch --list #{branch}", capture: true).to_s.strip
+      remote = Dt.git("ls-remote --heads origin #{branch}", capture: true).to_s.strip
+
+      if local.include?(branch)
+        Dt.info("Switching to existing local branch...")
+        Dt.git("checkout #{branch}")
+      elsif remote.include?(branch)
+        Dt.info("Fetching from remote...")
+        Dt.git("fetch origin #{branch}:#{branch}")
+        Dt.git("checkout #{branch}")
+      else
+        Dt.info("Creating new branch from #{base}...")
+        Dt.git("fetch origin #{base} --quiet")
+        Dt.git("checkout -b #{branch} origin/#{base}")
+      end
+
+      # Auto-set to in_progress
+      Dt.api(:patch, "/tickets/#{id}", body: { ticket: { status: "in_progress" } })
+      Dt.success("On #{branch} — status → in_progress")
+    end
+
+    def self.ticket_run_tests(args)
+      Dt.require_auth!
+      id = args.first || Dt.current_ticket_id!
+      t = Dt.api(:get, "/tickets/#{id}")
+
+      Dt.header("Running tests for T-#{id}")
+      Dt.info("#{t['title']}")
+      puts
+
+      # Trigger CI run via API
+      project_id = t.dig("project", "id")
+      branch = t["branch_name"] || Dt.current_branch
+      commit = Dt.git("rev-parse HEAD", capture: true)
+
+      result = Dt.api(:post, "/ci_runs", body: {
+        ci_run: {
+          project_id: project_id,
+          ticket_id: id.to_i,
+          branch_name: branch,
+          commit_sha: commit
+        }
+      })
+
+      Dt.success("CI run started (#{result['status']})")
+      Dt.info("Job: #{result['job_name'] || '—'}")
+      Dt.info("Log: #{result['log_url'] || '—'}")
+    end
+
+    def self.ticket_code_review(args)
+      Dt.require_auth!
+      id = args.first || Dt.current_ticket_id!
+      t = Dt.api(:get, "/tickets/#{id}")
+
+      pr_url = t["pr_url"]
+      if pr_url.nil? || pr_url.empty?
+        Dt.error("No PR URL set for T-#{id}. Set one with: dt ticket update #{id} --pr-url <url>")
+        return
+      end
+
+      Dt.header("Code Review — T-#{id}")
+      Dt.info(t["title"])
+      Dt.info("PR: #{Dt.paint(:bold, pr_url)}")
+      puts
+
+      branch = t["branch_name"] || Dt.current_branch
+      base = "main"
+
+      # Show diff stats
+      Dt.info("Fetching diff stats...")
+      Dt.git("fetch origin #{base} --quiet")
+      diff_stat = Dt.git("diff --stat origin/#{base}...#{branch}", capture: true)
+
+      if diff_stat && !diff_stat.empty?
+        puts
+        puts "  #{Dt.paint(:bold, 'Changed files:')}"
+        diff_stat.each_line do |line|
+          puts "  #{line}"
+        end
+      end
+
+      # Show files changed
+      files = Dt.git("diff --name-only origin/#{base}...#{branch}", capture: true)
+      if files && !files.empty?
+        puts
+        puts "  #{Dt.paint(:bold, 'Files to review:')}"
+        files.each_line.with_index(1) do |f, i|
+          puts "  #{Dt.paint(:dim, i.to_s.rjust(3))}  #{f.strip}"
+        end
+      end
+
+      puts
+      Dt.info("Open PR in browser: #{pr_url}")
+      if Dt.confirm?("Open in browser?")
+        system("open", pr_url)
+      end
+    end
+
+    def self.ticket_commit(args)
+      Dt.require_auth!
+      id = Dt.current_ticket_id!
+      t = Dt.api(:get, "/tickets/#{id}")
+
+      Dt.header("Commit — T-#{id}")
+
+      # Show status
+      staged = Dt.git("diff --cached --stat", capture: true)
+      unstaged = Dt.git("diff --stat", capture: true)
+      untracked = Dt.git("ls-files --others --exclude-standard", capture: true)
+
+      if staged.to_s.empty? && unstaged.to_s.empty? && untracked.to_s.empty?
+        Dt.warn("Nothing to commit — working tree clean.")
+        return
+      end
+
+      if unstaged.to_s.length > 0 || untracked.to_s.length > 0
+        puts "  #{Dt.paint(:bold, 'Unstaged / untracked:')}"
+        puts "  #{unstaged}" if unstaged.to_s.length > 0
+        untracked&.each_line { |f| puts "  #{Dt.paint(:yellow, '??')} #{f.strip}" }
+        puts
+
+        if Dt.confirm?("Stage all changes?")
+          Dt.git("add -A")
+        else
+          Dt.info("Stage files manually, then run: dt ticket commit")
+          return
+        end
+      end
+
+      # Build commit message
+      default_msg = "T-#{id}: #{t['title']}"
+      msg = Dt.prompt("Commit message", default: default_msg)
+
+      Dt.git("commit -m #{msg.shellescape}")
+      puts
+      Dt.info("Pushing to origin...")
+      branch = Dt.current_branch
+      Dt.git("push -u origin #{branch}")
+
+      # Update ticket to in_review
+      Dt.api(:patch, "/tickets/#{id}", body: { ticket: { status: "in_review" } })
+      Dt.success("Committed, pushed, and T-#{id} → in_review")
+    end
+
+    # ── deploy ─────────────────────────────────────────────────────────────────
+
+    def self.deploy(args)
+      Dt.require_auth!
+      # dt deploy to staging  OR  dt deploy staging
+      filtered = args.reject { |a| a.downcase == "to" }
+      env = filtered.first || "staging"
+
+      unless %w[staging production].include?(env)
+        Dt.error("Unknown environment: #{env}. Use: staging | production")
+        return
+      end
+
+      branch = Dt.current_branch
+      ticket_id = Dt.ticket_id_from_branch(branch)
+
+      Dt.header("Deploy to #{env.upcase}")
+      Dt.info("Branch:  #{branch}")
+      Dt.info("Ticket:  T-#{ticket_id}") if ticket_id
+
+      if env == "production" && !Dt.confirm?("Deploy to PRODUCTION?")
+        Dt.warn("Aborted.")
+        return
+      end
+
+      puts
+      steps = [
+        [ "Push branch",    -> { Dt.git("push -u origin #{branch}") } ],
+        [ "Run migrations", -> { system("bin/rails db:migrate RAILS_ENV=#{env}") } ],
+        [ "Restart server", -> { system("touch tmp/restart.txt") } ]
+      ]
+
+      steps.each do |label, action|
+        print "  #{Dt.paint(:cyan, label)}..."
+        result = action.call
+        if result == false
+          puts " #{Dt.paint(:red, 'FAILED')}"
+          Dt.error("Deploy aborted at: #{label}")
+          return
+        end
+        puts " #{Dt.paint(:green, '✓')}"
+      end
+
+      if ticket_id
+        Dt.api(:patch, "/tickets/#{ticket_id}", body: { ticket: { status: "done" } }) if env == "production"
+        Dt.success("T-#{ticket_id} marked done") if env == "production"
+      end
+
+      Dt.success("Deploy to #{env} complete!")
+    end
+
+    # ── ci ─────────────────────────────────────────────────────────────────────
+
+    def self.ci(args)
+      sub = args.shift
+      case sub
+      when "rerun"        then ci_rerun(args)
+      when "cancel"       then ci_cancel(args)
+      when "test"         then ci_test(args)
+      when "status"       then ci_status(args)
+      when nil
+        puts <<~USAGE
+          #{Dt.paint(:bold, "dt ci")} <command> [args]
+
+          Commands:
+            test [scope]       Run tests (all/frontend/backend/ui)
+            rerun              Rerun failing tests for current ticket
+            cancel             Cancel running CI for current ticket
+            status             Show CI status for current ticket
+        USAGE
+      else
+        Dt.error("Unknown ci command: #{sub}")
+      end
+    end
+
+    def self.ci_test(args)
+      Dt.require_auth!
+      scope = args.first || "all"
+      ticket_id = Dt.ticket_id_from_branch
+      branch = Dt.current_branch
+      commit = Dt.git("rev-parse HEAD", capture: true)
+
+      Dt.header("CI — Run #{scope} tests")
+
+      # Determine job name from scope
+      job_suffix = case scope
+      when "frontend" then "-frontend"
+      when "backend"  then "-backend"
+      when "ui"       then "-ui"
+      else ""
+      end
+
+      body = {
+        ci_run: {
+          branch_name: branch,
+          commit_sha: commit
+        }
+      }
+      body[:ci_run][:ticket_id] = ticket_id if ticket_id
+
+      # Get project from ticket or first project
+      if ticket_id
+        t = Dt.api(:get, "/tickets/#{ticket_id}")
+        body[:ci_run][:project_id] = t.dig("project", "id")
+        body[:ci_run][:job_name] = "#{t.dig('project', 'name')&.parameterize}#{job_suffix}"
+      else
+        projects = Dt.api(:get, "/projects")
+        if projects.any?
+          body[:ci_run][:project_id] = projects.first["id"]
+          body[:ci_run][:job_name] = "#{projects.first['name']&.downcase&.tr(' ', '-')}#{job_suffix}"
+        end
+      end
+
+      result = Dt.api(:post, "/ci_runs", body: body)
+      Dt.success("CI run queued (#{result['status']})")
+      Dt.info("Scope: #{scope}")
+      Dt.info("Log:   #{result['log_url'] || '—'}")
+    end
+
+    def self.ci_rerun(args)
+      Dt.require_auth!
+      ticket_id = args.first || Dt.current_ticket_id!
+
+      # Find the latest failed CI run for this ticket
+      runs = Dt.api(:get, "/ci_runs", params: { ticket_id: ticket_id, status: "failed" })
+      if runs.empty?
+        Dt.warn("No failed CI runs found for T-#{ticket_id}")
+        return
+      end
+
+      last = runs.first
+      Dt.header("Rerun failing tests — T-#{ticket_id}")
+      Dt.info("Rerunning build ##{last['build_number']}")
+
+      result = Dt.api(:post, "/ci_runs", body: {
+        ci_run: {
+          project_id: last.dig("project", "id"),
+          ticket_id: ticket_id.to_i,
+          branch_name: last["branch_name"],
+          commit_sha: last["commit_sha"]
+        }
+      })
+
+      Dt.success("CI rerun started (#{result['status']})")
+      Dt.info("Log: #{result['log_url'] || '—'}")
+    end
+
+    def self.ci_cancel(_args)
+      Dt.require_auth!
+      ticket_id = Dt.current_ticket_id!
+      runs = Dt.api(:get, "/ci_runs", params: { ticket_id: ticket_id, status: "running" })
+
+      if runs.empty?
+        Dt.warn("No running CI for T-#{ticket_id}")
+        return
+      end
+
+      Dt.header("Cancel CI — T-#{ticket_id}")
+      runs.each do |run|
+        Dt.info("Cancelling build ##{run['build_number']}...")
+        # The server-side will handle actual cancellation
+      end
+      Dt.warn("CI cancellation requested. Check your CI server for confirmation.")
+    end
+
+    def self.ci_status(_args)
+      Dt.require_auth!
+      ticket_id = Dt.ticket_id_from_branch || nil
+      params = {}
+      params[:ticket_id] = ticket_id if ticket_id
+
+      runs = Dt.api(:get, "/ci_runs", params: params)
+      if runs.empty?
+        Dt.warn("No CI runs found.")
+        return
+      end
+
+      Dt.header("CI Status#{ticket_id ? " — T-#{ticket_id}" : ""}")
+
+      rows = runs.first(10).map do |r|
+        status_color = case r["status"]
+        when "passed" then :green
+        when "failed" then :red
+        when "running" then :cyan
+        else :dim
+        end
+
+        [
+          "##{r['build_number'] || r['id']}",
+          Dt.paint(status_color, r["status"]),
+          r["branch_name"] || "—",
+          r.dig("project", "name") || "—",
+          r["started_at"]&.slice(0, 16) || "—"
+        ]
+      end
+
+      Dt.table(%w[Build Status Branch Project Started], rows)
+    end
+
+    # ── log ────────────────────────────────────────────────────────────────────
+
+    def self.log(args)
+      target = args.first
+      if target && %w[staging production].include?(target.downcase)
+        # dt log staging — show deploy log
+        Dt.require_auth!
+        Dt.header("Deployment log — #{target}")
+        deploys = Dt.api(:get, "/deployments", params: { environment: target })
+        if deploys.empty?
+          Dt.warn("No deployments found for #{target}")
+          return
+        end
+
+        rows = deploys.first(15).map do |d|
+          status_color = d["status"] == "succeeded" ? :green : :red
+          [
+            "##{d['id']}",
+            d["version"] || "—",
+            Dt.paint(status_color, d["status"]),
+            d.dig("deployed_by", "name") || "—",
+            d["deployed_at"]&.slice(0, 16) || "—"
+          ]
+        end
+
+        Dt.table(%w[ID Version Status By Date], rows)
+      else
+        # dt log [filename] — show git log
+        n = 15
+        if target
+          Dt.header("Git log for #{target}")
+          Dt.git("log --oneline --format='%C(yellow)%h%Creset  %C(cyan)%ar%Creset  %s  %C(dim)%an%Creset' -#{n} -- #{target.shellescape}")
+        else
+          Dt.header("Recent commits")
+          Dt.git("log --oneline --format='%C(yellow)%h%Creset  %C(cyan)%ar%Creset  %s  %C(dim)%an%Creset' -#{n}")
+        end
+      end
+    end
+
+    # ── help ───────────────────────────────────────────────────────────────────
+
+    def self.help(_args)
+      puts <<~HELP
+
+        #{Dt.paint(:bold, "dt")} — DevTeam Hub CLI  #{Dt.paint(:dim, "v#{Dt::VERSION}")}
+
+        #{Dt.paint(:bold, "USAGE")}
+          dt <command> [subcommand] [args]
+
+        #{Dt.paint(:bold, "COMMANDS")}
+          #{Dt.paint(:cyan, "setup")}                          Configure CLI (host + API token)
+
+          #{Dt.paint(:cyan, "ticket list")}                    List your assigned tickets
+          #{Dt.paint(:cyan, "ticket show")}    <ID>            Show ticket details
+          #{Dt.paint(:cyan, "ticket open")}    <ID>            Set ticket to open
+          #{Dt.paint(:cyan, "ticket cancel")}  <ID>            Cancel a ticket
+          #{Dt.paint(:cyan, "ticket close")}   <ID>            Close / mark done
+          #{Dt.paint(:cyan, "ticket update")}  <ID> key val    Update ticket fields
+          #{Dt.paint(:cyan, "ticket assign")}  <ID> [to] name  Assign ticket to user
+          #{Dt.paint(:cyan, "ticket move")}    <ID> to sprint  Move ticket to sprint
+          #{Dt.paint(:cyan, "ticket checkout")}<ID>            Checkout ticket branch
+          #{Dt.paint(:cyan, "ticket run")}     [ID]            Run tests for ticket
+          #{Dt.paint(:cyan, "ticket review")}  [ID]            Code review ticket PR
+          #{Dt.paint(:cyan, "ticket commit")}  [ID]            Commit + push changes
+
+          #{Dt.paint(:cyan, "deploy")}    [to] staging|production   Deploy to environment
+          #{Dt.paint(:cyan, "ci test")}   [all|frontend|backend|ui] Run CI tests
+          #{Dt.paint(:cyan, "ci rerun")}                            Rerun failing tests
+          #{Dt.paint(:cyan, "ci cancel")}                           Cancel running CI
+          #{Dt.paint(:cyan, "ci status")}                           Show CI run status
+
+          #{Dt.paint(:cyan, "log")}       [file|staging|production] Git log or deploy log
+
+        #{Dt.paint(:dim, "Most commands auto-detect the ticket from the current git branch.")}
+
+      HELP
+    end
+
+    # ── helpers ────────────────────────────────────────────────────────────────
+
+    def self.has_opt?(args, *names)
+      args.any? { |a| names.include?(a.split("=").first) }
+    end
+
+    def self.extract_opt(args, *names)
+      names.each do |name|
+        idx = args.index { |a| a.start_with?(name) }
+        next unless idx
+        arg = args.delete_at(idx)
+        if arg.include?("=")
+          return arg.split("=", 2).last
+        else
+          return args.delete_at(idx)
+        end
+      end
+      nil
+    end
+  end
+end
+
+# ─── Main ──────────────────────────────────────────────────────────────────────
+
+if ARGV.empty? || ARGV.first == "help" || ARGV.first == "--help" || ARGV.first == "-h"
+  Dt::Commands.help(ARGV.drop(1))
+  exit
+end
+
+command = ARGV.shift
+args = ARGV.dup
+
+case command
+when "setup"            then Dt::Commands.setup(args)
+when "ticket", "t"      then Dt::Commands.ticket(args)
+when "deploy", "d"      then Dt::Commands.deploy(args)
+when "ci"               then Dt::Commands.ci(args)
+when "log", "l"         then Dt::Commands.log(args)
+when "version", "--version", "-v"
+  puts "dt #{Dt::VERSION}"
+else
+  Dt.error("Unknown command: #{command}")
+  puts "  Run #{Dt.paint(:cyan, 'dt help')} for usage."
+  exit 1
+end

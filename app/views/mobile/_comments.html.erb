@@ -1,0 +1,17 @@
+<%# locals: comments (Array/Relation of Comment) %>
+<% if comments.present? && comments.any? %>
+  <% comments.each do |c| %>
+    <% meta = c.respond_to?(:kind_meta) ? c.kind_meta : { icon: "💬", border: "#d7d0c2", bg: "transparent" } %>
+    <div class="mobile-card" style="border-left:3px solid <%= meta[:border] %>;background:<%= meta[:bg] %>;">
+      <div class="mobile-card-body">
+        <div style="font-size:0.8rem;font-weight:700;">
+          <%= meta[:icon] %> <%= c.author&.display_name || "Someone" %>
+          <span style="font-weight:400;color:#8a93a2;font-size:0.72rem;">· <%= time_ago_in_words(c.created_at) %> ago</span>
+        </div>
+        <div style="font-size:0.85rem;margin-top:0.2rem;"><%= c.body.to_s.truncate(220) %></div>
+      </div>
+    </div>
+  <% end %>
+<% else %>
+  <p style="color:#a0aec0;font-size:0.82rem;padding:0.25rem 0 0.5rem;">No comments yet.</p>
+<% end %>

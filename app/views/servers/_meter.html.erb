@@ -1,0 +1,5 @@
+<%# Small usage meter. locals: value (0-100) %>
+<% v = value.to_i %>
+<% color = v >= 90 ? "bg-danger" : (v >= 75 ? "bg-warning" : "bg-success") %>
+<div class="progress" style="height:6px;"><div class="progress-bar <%= color %>" style="width:<%= v %>%"></div></div>
+<span class="fs-8 text-muted"><%= v %>%</span>

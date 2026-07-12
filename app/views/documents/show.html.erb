@@ -1,0 +1,76 @@
+<% content_for :title, @document.title %>
+
+<div class="d-flex align-items-start justify-content-between mb-3 flex-wrap gap-2">
+  <div>
+    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+      <h1 class="fw-bold mb-0"><%= @document.title %></h1>
+      <% if @document.is_template? %>
+        <span class="badge bg-warning text-dark"><i class="bi bi-file-earmark-code me-1"></i>Template</span>
+      <% end %>
+      <% if @document.template %>
+        <span class="badge bg-light text-muted border">From: <%= link_to @document.template.title, @document.template, class: "text-muted" %></span>
+      <% end %>
+    </div>
+    <p class="text-muted mb-0 small">
+      <%= t("documents.types.#{@document.doc_type}") %> · v<%= @document.version_number.presence || '1.0' %>
+      · by <%= @document.author&.display_name %> · <%= @document.updated_at.strftime('%d/%m/%Y %H:%M') %>
+      <% if @document.is_template? && @document.generated_documents.any? %>
+        · <span class="text-info"><%= @document.generated_documents.count %> doc(s) generated from this template</span>
+      <% end %>
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <% unless @document.is_template? %>
+      <%= button_to save_as_template_document_path(@document),
+            method: :post,
+            class: "btn btn-outline-warning btn-sm",
+            form: { data: { turbo_confirm: "Save \"#{@document.title}\" as a reusable template?" } } do %>
+        <i class="bi bi-file-earmark-plus me-1"></i><%= t("buttons.save_as_template") %>
+      <% end %>
+    <% end %>
+    <% if @document.is_template? %>
+      <%= link_to new_from_template_document_path(@document), class: "btn btn-outline-success btn-sm" do %>
+        <i class="bi bi-copy me-1"></i><%= t("buttons.new_doc_from_template") %>
+      <% end %>
+    <% end %>
+    <%= link_to t("common.actions.edit"), edit_document_path(@document), class: "btn btn-secondary btn-sm" %>
+    <%= link_to t("common.delete"), document_path(@document), data: { turbo_method: :delete, turbo_confirm: t("common.confirm_delete") }, class: "btn btn-outline-danger btn-sm" %>
+  </div>
+</div>
+
+<% if @document.summary.present? %>
+  <div class="alert alert-info is-light mb-4">
+    <strong>Summary:</strong> <%= @document.summary %>
+  </div>
+<% end %>
+
+<% full_html = @document.content.lstrip.start_with?("<!DOCTYPE", "<html") %>
+<% is_markdown = !full_html && @document.content.match?(/\A\s*[\#\-\*\>]|\n\#|\n\-\-\-|\n\*\*|\n```/) %>
+
+<% if full_html %>
+  <div class="ratio mb-3" style="--bs-aspect-ratio: 56.25%; min-height: 480px;">
+    <iframe src="<%= raw_document_path(@document) %>"
+            sandbox="allow-scripts allow-same-origin"
+            class="w-100 border rounded"
+            style="min-height: 480px;"
+            title="<%= h @document.title %>"></iframe>
+  </div>
+<% elsif is_markdown %>
+  <div class="card p-3 mb-3 trix-content">
+    <%= render_markdown(@document.content) %>
+  </div>
+<% else %>
+  <div class="card p-3 mb-3 trix-content">
+    <%= sanitize @document.content,
+          tags: %w[h1 h2 h3 h4 h5 h6 p br strong em b i u s del ins
+                   ul ol li blockquote pre code a img figure figcaption
+                   table thead tbody tr th td hr div span],
+          attributes: %w[href src alt title class id style target rel] %>
+  </div>
+<% end %>
+
+<% if @document.tag_list.any? %>
+  <div class="d-flex flex-wrap gap-1">
+    <% @document.tag_list.each do |tag| %><span class="badge bg-info text-dark is-light"><%= tag %></span><% end %>
+  </div>
+<% end %>

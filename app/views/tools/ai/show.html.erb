@@ -1,0 +1,46 @@
+<% content_for :title, @review.kind_label %>
+
+<div class="level mb-3">
+  <div class="level-left">
+    <div>
+      <nav class="breadcrumb is-small"><ul>
+        <li><%= link_to t("ai.reports_title"), tools_ai_path %></li>
+        <li class="is-active"><a><%= @review.kind_label %></a></li>
+      </ul></nav>
+      <h1 class="fw-bold mb-1"><%= @review.kind_label %></h1>
+      <p class="text-muted fs-7">
+        <%= @review.title %> ·
+        <%= @review.llm_model %> ·
+        <%= time_ago_in_words(@review.created_at) %> ago
+        <% if @review.duration_seconds %> · <%= @review.duration_seconds %>s<% end %>
+      </p>
+    </div>
+  </div>
+  <div class="level-right d-flex gap-2 align-items-center">
+    <% if @review.verdict.present? %>
+      <span class="badge <%= @review.verdict_badge_class %>"><%= @review.verdict.humanize %></span>
+    <% end %>
+    <% if @review.score.present? %>
+      <span class="badge bg-secondary"><%= t("ai.col.score") %>: <%= @review.score %></span>
+    <% end %>
+  </div>
+</div>
+
+<% if @review.status_failed? %>
+  <div class="alert alert-danger">
+    <strong><%= t("ai.failed") %>:</strong> <%= @review.error_message %>
+  </div>
+<% elsif @review.body.present? %>
+  <div class="card p-4">
+    <div class="content markdown-body">
+      <%= render_markdown(@review.body) %>
+    </div>
+  </div>
+<% else %>
+  <div class="alert alert-info"><%= t("ai.no_output") %></div>
+<% end %>
+
+<details class="mt-3">
+  <summary class="text-muted fs-7"><%= t("ai.show_prompt") %></summary>
+  <pre class="card p-3 mt-2 fs-7" style="white-space:pre-wrap;"><%= @review.prompt %></pre>
+</details>

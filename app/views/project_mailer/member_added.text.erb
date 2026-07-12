@@ -1,0 +1,13 @@
+Hi <%= @user.display_name %>,
+
+You have been added to the project "<%= @project.name %>" by <%= @added_by.display_name %>.
+
+Role: <%= @role %>
+<% if @project.description.present? %>
+Description: <%= @project.description %>
+<% end %>
+
+Open project: <%= project_url(@project) %>
+
+---
+DevTeam Hub — You received this email because you were added to a project.

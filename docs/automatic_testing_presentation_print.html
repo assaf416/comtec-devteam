@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automatic Testing Program - DevTeam On-Prem Print Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script nonce="devteam-static" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --ink: #102024;
+      --muted: #4f6268;
+      --bg: #f3f2ee;
+      --panel: #fffef9;
+      --line: #d8d5cc;
+      --teal: #007a74;
+      --teal-2: #2ca7a0;
+      --orange: #d96d17;
+      --red: #bd2f34;
+      --navy: #15314f;
+      --shadow: 0 14px 42px rgba(16, 32, 36, 0.1);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Manrope", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(1200px 500px at 10% -10%, rgba(0, 122, 116, 0.17), transparent),
+        radial-gradient(800px 400px at 95% 0%, rgba(217, 109, 23, 0.14), transparent),
+        var(--bg);
+      line-height: 1.52;
+      counter-reset: slide;
+    }
+
+    .shell {
+      max-width: none;
+      margin: 0 auto;
+      padding: 20px 0 40px;
+    }
+
+    .top {
+      display: none;
+    }
+
+    .top nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .top a {
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 12px;
+      border: 1px solid var(--line);
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #ffffff;
+      font-weight: 700;
+    }
+
+    .hero {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 34px 30px;
+      background: linear-gradient(125deg, #f9f7ef 0%, #f8fcfb 45%, #fef8ef 100%);
+      box-shadow: var(--shadow);
+      margin: 0 auto 20px;
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 18px;
+      align-items: center;
+      width: 13.333in;
+      min-height: 7.5in;
+      break-after: page;
+      page-break-after: always;
+    }
+
+    .kicker {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--teal);
+      border: 1px dashed var(--teal-2);
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 12px;
+      background: rgba(44, 167, 160, 0.08);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      color: var(--muted);
+      max-width: 72ch;
+      margin-top: 12px;
+      margin-bottom: 0;
+    }
+
+    .stats {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .stat .n {
+      font-weight: 800;
+      font-size: 24px;
+      color: var(--navy);
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .stat .l {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .section {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      margin: 0 auto 20px;
+      overflow: hidden;
+      width: 13.333in;
+      min-height: 7.5in;
+      break-after: page;
+      page-break-after: always;
+    }
+
+    .hero::after,
+    .section::after {
+      counter-increment: slide;
+      content: counter(slide, decimal-leading-zero);
+      position: absolute;
+      right: 18px;
+      bottom: 14px;
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(16, 32, 36, 0.42);
+      letter-spacing: 0.08em;
+    }
+
+    .section header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(0, 122, 116, 0.08), rgba(217, 109, 23, 0.08));
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.01em;
+    }
+
+    .section .sub {
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .body {
+      padding: 16px 18px 20px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .g-2 { grid-template-columns: 1fr 1fr; }
+    .g-3 { grid-template-columns: repeat(3, 1fr); }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .pill {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-right: 6px;
+      margin-top: 6px;
+      background: #fff;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .table th,
+    .table td {
+      border: 1px solid var(--line);
+      padding: 9px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .table th {
+      background: #f3f8f7;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    pre {
+      margin: 8px 0 0;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      border: 1px solid #d1dbe3;
+      border-radius: 10px;
+      padding: 10px;
+      background: #0d1f2d;
+      color: #d8f4ff;
+      overflow-x: auto;
+    }
+
+    .warn {
+      border-left: 6px solid var(--orange);
+      background: #fff8ef;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 10px;
+      color: #5c3d20;
+      font-size: 14px;
+    }
+
+    .imgbox {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+    }
+
+    .imgbox svg {
+      width: 100%;
+      height: auto;
+      max-height: 280px;
+    }
+
+    .chart-wrap {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px;
+      min-height: 290px;
+    }
+
+    .chart-wrap canvas {
+      max-height: 300px;
+    }
+
+    .footer {
+      display: none;
+    }
+
+    #examples .body {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    #examples .card,
+    #effort .card,
+    #fit .table,
+    #fit .table td,
+    #fit .table th {
+      font-size: 13px;
+    }
+
+    #examples pre,
+    #ui pre {
+      font-size: 11px;
+    }
+
+    @page {
+      size: 13.333in 7.5in;
+      margin: 0;
+    }
+
+    @media print {
+      html,
+      body {
+        background: #ffffff;
+      }
+
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .shell {
+        padding: 0;
+      }
+
+      .hero,
+      .section {
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        width: 13.333in;
+        min-height: 7.5in;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; }
+      .g-2, .g-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="top">
+      <nav>
+        <a href="#why">Why Automation</a>
+        <a href="#fit">On-Prem Tool Fit</a>
+        <a href="#bdd">BDD + Gherkin</a>
+        <a href="#ui">UI Testing</a>
+        <a href="#examples">Project Examples</a>
+        <a href="#effort">Effort &amp; Rollout</a>
+      </nav>
+    </div>
+
+    <section class="hero">
+      <div>
+        <div class="kicker">Automatic Testing Program · On-Prem DevTeam</div>
+        <h1>Testing Is Our Delivery Engine, Not A Gate At The End</h1>
+        <p>
+          This presentation defines a practical, high-impact automatic testing strategy across all DevTeam projects.
+          It is designed for our on-prem environment, integrated with the tooling we already run (Jenkins, Gitea, internal services),
+          and centered on BDD with Gherkin so Product, QA, and Engineering share one executable language.
+        </p>
+        <div class="stats">
+          <div class="stat"><div class="n">5</div><div class="l">Projects Covered</div></div>
+          <div class="stat"><div class="n">4</div><div class="l">Test Layers</div></div>
+          <div class="stat"><div class="n">100%</div><div class="l">On-Prem Compatible</div></div>
+          <div class="stat"><div class="n">1</div><div class="l">Unified BDD Language</div></div>
+        </div>
+      </div>
+      <div class="imgbox" aria-label="Testing architecture illustration">
+        <svg viewBox="0 0 700 360" role="img">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#007a74" />
+              <stop offset="100%" stop-color="#2ca7a0" />
+            </linearGradient>
+            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#d96d17" />
+              <stop offset="100%" stop-color="#f3a34d" />
+            </linearGradient>
+          </defs>
+          <rect x="22" y="18" width="656" height="322" rx="24" fill="#f8fbfb" stroke="#d9e3e3" />
+          <rect x="56" y="52" width="170" height="60" rx="12" fill="url(#g1)" />
+          <text x="141" y="88" fill="#fff" text-anchor="middle" font-family="Manrope" font-weight="800">Gherkin BDD</text>
+
+          <rect x="264" y="52" width="170" height="60" rx="12" fill="#15314f" />
+          <text x="349" y="88" fill="#fff" text-anchor="middle" font-family="Manrope" font-weight="800">Service Tests</text>
+
+          <rect x="472" y="52" width="170" height="60" rx="12" fill="url(#g2)" />
+          <text x="557" y="88" fill="#fff" text-anchor="middle" font-family="Manrope" font-weight="800">Playwright UI</text>
+
+          <rect x="56" y="150" width="586" height="56" rx="12" fill="#ffffff" stroke="#d3dddf" />
+          <text x="349" y="185" fill="#28424f" text-anchor="middle" font-family="Manrope" font-weight="700">Jenkins Pipeline · Parallel Stages · Pass/Fail Gate</text>
+
+          <rect x="56" y="236" width="280" height="70" rx="12" fill="#ffffff" stroke="#d3dddf" />
+          <text x="196" y="270" fill="#28424f" text-anchor="middle" font-family="Manrope" font-weight="700">Allure + JUnit Reports</text>
+
+          <rect x="362" y="236" width="280" height="70" rx="12" fill="#ffffff" stroke="#d3dddf" />
+          <text x="502" y="270" fill="#28424f" text-anchor="middle" font-family="Manrope" font-weight="700">k6 Load &amp; Stress</text>
+
+          <line x1="226" y1="82" x2="264" y2="82" stroke="#9ab0b5" stroke-width="4" />
+          <line x1="434" y1="82" x2="472" y2="82" stroke="#9ab0b5" stroke-width="4" />
+          <line x1="349" y1="112" x2="349" y2="150" stroke="#9ab0b5" stroke-width="4" />
+          <line x1="196" y1="206" x2="196" y2="236" stroke="#9ab0b5" stroke-width="4" />
+          <line x1="502" y1="206" x2="502" y2="236" stroke="#9ab0b5" stroke-width="4" />
+        </svg>
+      </div>
+    </section>
+
+    <section id="why" class="section">
+      <header>
+        <h2>Why We Need Automatic Testing</h2>
+        <div class="sub">Business reason: lower release risk, faster delivery, fewer regressions, better observability.</div>
+      </header>
+      <div class="body grid g-2">
+        <div class="card">
+          <h3>Current operational risks without broad automation</h3>
+          <p>
+            Manual checks scale poorly as project count grows. Defect discovery shifts late in the cycle, and environment-specific issues
+            (especially in on-prem integrations) are detected too late.
+          </p>
+          <div class="warn">
+            Late bug discovery multiplies cost. In practical delivery economics, fixing a bug in production can cost an order of magnitude more
+            than catching it in PR/CI.
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="riskReductionChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section id="fit" class="section">
+      <header>
+        <h2>Best-Fit Tools For Our On-Prem Stack</h2>
+        <div class="sub">Chosen tools prioritize self-hosting, predictable execution, and strong CI integration.</div>
+      </header>
+      <div class="body">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>Recommended Tooling</th>
+              <th>Why It Fits On-Prem</th>
+              <th>How We Use It</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>BDD</td>
+              <td>Cucumber (Ruby/JS), SpecFlow (.NET), Gherkin shared style guide</td>
+              <td>No SaaS dependency, pure code + runner, easy in Jenkins</td>
+              <td>Feature files become the source of truth for acceptance criteria.</td>
+            </tr>
+            <tr>
+              <td>Unit + Service/API</td>
+              <td>RSpec (Rails), bun:test (Bun), xUnit/NUnit (.NET)</td>
+              <td>Fast local + CI execution, stable ecosystems</td>
+              <td>Every merge request runs deterministic test packs before integration.</td>
+            </tr>
+            <tr>
+              <td>UI E2E</td>
+              <td>Playwright</td>
+              <td>Self-hosted runners, browser matrix support, trace/screenshot artifacts</td>
+              <td>Critical journeys, smoke pack per deployment, nightly regression.</td>
+            </tr>
+            <tr>
+              <td>Reporting</td>
+              <td>JUnit XML + Allure</td>
+              <td>Artifact-based, easy to publish from Jenkins</td>
+              <td>Dashboards: pass/fail, flaky tests, trend by suite/project.</td>
+            </tr>
+            <tr>
+              <td>Performance</td>
+              <td>k6 + Grafana (self-hosted)</td>
+              <td>Runs fully inside internal network</td>
+              <td>Load and stress profiles before release and nightly baseline checks.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="bdd" class="section">
+      <header>
+        <h2>BDD First: Gherkin As Shared Contract</h2>
+        <div class="sub">BDD aligns product intent with executable tests and creates traceability from story to production checks.</div>
+      </header>
+      <div class="body grid g-2">
+        <div class="card">
+          <h3>Core process</h3>
+          <p>
+            1) Write acceptance criteria in Gherkin.<br>
+            2) Implement steps against API/service boundaries.<br>
+            3) Reuse scenarios for regression gates in Jenkins.<br>
+            4) Link failing scenario back to ticket/project dashboard.
+          </p>
+          <div class="pill">Given/When/Then</div>
+          <div class="pill">Business readable</div>
+          <div class="pill">Executable in CI</div>
+        </div>
+        <div class="imgbox" aria-label="Gherkin lifecycle">
+          <svg viewBox="0 0 760 320" role="img">
+            <rect x="20" y="20" width="720" height="280" rx="18" fill="#f8fbfb" stroke="#d8e3e3" />
+            <g font-family="Manrope" font-weight="700" fill="#17394a">
+              <rect x="60" y="108" width="130" height="70" rx="12" fill="#ffffff" stroke="#cfd9de" /><text x="125" y="148" text-anchor="middle">Story</text>
+              <rect x="230" y="108" width="130" height="70" rx="12" fill="#ffffff" stroke="#cfd9de" /><text x="295" y="148" text-anchor="middle">Gherkin</text>
+              <rect x="400" y="108" width="130" height="70" rx="12" fill="#ffffff" stroke="#cfd9de" /><text x="465" y="148" text-anchor="middle">Step Impl</text>
+              <rect x="570" y="108" width="130" height="70" rx="12" fill="#ffffff" stroke="#cfd9de" /><text x="635" y="148" text-anchor="middle">CI Gate</text>
+            </g>
+            <g stroke="#8ea9b3" stroke-width="4">
+              <line x1="190" y1="143" x2="230" y2="143" />
+              <line x1="360" y1="143" x2="400" y2="143" />
+              <line x1="530" y1="143" x2="570" y2="143" />
+            </g>
+            <text x="380" y="260" text-anchor="middle" fill="#526f7b" font-family="Manrope" font-size="17">Product + QA + Dev speak one language</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section id="ui" class="section">
+      <header>
+        <h2>UI Testing Recommendation: Playwright</h2>
+        <div class="sub">Playwright is the strongest fit for stable browser automation in our setup.</div>
+      </header>
+      <div class="body grid g-2">
+        <div class="card">
+          <h3>How we will use Playwright</h3>
+          <p>
+            - Smoke suite on each deployment candidate.<br>
+            - Full regression nightly and pre-release.<br>
+            - Store traces/screenshots/videos as Jenkins artifacts.<br>
+            - Link failing tests to notifications and report dashboards.
+          </p>
+          <pre>// playwright.config.ts (concept)
+projects: [
+  { name: 'chromium' },
+  { name: 'firefox' }
+],
+reporter: [['junit', { outputFile: 'playwright-junit.xml' }]],
+use: { trace: 'retain-on-failure', screenshot: 'only-on-failure' }</pre>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="coverageMixChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section id="examples" class="section">
+      <header>
+        <h2>Project-by-Project Test Examples</h2>
+        <div class="sub">BDD scenario samples and test approach for each active project.</div>
+      </header>
+      <div class="body grid g-2">
+        <div class="card">
+          <h3>1) Print Server / TDI (.NET + VB)</h3>
+          <p><strong>Focus:</strong> queue stability, timeout recovery, locale defaults, printer profile behavior.</p>
+          <pre>Feature: Printer network fault recovery
+  Scenario: Job fails cleanly after timeout retry budget
+    Given a running print queue
+    When printer connectivity is lost mid-transfer
+    Then the system retries according to policy
+    And the job ends in Failed state with reason code</pre>
+        </div>
+        <div class="card">
+          <h3>2) TDI2 (ASP.NET Core + RabbitMQ)</h3>
+          <p><strong>Focus:</strong> message workflows, concurrency safety, dead-letter handling.</p>
+          <pre>Feature: Dead-letter routing
+  Scenario: Invalid payload is moved to DLQ
+    Given queue orders.inbound receives malformed payload
+    When consumer validation runs
+    Then message is rejected
+    And message appears in orders.dlq with diagnostics</pre>
+        </div>
+        <div class="card">
+          <h3>3) Digital Internet Services (Vue + NestJS)</h3>
+          <p><strong>Focus:</strong> customer API contract, auth flows, UI journey from portal to support ticket.</p>
+          <pre>Feature: Customer support submission
+  Scenario: Portal user opens a support ticket
+    Given authenticated customer "Acme"
+    When they submit issue "Connection timeout"
+    Then ticket is created
+    And dashboard shows status Open</pre>
+        </div>
+        <div class="card">
+          <h3>4) Work Management System (Next.js + Bun)</h3>
+          <p><strong>Focus:</strong> workflow state transitions, Kanban consistency, search/index correctness.</p>
+          <pre>Feature: Kanban state transition
+  Scenario: Move item from In Progress to Review
+    Given task T-431 in In Progress
+    When user drags task to Review
+    Then task status becomes In Review
+    And audit activity is recorded</pre>
+        </div>
+        <div class="card">
+          <h3>5) DevTeam Hub (Rails)</h3>
+          <p><strong>Focus:</strong> reports, notifications, integrations, ticket-to-branch behavior.</p>
+          <pre>Feature: Assignment creates branch and notification
+  Scenario: Assign ticket to developer
+    Given ticket #88 exists in project "TDI2"
+    When assignee is set to "noam@devteam.local"
+    Then a branch is generated for that ticket
+    And assignee receives notification with branch command</pre>
+        </div>
+        <div class="card">
+          <h3>UI example with Playwright (shared pattern)</h3>
+          <pre>test('create ticket and verify list update', async ({ page }) =&gt; {
+  await page.goto('/customers/1/tickets/new');
+  await page.fill('[name="title"]', 'Printer timeout on floor 2');
+  await page.click('button:has-text("Create")');
+  await expect(page.locator('text=Printer timeout on floor 2')).toBeVisible();
+});</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="effort" class="section">
+      <header>
+        <h2>Effort Summary To Add Automation</h2>
+        <div class="sub">Estimated implementation effort by project, including framework setup, first suites, CI wiring, and reporting.</div>
+      </header>
+      <div class="body grid g-2">
+        <div class="chart-wrap">
+          <canvas id="effortChart"></canvas>
+        </div>
+        <div class="card">
+          <h3>Estimated rollout effort (person-weeks)</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>BDD</th>
+                <th>API/Service</th>
+                <th>UI</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Print Server / TDI</td><td>2.5</td><td>2.0</td><td>1.5</td><td><strong>6.0</strong></td></tr>
+              <tr><td>TDI2</td><td>2.0</td><td>2.5</td><td>1.5</td><td><strong>6.0</strong></td></tr>
+              <tr><td>Digital Internet Services</td><td>1.5</td><td>2.0</td><td>2.0</td><td><strong>5.5</strong></td></tr>
+              <tr><td>Work Management System</td><td>1.5</td><td>2.0</td><td>2.0</td><td><strong>5.5</strong></td></tr>
+              <tr><td>DevTeam Hub</td><td>1.5</td><td>1.5</td><td>1.0</td><td><strong>4.0</strong></td></tr>
+            </tbody>
+          </table>
+          <div class="warn">
+            Recommended rollout order: 1) DevTeam Hub + TDI2 foundation, 2) Digital Internet Services + WMS,
+            3) Print Server/TDI advanced edge scenarios.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <header>
+        <h2>Execution Plan (90 Days)</h2>
+        <div class="sub">A practical phased rollout to avoid delivery disruption.</div>
+      </header>
+      <div class="body grid g-3">
+        <div class="card">
+          <h3>Phase 1 (Weeks 1-3)</h3>
+          <p>Shared Gherkin conventions, test architecture templates, Jenkins pipeline skeletons, report publishing setup.</p>
+        </div>
+        <div class="card">
+          <h3>Phase 2 (Weeks 4-8)</h3>
+          <p>Project onboarding: BDD core journeys + API suites + smoke Playwright for each project.</p>
+        </div>
+        <div class="card">
+          <h3>Phase 3 (Weeks 9-12)</h3>
+          <p>Regression hardening, flaky-test stabilization, k6 performance gates, release readiness metrics.</p>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer">
+      DevTeam Automatic Testing Program · On-Prem First · BDD Driven · CI Enforced
+    </p>
+  </div>
+
+  <script nonce="devteam-static">
+    const sharedGrid = {
+      color: 'rgba(48, 72, 84, 0.12)',
+      lineWidth: 1
+    };
+
+    new Chart(document.getElementById('riskReductionChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Release Defects', 'Regression Escapes', 'Hotfix Frequency', 'Mean Recovery Time'],
+        datasets: [
+          {
+            label: 'Before Automation',
+            backgroundColor: 'rgba(189, 47, 52, 0.75)',
+            borderColor: '#bd2f34',
+            borderWidth: 1,
+            data: [100, 100, 100, 100]
+          },
+          {
+            label: 'After Program (Target)',
+            backgroundColor: 'rgba(0, 122, 116, 0.75)',
+            borderColor: '#007a74',
+            borderWidth: 1,
+            data: [45, 38, 52, 40]
+          }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' },
+          title: { display: true, text: 'Expected Risk Reduction (%)' }
+        },
+        scales: {
+          y: { beginAtZero: true, max: 110, grid: sharedGrid }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('coverageMixChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['BDD (Gherkin)', 'API/Service', 'UI E2E (Playwright)', 'Load/Stress (k6)'],
+        datasets: [{
+          data: [32, 34, 22, 12],
+          backgroundColor: ['#007a74', '#15314f', '#d96d17', '#bd2f34'],
+          borderColor: '#ffffff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        cutout: '56%',
+        plugins: {
+          legend: { position: 'bottom' },
+          title: { display: true, text: 'Recommended Test Portfolio Mix' }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('effortChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Print/TDI', 'TDI2', 'DIS', 'WMS', 'DevTeam Hub'],
+        datasets: [
+          { label: 'BDD', data: [2.5, 2.0, 1.5, 1.5, 1.5], backgroundColor: '#007a74' },
+          { label: 'API/Service', data: [2.0, 2.5, 2.0, 2.0, 1.5], backgroundColor: '#15314f' },
+          { label: 'UI (Playwright)', data: [1.5, 1.5, 2.0, 2.0, 1.0], backgroundColor: '#d96d17' }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: {
+          title: { display: true, text: 'Estimated Automation Effort (Person-Weeks)' },
+          legend: { position: 'bottom' }
+        },
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: { stacked: true, beginAtZero: true, grid: sharedGrid }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

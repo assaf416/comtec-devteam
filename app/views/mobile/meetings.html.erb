@@ -1,0 +1,79 @@
+<% content_for(:page_title) { t('mobile.nav.meetings') } %>
+
+<%# ── Upcoming ────────────────────────────────────────────────────────────── %>
+<% if @upcoming.any? %>
+  <p class="mobile-section-title"><%= t('mobile.meetings.upcoming') %></p>
+
+  <% current_date = nil %>
+  <% @upcoming.each do |m| %>
+    <% date_label = m.scheduled_at.to_date %>
+    <% if date_label != current_date %>
+      <% current_date = date_label %>
+      <p style="font-size:0.75rem;font-weight:700;color:#4a90d9;margin:0.5rem 0 0.25rem;">
+        <%= date_label == Date.today ? t('mobile.meetings.today_label') : l(date_label, format: :long) %>
+      </p>
+    <% end %>
+
+    <div class="mobile-card">
+      <div class="mobile-card-header">
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:0.9rem;"><%= m.title %></div>
+          <div class="mobile-card-meta">
+            <%= m.scheduled_at.strftime("%H:%M") %>
+            <% if m.project %>· <%= m.project.name %><% end %>
+            <% if m.organizer %>· <%= t('mobile.meetings.by') %> <%= m.organizer.display_name %><% end %>
+          </div>
+        </div>
+        <div class="is-flex" style="gap:0.4rem;flex-shrink:0;">
+          <span class="tag is-rounded is-small
+            <%= m.status.to_s == 'in_progress' ? 'is-success' : m.status.to_s == 'scheduled' ? 'is-info is-light' : 'is-light' %>">
+            <%= m.status.to_s.humanize %>
+          </span>
+        </div>
+      </div>
+      <div class="mobile-card-body" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <%= link_to meeting_path(m), class: "button is-small is-light is-rounded" do %>
+          👁 <%= t('common.view') %>
+        <% end %>
+        <% if m.jitsi_room.present? %>
+          <%= link_to join_meeting_path(m), data: { turbo_method: :post }, class: "button is-small is-link is-rounded" do %>
+            📹 <%= t('mobile.meetings.join') %>
+          <% end %>
+        <% end %>
+        <%= link_to ical_meeting_path(m), class: "button is-small is-light is-rounded" do %>
+          📆 iCal
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+<% else %>
+  <div class="has-text-centered py-5" style="color:#bbb;">
+    <p style="font-size:3rem;">📅</p>
+    <p style="color:#8a93a2;"><%= t('mobile.meetings.no_upcoming') %></p>
+  </div>
+<% end %>
+
+<%# ── Past ────────────────────────────────────────────────────────────────── %>
+<% if @past.any? %>
+  <p class="mobile-section-title"><%= t('mobile.meetings.past') %></p>
+  <% @past.first(5).each do |m| %>
+    <div class="mobile-card" style="opacity:0.7;">
+      <div class="mobile-card-header">
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:0.875rem;"><%= m.title %></div>
+          <div class="mobile-card-meta">
+            <%= m.scheduled_at.strftime("%b %-d, %H:%M") %>
+            <% if m.project %>· <%= m.project.name %><% end %>
+          </div>
+        </div>
+        <span class="tag is-rounded is-small is-light"><%= m.status.to_s.humanize %></span>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<div class="mt-4" style="text-align:right;">
+  <%= link_to new_meeting_path, class: "button is-primary is-rounded is-small" do %>
+    + Schedule Meeting
+  <% end %>
+</div>

@@ -1,0 +1,53 @@
+<% content_for :title, t("ai.reports_title") %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-1">🤖 <%= t("ai.reports_title") %></h1>
+      <p class="text-muted fs-7"><%= t("ai.reports_subtitle") %></p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to t("ai.recent_reviews"), tools_ai_reviews_path, class: "btn btn-sm btn-secondary" %>
+    <%= link_to t("ai.recent_test_reviews"), tools_ai_test_reviews_path, class: "btn btn-sm btn-secondary" %>
+  </div>
+</div>
+
+<%# ── LLM connection status ──────────────────────────────────────────────── %>
+<div class="card p-3 mb-4">
+  <div class="d-flex align-items-center gap-3 flex-wrap">
+    <span class="badge <%= @ollama_online ? 'bg-success' : 'bg-danger' %> fs-7">
+      <%= @ollama_online ? t("ai.online") : t("ai.offline") %>
+    </span>
+    <span class="text-muted fs-7">Ollama: <code><%= @ollama_url %></code></span>
+    <span class="text-muted fs-7">Default model: <code><%= @ollama_model %></code></span>
+    <% if @ollama_models.any? %>
+      <span class="text-muted fs-7">Installed: <%= @ollama_models.join(", ") %></span>
+    <% elsif !@ollama_online %>
+      <span class="text-danger fs-7"><%= t("ai.offline_hint") %></span>
+    <% end %>
+  </div>
+</div>
+
+<%# ── Counts per service ─────────────────────────────────────────────────── %>
+<div class="row g-2 mb-4">
+  <% AiReview.kinds.keys.each do |kind| %>
+    <div class="col-6 col-md-2">
+      <div class="card p-3 text-center">
+        <div class="fw-bold fs-4"><%= @counts[kind] || 0 %></div>
+        <div class="text-muted fs-7"><%= kind.humanize %></div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<% if @failures.any? %>
+  <div class="alert alert-warning is-light">
+    <strong>⚠️ <%= t("ai.recent_failures") %>:</strong>
+    <%= @failures.map { |f| "#{f.kind_label} — #{f.error_message}" }.join("; ") %>
+  </div>
+<% end %>
+
+<%# ── Recent runs ────────────────────────────────────────────────────────── %>
+<h2 class="fs-5 fw-bold mb-2"><%= t("ai.recent_runs") %></h2>
+<%= render "tools/ai/reviews_table", reviews: @recent_reviews %>

@@ -1,0 +1,99 @@
+<% content_for :title, "All Documents" %>
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h1 class="fw-bold mb-0">📁 Documents</h1>
+    <p class="text-muted small mb-0">All project documents across your workspace</p>
+  </div>
+</div>
+
+<%# Search + type filter %>
+<div class="card mb-4">
+  <div class="card-body py-2">
+    <%= form_with url: all_documents_path, method: :get, local: true, class: "d-flex gap-2 align-items-center flex-wrap" do |f| %>
+      <div class="flex-grow-1">
+        <%= f.search_field :q, value: params[:q],
+              class: "form-control form-control-sm",
+              placeholder: "Search documents…" %>
+      </div>
+      <div>
+        <%= f.select :doc_type,
+              [["All types", ""]] + Document.doc_types.keys.map { |k| [k.humanize.gsub("_", " "), k] },
+              { selected: params[:doc_type] },
+              class: "form-select form-select-sm", style: "width:auto" %>
+      </div>
+      <%= f.submit "Filter", class: "btn btn-sm btn-outline-secondary" %>
+      <% if params[:q].present? || params[:doc_type].present? %>
+        <%= link_to "Clear", all_documents_path, class: "btn btn-sm btn-link text-muted" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<%# Pinned standard doc types %>
+<% unless params[:doc_type].present? || params[:q].present? %>
+  <div class="row g-3 mb-4">
+    <% [
+        { type: "risk_management", icon: "⚠️",  label: "Risks",       color: "danger"  },
+        { type: "user_story",      icon: "📋",  label: "Backlogs",    color: "primary" },
+        { type: "test_coverage",   icon: "🧪",  label: "Test Plans",  color: "success" },
+        { type: "spec",            icon: "📄",  label: "Specs",       color: "info"    },
+        { type: "architecture",    icon: "🏗️", label: "Architecture", color: "warning" },
+      ].each do |card| %>
+      <div class="col-6 col-md-4 col-lg-2">
+        <%= link_to all_documents_path(doc_type: card[:type]), class: "card text-decoration-none h-100 border-0 shadow-sm" do %>
+          <div class="card-body text-center py-3">
+            <div style="font-size:1.8rem;"><%= card[:icon] %></div>
+            <div class="fw-semibold small mt-1"><%= card[:label] %></div>
+            <div class="badge bg-<%= card[:color] %> mt-1"><%= @doc_type_counts[card[:type]].to_i %></div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<%# Documents grouped by project %>
+<% if @grouped.empty? %>
+  <div class="text-center text-muted py-5">
+    <div style="font-size:3rem;">📭</div>
+    <p class="mt-2">No documents found.</p>
+  </div>
+<% else %>
+  <% @grouped.each do |project, docs| %>
+    <div class="mb-4">
+      <div class="d-flex align-items-center mb-2 gap-2">
+        <h5 class="fw-semibold mb-0">
+          <%= link_to project.name, project_path(project), class: "text-decoration-none" %>
+        </h5>
+        <span class="badge bg-secondary"><%= docs.size %> doc<%= "s" if docs.size != 1 %></span>
+        <%= link_to "All docs", project_documents_path(project), class: "btn btn-sm btn-outline-secondary ms-auto py-0" %>
+      </div>
+
+      <div class="row g-2">
+        <% docs.each do |doc| %>
+          <div class="col-md-6 col-lg-4">
+            <%= link_to document_path(doc), class: "card h-100 text-decoration-none border-0 shadow-sm" do %>
+              <div class="card-body py-2 px-3">
+                <div class="d-flex align-items-start gap-2">
+                  <span style="font-size:1.1rem;flex-shrink:0;">
+                    <%= { "risk_management" => "⚠️", "user_story" => "📋", "test_coverage" => "🧪",
+                          "spec" => "📄", "architecture" => "🏗️", "runbook" => "📖", "timeline" => "📅",
+                          "other" => "📝" }[doc.doc_type] || "📝" %>
+                  </span>
+                  <div style="min-width:0;">
+                    <div class="fw-semibold text-truncate small"><%= doc.title %></div>
+                    <div class="text-muted" style="font-size:0.72rem;">
+                      <%= doc.doc_type.humanize.gsub("_", " ") %>
+                      · <%= time_ago_in_words(doc.updated_at) %> ago
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+<% end %>

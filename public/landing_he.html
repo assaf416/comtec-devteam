@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTeam Hub — פלטפורמת הפיתוח On-Premises</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f0e8;
+      --panel: #fffdf7;
+      --ink: #12252b;
+      --muted: #5c6f76;
+      --line: #d7d0c2;
+      --teal: #0b7a75;
+      --teal-light: rgba(11,122,117,.10);
+      --navy: #17324a;
+      --orange: #d26d18;
+      --red: #b63a34;
+      --green: #1a7a3a;
+      --purple: #6d28d9;
+      --blue: #2563eb;
+      --shadow: 0 18px 44px rgba(18,37,43,.09);
+      --shadow-sm: 0 4px 18px rgba(18,37,43,.07);
+      --radius: 20px;
+      --mono: "JetBrains Mono", monospace;
+      --sans: "Heebo", "Segoe UI", sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      color: var(--ink); font-family: var(--sans); line-height: 1.7;
+      direction: rtl; text-align: right;
+      background:
+        radial-gradient(900px 420px at 100% 0%, rgba(11,122,117,.13), transparent),
+        radial-gradient(760px 340px at 0% 0%, rgba(109,40,217,.09), transparent),
+        var(--bg);
+    }
+
+    /* ── layout ── */
+    .shell { max-width: 1100px; margin: 0 auto; padding: 0 18px 80px; }
+
+    /* ── nav ── */
+    nav {
+      position: sticky; top: 12px; z-index: 50;
+      background: rgba(255,253,247,.93); border: 1px solid var(--line);
+      border-radius: 18px; backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-sm);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 22px; gap: 10px; flex-wrap: wrap; margin: 12px 0 0;
+    }
+    .nav-logo { font-weight: 800; font-size: 1.05rem; color: var(--teal); display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .nav-logo img { width: 28px; height: 28px; }
+    .nav-links { display: flex; gap: 2px; flex-wrap: wrap; }
+    .nav-links a { color: var(--muted); font-size: .82rem; font-weight: 700; text-decoration: none; padding: 6px 11px; border-radius: 8px; transition: all .15s; }
+    .nav-links a:hover { background: var(--teal-light); color: var(--teal); }
+    .nav-cta { background: var(--teal); color: #fff; font-weight: 800; font-size: .82rem; padding: 8px 18px; border-radius: 10px; text-decoration: none; transition: opacity .15s; }
+    .nav-cta:hover { opacity: .88; }
+    .lang-switch { font-size: .78rem; font-weight: 700; color: var(--muted); text-decoration: none; border: 1px solid var(--line); padding: 5px 10px; border-radius: 8px; }
+    .lang-switch:hover { color: var(--teal); border-color: var(--teal); }
+
+    /* ── hero ── */
+    .hero { text-align: center; padding: 56px 18px 36px; }
+    .kicker { font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--purple); font-size: .78rem; margin-bottom: 12px; }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.1rem); font-weight: 900; color: var(--navy); line-height: 1.2; margin-bottom: 18px; }
+    .hero h1 em { font-style: normal; color: var(--teal); }
+    .hero p { font-size: 1.08rem; color: var(--muted); max-width: 740px; margin: 0 auto 24px; }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+    .btn-primary { background: var(--teal); color: #fff; font-weight: 800; font-size: .95rem; padding: 13px 28px; border-radius: 12px; text-decoration: none; transition: opacity .15s; }
+    .btn-primary:hover { opacity: .88; }
+    .btn-outline { background: transparent; color: var(--teal); font-weight: 800; font-size: .95rem; padding: 12px 24px; border-radius: 12px; text-decoration: none; border: 2px solid var(--teal); transition: all .15s; }
+    .btn-outline:hover { background: var(--teal-light); }
+    .badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 42px; }
+    .badge { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 5px 14px; font-size: .8rem; font-weight: 700; color: var(--teal); }
+
+    /* ── hero screenshot ── */
+    .hero-shot { position: relative; margin: 0 auto; max-width: 960px; }
+    .hero-shot img { width: 100%; border-radius: 16px; box-shadow: 0 32px 80px rgba(18,37,43,.18); border: 1px solid var(--line); }
+    .shot-label { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; font-size: .74rem; font-weight: 700; padding: 5px 14px; border-radius: 20px; white-space: nowrap; }
+
+    /* ── sections ── */
+    section { margin-top: 70px; }
+    .sec-head { text-align: center; margin-bottom: 36px; }
+    .sec-kicker { font-weight: 800; letter-spacing: .06em; text-transform: uppercase; font-size: .74rem; color: var(--purple); margin-bottom: 8px; }
+    .sec-head h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 900; color: var(--navy); margin-bottom: 10px; }
+    .sec-head p { color: var(--muted); font-size: 1rem; max-width: 680px; margin: 0 auto; }
+
+    /* ── cards ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    @media (max-width: 900px) { .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } nav { top: 0; border-radius: 0; margin: 0; } }
+
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; box-shadow: var(--shadow-sm); }
+    .card-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .card h3 { font-size: 1rem; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .card p { font-size: .875rem; color: var(--muted); line-height: 1.65; }
+    .card-teal { border-top: 3px solid var(--teal); }
+    .card-purple { border-top: 3px solid var(--purple); }
+    .card-orange { border-top: 3px solid var(--orange); }
+    .card-blue { border-top: 3px solid var(--blue); }
+    .card-green { border-top: 3px solid var(--green); }
+
+    /* ── feature split ── */
+    .feature-split { display: grid; grid-template-columns: 1fr 1fr; gap: 42px; align-items: center; }
+    .feature-split.flip { direction: ltr; }
+    .feature-split.flip > * { direction: rtl; }
+    @media (max-width: 750px) { .feature-split, .feature-split.flip { grid-template-columns: 1fr; direction: rtl; } }
+    .feature-text .tag { display: inline-block; background: var(--teal-light); color: var(--teal); font-weight: 800; font-size: .74rem; padding: 4px 10px; border-radius: 8px; margin-bottom: 12px; }
+    .feature-text h2 { font-size: 1.75rem; font-weight: 900; color: var(--navy); line-height: 1.25; margin-bottom: 12px; }
+    .feature-text p { color: var(--muted); font-size: .95rem; margin-bottom: 14px; }
+    .feature-text ul { list-style: none; }
+    .feature-text ul li { display: flex; gap: 8px; font-size: .9rem; color: var(--ink); margin-bottom: 8px; align-items: flex-start; }
+    .feature-text ul li::before { content: "✓"; color: var(--teal); font-weight: 800; flex-shrink: 0; margin-top: 2px; }
+    .shot-wrap img { width: 100%; border-radius: 14px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+
+    /* ── gallery ── */
+    .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 700px) { .gallery { grid-template-columns: 1fr 1fr; } }
+    .gallery-item { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm); cursor: pointer; }
+    .gallery-item img { width: 100%; display: block; transition: transform .3s; }
+    .gallery-item:hover img { transform: scale(1.03); }
+    .gallery-caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(18,37,43,.78)); color: #fff; font-size: .73rem; font-weight: 700; padding: 18px 10px 8px; text-align: center; }
+
+    /* ── AI cards ── */
+    .ai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 900px) { .ai-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .ai-grid { grid-template-columns: 1fr; } }
+    .ai-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: var(--shadow-sm); border-right: 4px solid transparent; }
+    .ai-card.kind-review { border-right-color: var(--teal); }
+    .ai-card.kind-plan { border-right-color: var(--purple); }
+    .ai-card.kind-doc { border-right-color: var(--orange); }
+    .ai-card .ai-icon { font-size: 1.5rem; margin-bottom: 8px; }
+    .ai-card h4 { font-size: .93rem; font-weight: 800; color: var(--navy); margin-bottom: 5px; }
+    .ai-card p { font-size: .82rem; color: var(--muted); }
+    .ai-card code { font-family: var(--mono); font-size: .73em; background: var(--teal-light); color: var(--teal); padding: 2px 6px; border-radius: 5px; direction: ltr; display: inline-block; }
+    .ai-arch { background: var(--navy); color: #fff; border-radius: 14px; padding: 22px 26px; font-family: var(--mono); font-size: .8rem; line-height: 1.7; margin-bottom: 24px; overflow-x: auto; direction: ltr; text-align: left; }
+    .ai-arch .c { color: #64d2c9; }
+    .ai-arch .a { color: #fca96b; }
+
+    /* ── API ── */
+    .api-panel { background: var(--navy); color: #e8f0f2; border-radius: var(--radius); padding: 32px 36px; box-shadow: var(--shadow); }
+    .api-panel h2 { color: #fff; font-size: 1.6rem; font-weight: 900; margin-bottom: 8px; }
+    .api-panel .sub { color: #8ba6b5; font-size: .93rem; margin-bottom: 24px; }
+    .api-endpoints { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px) { .api-endpoints { grid-template-columns: 1fr; } }
+    .ep { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 14px; }
+    .ep .method { font-family: var(--mono); font-size: .7rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; margin-left: 6px; direction: ltr; display: inline-block; }
+    .get { background: rgba(100,210,201,.15); color: #64d2c9; }
+    .post { background: rgba(252,169,107,.15); color: #fca96b; }
+    .patch { background: rgba(130,195,255,.15); color: #82c3ff; }
+    .ep .path { font-family: var(--mono); font-size: .8rem; color: #e8f0f2; direction: ltr; display: inline-block; }
+    .ep p { font-size: .78rem; color: #8ba6b5; margin-top: 5px; }
+    .code-block { background: rgba(0,0,0,.35); border-radius: 10px; padding: 16px 18px; font-family: var(--mono); font-size: .8rem; line-height: 1.65; color: #d4efec; margin-top: 18px; overflow-x: auto; direction: ltr; text-align: left; }
+    .code-block .cm { color: #5c8a88; }
+    .code-block .ck { color: #82c3ff; }
+    .code-block .cv { color: #fca96b; }
+
+    /* ── CLI ── */
+    .cli-panel { background: #111b21; color: #c5dbd2; border-radius: var(--radius); padding: 28px 32px; font-family: var(--mono); font-size: .85rem; line-height: 1.75; box-shadow: var(--shadow); overflow-x: auto; direction: ltr; text-align: left; }
+    .cli-panel .prompt { color: #64d2c9; user-select: none; }
+    .cli-panel .cmd { color: #e8f0f2; }
+    .cli-panel .out { color: #7ea89e; }
+    .cli-panel .ok { color: #6ede8a; }
+    .cli-panel .info { color: #82c3ff; }
+
+    /* ── feature code ── */
+    .feature-code { background: #1b2b35; color: #c5dbd2; border-radius: 14px; padding: 20px 22px; font-family: var(--mono); font-size: .8rem; line-height: 1.7; overflow-x: auto; box-shadow: var(--shadow-sm); direction: ltr; text-align: left; }
+    .feature-code .kw { color: #82c3ff; }
+    .feature-code .str { color: #a8e6a3; }
+    .feature-code .cm { color: #5c7a6e; }
+    .feature-code .step { color: #fca96b; }
+
+    /* ── ceremonies ── */
+    .ceremony-row { display: flex; gap: 14px; flex-wrap: wrap; }
+    .ceremony-card { flex: 1; min-width: 200px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+    .ceremony-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .ceremony-card.c1::before { background: var(--teal); }
+    .ceremony-card.c2::before { background: var(--purple); }
+    .ceremony-card.c3::before { background: var(--orange); }
+    .ceremony-card.c4::before { background: var(--blue); }
+    .ceremony-card .ic { font-size: 2rem; margin-bottom: 10px; }
+    .ceremony-card h3 { font-size: .97rem; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .ceremony-card p { font-size: .84rem; color: var(--muted); }
+    .ceremony-card .freq { display: inline-block; margin-top: 10px; font-size: .72rem; font-weight: 800; padding: 3px 9px; border-radius: 20px; background: var(--teal-light); color: var(--teal); }
+
+    /* ── team ── */
+    .team-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+    .team-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; max-width: 240px; box-shadow: var(--shadow-sm); text-align: center; }
+    .team-card img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 3px solid var(--line); margin-bottom: 10px; }
+    .team-card p { font-size: .83rem; color: var(--muted); font-style: italic; margin-bottom: 10px; }
+    .team-card .name { font-size: .8rem; font-weight: 800; color: var(--navy); }
+    .team-card .role { font-size: .73rem; color: var(--muted); }
+
+    /* ── onprem banner ── */
+    .onprem-banner { background: var(--teal); color: #fff; border-radius: var(--radius); padding: 36px 40px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
+    .onprem-banner .ob-text { flex: 1; min-width: 260px; }
+    .onprem-banner h2 { font-size: 1.7rem; font-weight: 900; margin-bottom: 8px; }
+    .onprem-banner p { font-size: .95rem; opacity: .88; }
+    .onprem-banner .ob-list { list-style: none; margin-top: 14px; }
+    .onprem-banner .ob-list li { display: flex; gap: 8px; font-size: .88rem; opacity: .9; margin-bottom: 6px; }
+    .onprem-banner .ob-list li::before { content: "🔒"; flex-shrink: 0; }
+    .onprem-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-width: 220px; }
+    .stat { background: rgba(255,255,255,.14); border-radius: 12px; padding: 16px; text-align: center; }
+    .stat .num { font-size: 2rem; font-weight: 900; }
+    .stat .lbl { font-size: .72rem; opacity: .8; font-weight: 600; }
+
+    /* ── test split ── */
+    .test-split { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    @media (max-width: 700px) { .test-split { grid-template-columns: 1fr; } }
+
+    /* ── misc ── */
+    code { font-family: var(--mono); font-size: .85em; background: var(--teal-light); color: var(--teal); padding: 2px 7px; border-radius: 5px; direction: ltr; display: inline-block; }
+    footer { text-align: center; color: var(--muted); font-size: .83rem; padding: 40px 0 20px; border-top: 1px solid var(--line); margin-top: 60px; }
+    footer a { color: var(--teal); text-decoration: none; }
+    .section-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 36px 40px; box-shadow: var(--shadow); }
+    .text-teal { color: var(--teal); }
+    @media (max-width: 600px) { .section-panel { padding: 24px 20px; } .api-panel { padding: 24px 20px; } .onprem-banner { padding: 24px 20px; } }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── NAV ── -->
+  <nav>
+    <a class="nav-logo" href="#">
+      <img src="/icon.png" alt="DevTeam Hub לוגו"> DevTeam Hub
+    </a>
+    <div class="nav-links">
+      <a href="#agile">אג'יל</a>
+      <a href="#tickets">טיקטים</a>
+      <a href="#testing">בדיקות</a>
+      <a href="#ai">AI</a>
+      <a href="#api">API</a>
+      <a href="#cli">CLI</a>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <a class="lang-switch" href="landing_en.html">English 🇺🇸</a>
+      <a class="nav-cta" href="#contact">בקש הדגמה</a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <div class="kicker">On-Premises · אג'יל · מונע AI</div>
+    <h1>כל תהליך הפיתוח שלכם,<br><em>רץ על השרתים שלכם.</em></h1>
+    <p>DevTeam Hub מחבר ניהול טיקטים, טקסי ספרינט, בדיקות BDD עם Cucumber,
+       pipelines CI ומנוע AI מקומי — פלטפורמה אחת שמתארחת אצלכם, ללא שליחת
+       שום מידע לענן.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#agile">גלה את הפיצ'רים</a>
+      <a class="btn-outline" href="#api">צפה ב-API</a>
+    </div>
+    <div class="badges">
+      <span class="badge">🔒 100% On-Premises</span>
+      <span class="badge">🤖 AI מקומי — ללא ענן</span>
+      <span class="badge">🧪 Cucumber / BDD מובנה</span>
+      <span class="badge">🏃 טקסי אג'יל מלאים</span>
+      <span class="badge">🖥️ CLI + תוסף VS Code</span>
+      <span class="badge">🔌 REST API</span>
+    </div>
+    <div class="hero-shot">
+      <img src="../docs/screenshots/he/01_today.png" alt="DevTeam Hub – תצוגת היום">
+      <div class="shot-label">תצוגת היום — דופק הצוות במבט אחד</div>
+    </div>
+  </div>
+
+  <!-- ── ON-PREM BANNER ── -->
+  <section style="margin-top:80px;">
+    <div class="onprem-banner">
+      <div class="ob-text">
+        <h2>בנוי לצוותים שעובדים On-Premises</h2>
+        <p>מיועד לארגונים שלא יכולים — או לא רוצים — לשלוח קוד, טיקטים ונתונים עסקיים
+           לפלטפורמות SaaS של צד שלישי.</p>
+        <ul class="ob-list">
+          <li>כל הנתונים נשארים על תשתית שאתם שולטים בה</li>
+          <li>מנוע AI מקומי — ללא קריאות OpenAI או Anthropic בייצור</li>
+          <li>תמיכה בסביבות מנותקות מהאינטרנט (air-gapped)</li>
+          <li>פריסה בפקודת Docker אחת, ללא תלות בענן</li>
+        </ul>
+      </div>
+      <div class="onprem-stats">
+        <div class="stat"><div class="num">39</div><div class="lbl">מסכים ותצוגות</div></div>
+        <div class="stat"><div class="num">11</div><div class="lbl">שירותי AI</div></div>
+        <div class="stat"><div class="num">100%</div><div class="lbl">On-Premises</div></div>
+        <div class="stat"><div class="num">0</div><div class="lbl">דליפות מידע</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── AGILE CEREMONIES ── -->
+  <section id="agile">
+    <div class="sec-head">
+      <div class="sec-kicker">תהליך אג'יל</div>
+      <h2>כל מחזור האג'יל, מוכן מהקופסה</h2>
+      <p>מתכנון ספרינט ועד רטרוספקטיבה — DevTeam Hub מריץ כל טקס אוטומטית,
+         מתוזמן, מתועד ומקושר לטיקטים ולנתוני הווולוסיטי שלכם.</p>
+    </div>
+
+    <div class="ceremony-row">
+      <div class="ceremony-card c1">
+        <div class="ic">🌅</div>
+        <h3>Daily Stand-up</h3>
+        <p>פגישה יומית מובנית עם אתמול / היום / חסמים — מקושרת לטיקטים פעילים ולהתקדמות הספרינט. שילוב Jitsi וידאו מובנה.</p>
+        <span class="freq">יומי</span>
+      </div>
+      <div class="ceremony-card c2">
+        <div class="ic">📅</div>
+        <h3>תכנון ספרינט</h3>
+        <p>משיכת טיקטים מה-Backlog לספרינט מוגבל בזמן. כיול הערכות ה-AI חושף דפוסי הערכת-יתר/חסר לפני שמתחייבים.</p>
+        <span class="freq">לכל ספרינט</span>
+      </div>
+      <div class="ceremony-card c3">
+        <div class="ic">🔍</div>
+        <h3>סקירת ספרינט</h3>
+        <p>סקירת טיקטים שהושלמו מול יעדי הספרינט. שיעורי מעבר CI, סטטוס פריסה ותרשימי ווולוסיטי — הכל על דף הספרינט.</p>
+        <span class="freq">סוף ספרינט</span>
+      </div>
+      <div class="ceremony-card c4">
+        <div class="ic">🪞</div>
+        <h3>רטרוספקטיבה</h3>
+        <p>רטרו מובנה עם מה הלך טוב / לשיפור / פעולות. עוזר רטרו ה-AI מקבץ הערות לנושאים ומציע פריטי פעולה.</p>
+        <span class="freq">סוף ספרינט</span>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;" class="grid-2">
+      <div class="shot-wrap"><img src="../docs/screenshots/he/18_meetings.png" alt="תצוגת פגישות"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/he/19_meeting_detail.png" alt="פרטי פגישה"></div>
+    </div>
+  </section>
+
+  <!-- ── TICKET MANAGEMENT ── -->
+  <section id="tickets" style="margin-top:70px;">
+    <div class="feature-split">
+      <div class="feature-text">
+        <div class="tag">ניהול טיקטים</div>
+        <h2>כל יחידת עבודה — עם מעקב מלא</h2>
+        <p>טיקטים עוברים מחזור חיים ברור — מטיוטה דרך אישור, הערכה, פיתוח ובדיקות —
+           עד "בוצע". שום דבר לא נופל בין הכיסאות.</p>
+        <ul>
+          <li>מחזור חיים מלא: טיוטה ← אושר ← הוערך ← בפיתוח ← בוצע</li>
+          <li>עדיפות, סוג, מורכבות, שלוח ובעלים בכל טיקט</li>
+          <li>Git branch נוצר אוטומטית מכותרת הטיקט</li>
+          <li>קישור ל-CI runs, PRs, פריסות ומשימות</li>
+          <li>בדיקת מוכנות AI — מחזיר טיקטים מעורפלים לבעלים</li>
+          <li>פירוק משימות עם הערכות זמן מכוילות</li>
+        </ul>
+      </div>
+      <div class="shot-wrap">
+        <img src="../docs/screenshots/he/08_ticket_detail.png" alt="פרטי טיקט">
+      </div>
+    </div>
+
+    <div style="margin-top:28px;" class="grid-3">
+      <div class="shot-wrap"><img src="../docs/screenshots/he/03_all_tickets.png" alt="כל הטיקטים"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/he/04_my_tickets.png" alt="הטיקטים שלי"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/he/06_backlog.png" alt="Backlog"></div>
+    </div>
+  </section>
+
+  <!-- ── SPRINTS ── -->
+  <section style="margin-top:70px;">
+    <div class="feature-split flip">
+      <div class="feature-text">
+        <div class="tag">ניהול ספרינטים</div>
+        <h2>איטרציות צפויות, התקדמות גלויה</h2>
+        <p>ספרינט אחד פעיל בכל פעם. תרשימי Burn-down, מעקב ווולוסיטי וציון בריאות AI
+           מספרים לכם אם הספרינט על המסלול — לפני שמאוחר לפעול.</p>
+        <ul>
+          <li>ספרינט נוכחי יחיד עם יעדים ברורים ו-Burn-down</li>
+          <li>דוחות ווולוסיטי על פני ספרינטים — זיהוי מגמות מוקדם</li>
+          <li>ניתוח ספרינט AI נטען חי בדף הספרינט</li>
+          <li>ניקוד דיוק הערכות לפי מפתח ולפי רמת מורכבות</li>
+          <li>לוח שנה של ספרינט עם תזמון אוטומטי של טקסים</li>
+        </ul>
+      </div>
+      <div class="shot-wrap">
+        <img src="../docs/screenshots/he/30_sprint_detail.png" alt="פרטי ספרינט">
+      </div>
+    </div>
+
+    <div style="margin-top:28px;" class="grid-2">
+      <div class="shot-wrap"><img src="../docs/screenshots/he/35_report_velocity.png" alt="דוח ווולוסיטי"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/he/36_report_estimation.png" alt="דוח הערכות"></div>
+    </div>
+  </section>
+
+  <!-- ── TESTING / CUCUMBER ── -->
+  <section id="testing" style="margin-top:70px;">
+    <div class="sec-head">
+      <div class="sec-kicker">אינטגרציית בדיקות</div>
+      <h2>BDD עם Cucumber — מובנה, לא מחובר מבחוץ</h2>
+      <p>קבצי Feature של Cucumber חיים לצד הקוד שלכם. CI מפרסר תוצאות ישירות ל-DevTeam Hub.
+         ה-AI בודק את ה-Gherkin שלכם ומציע תרחישים חסרים לפני שאתם מעלים.</p>
+    </div>
+
+    <div class="test-split">
+      <div>
+        <h3 class="text-teal" style="font-size:1rem;font-weight:800;margin-bottom:12px;">קבצי ה-.feature שלכם מניעים את הלוח</h3>
+        <div class="feature-code">
+<span class="kw">Feature:</span> <span class="str">Ticket commands</span>
+  <span class="cm"># As a developer</span>
+  <span class="cm"># I want to manage tickets from the CLI</span>
+
+  <span class="kw">Background:</span>
+    <span class="step">Given</span> <span class="str">the API server is running</span>
+    <span class="step">And</span> <span class="str">I am authenticated</span>
+
+  <span class="kw">Scenario:</span> <span class="str">Start work on a ticket</span>
+    <span class="step">Given</span> <span class="str">a ticket with id 42, status "open"</span>
+    <span class="step">When</span> <span class="str">I run "devteam ticket 42 start"</span>
+    <span class="step">Then</span> <span class="str">the output contains "in_progress"</span>
+    <span class="step">And</span> <span class="str">the exit code is 0</span>
+
+  <span class="kw">Scenario:</span> <span class="str">Mark a ticket as done</span>
+    <span class="step">Given</span> <span class="str">a ticket with id 42, status "in_progress"</span>
+    <span class="step">When</span> <span class="str">I run "devteam ticket 42 done"</span>
+    <span class="step">Then</span> <span class="str">the output contains "done"</span>
+    <span class="step">And</span> <span class="str">the exit code is 0</span>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-teal" style="font-size:1rem;font-weight:800;margin-bottom:12px;">תמיכה ב-Multi-framework, Multi-language</h3>
+        <div class="grid-2" style="gap:10px;">
+          <div class="card card-teal">
+            <div class="card-icon">💎</div>
+            <h3>Ruby / Rails</h3>
+            <p>cucumber-rails עם Capybara ו-RSpec מובנים לבדיקות דפדפן מלאות.</p>
+          </div>
+          <div class="card card-blue">
+            <div class="card-icon">🔷</div>
+            <h3>Go (godog)</h3>
+            <p>godog v0.14 מריץ תרחישי Gherkin על ה-CLI — כולל mocks של httptest.</p>
+          </div>
+          <div class="card card-orange">
+            <div class="card-icon">🌐</div>
+            <h3>.NET / C#</h3>
+            <p>קבצי SpecFlow לשירותי C# עם step definitions של xUnit.</p>
+          </div>
+          <div class="card card-purple">
+            <div class="card-icon">⚡</div>
+            <h3>Playwright / UI</h3>
+            <p>בדיקות End-to-end לפורטלי ווב — מוקלטות ב-CI ומקושרות לטיקטים.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-top:10px;">
+          <div class="card-icon">📊</div>
+          <h3>תוצאות CI מפורסרות לתוך הפלטפורמה</h3>
+          <p>כל CI run מפרסם תוצאות חזרה ל-DevTeam Hub. מגמות כיסוי קוד, שיעורי כישלון וזיהוי בדיקות flaky גלויים בדשבורד CI — מקושרים לטיקט שגרם לכישלון.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;" class="grid-2">
+      <div class="shot-wrap"><img src="../docs/screenshots/he/17_ci_dashboard.png" alt="דשבורד CI"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/he/34_report_test_coverage.png" alt="דוח כיסוי בדיקות"></div>
+    </div>
+  </section>
+
+  <!-- ── AI SERVICES ── -->
+  <section id="ai" style="margin-top:70px;">
+    <div class="sec-head">
+      <div class="sec-kicker">תוסף AI</div>
+      <h2>11 שירותי AI — כולם רצים מקומית על Mac mini שלכם</h2>
+      <p>מונע על ידי Ollama ו-LLM מקומי (llama3.1, qwen2.5-coder, או כל מודל פתוח).
+         ללא API keys. ללא SaaS. ללא שליחת נתונים מהרשת. אף פעם.</p>
+    </div>
+
+    <div class="ai-arch">
+      <span class="c">DevTeam Hub (Rails)</span>  ──[HTTP · LAN בלבד]──▶  <span class="a">Mac mini · ollama serve</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POST /api/chat { model, messages }<br>
+      <span class="c">Ai::OllamaClient</span>     ◀─────────────────────  <span class="a">llama3.1 / qwen2.5-coder</span><br>
+      <br>
+      ✅ קוד מקור, diffs, טקסט טיקטים — אף מידע לא יוצא לאינטרנט.
+    </div>
+
+    <div class="ai-grid">
+      <div class="ai-card kind-review">
+        <div class="ai-icon">✅</div>
+        <h4>בדיקת מוכנות טיקט</h4>
+        <p>שופט את הטיקט מול Definition of Ready — סיפור ברור, קריטריוני קבלה, שלבי שחזור לבאגים. מחזיר טיקטים מעורפלים אוטומטית לבעלים.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/ticket_quality</code></p>
+      </div>
+      <div class="ai-card kind-review">
+        <div class="ai-icon">🔍</div>
+        <h4>Code Review (Go / Ruby / C# / Node)</h4>
+        <p>בוחן git diff לאיתור באגים, אבטחה, ביצועים ואידיומים של השפה. מקבץ ממצאים ל-Blocking, Suggestions ו-Lint.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/code_review</code></p>
+      </div>
+      <div class="ai-card kind-review">
+        <div class="ai-icon">🧪</div>
+        <h4>סקירת בדיקות Cucumber</h4>
+        <p>בוחן Gherkin לבהירות, דטרמיניזם ומבנה. מציע תרחישי edge-case חסרים — כתובים כ-Gherkin מוכן להדבקה.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/test_review</code></p>
+      </div>
+      <div class="ai-card kind-plan">
+        <div class="ai-icon">💡</div>
+        <h4>הצעת פתרון</h4>
+        <p>קורא טיקט ומציע גישת מימוש — צעדים, קבצים סבירים, edge cases, סיכונים ואיזה בדיקות להוסיף.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/solution_suggestion</code></p>
+      </div>
+      <div class="ai-card kind-plan">
+        <div class="ai-icon">🐛</div>
+        <h4>תיקון הבאג</h4>
+        <p>קורא טיקט באג, מנתח את הסיבה השורשית הסבירה ומציע תיקון מינימלי קונקרטי עם בדיקות. ציון ביטחון 0–100.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/fix_bug</code></p>
+      </div>
+      <div class="ai-card kind-plan">
+        <div class="ai-icon">🧩</div>
+        <h4>יצירת משימות והערכות</h4>
+        <p>מפרק סיפור למשימות Task עצמאיות הניתנות להערכה. מכייל הערכות מול נתוני הדיוק ההיסטוריים של הצוות.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/generate_tasks</code></p>
+      </div>
+      <div class="ai-card kind-plan">
+        <div class="ai-icon">📊</div>
+        <h4>ניתוח דיוק הערכות</h4>
+        <p>משווה dev_estimate מול שעות בפועל לכל טיקט. חושף הטיה שיטתית, דפוסים לפי מפתח ומספק אימון קונקרטי.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/estimation_analysis</code></p>
+      </div>
+      <div class="ai-card kind-plan">
+        <div class="ai-icon">🚦</div>
+        <h4>ניתוח בריאות ספרינט</h4>
+        <p>הערכת ספרינט חיה — במסלול / בסיכון, רמות WIP, איזון עומסים והצעד הבא החשוב ביותר. ציון 0–100.</p>
+        <p style="margin-top:6px;"><code>GET /tools/ai/sprint_analysis</code></p>
+      </div>
+      <div class="ai-card kind-doc">
+        <div class="ai-icon">📋</div>
+        <h4>יצירת מסמך מפרט</h4>
+        <p>מפיק מסמך מפרט מובנה מסיפורי המשתמש של הפרויקט — יעדים, דרישות פונקציונליות, AC, non-functional ושאלות פתוחות.</p>
+        <p style="margin-top:6px;"><code>POST /projects/:id/documents/generate</code></p>
+      </div>
+      <div class="ai-card kind-doc">
+        <div class="ai-icon">🎯</div>
+        <h4>מצגת סטטוס</h4>
+        <p>מייצר דוח סטטוס בסגנון שקופיות מנתונים חיים — טיקטים, משימות, שיעור מעבר CI, פריסות ואבני דרך.</p>
+        <p style="margin-top:6px;"><code>POST /projects/:id/documents/generate</code></p>
+      </div>
+      <div class="ai-card kind-doc">
+        <div class="ai-icon">💬</div>
+        <h4>צ'אט בהקשר פרויקט</h4>
+        <p>צ'אט בסגנון OpenAI עם הקשר מטיקטים, ספרינטים, PRs, מדדי ביצועי צוות וקוד מאגר. שאל כל שאלה על הפרויקט.</p>
+        <p style="margin-top:6px;"><code>/projects/:id/ai_chats</code></p>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;" class="grid-2">
+      <div class="shot-wrap"><img src="../docs/screenshots/he/22_documents.png" alt="מסמכים"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/he/23_document_detail.png" alt="פרטי מסמך"></div>
+    </div>
+  </section>
+
+  <!-- ── API ── -->
+  <section id="api" style="margin-top:70px;">
+    <div class="api-panel">
+      <h2>🔌 REST API מלא</h2>
+      <p class="sub">כל פיצ'ר נגיש מ-CI, סקריפטים, ה-CLI או אינטגרציות משלכם. אותנטיקציית Bearer token — נקודת קצה אחת לכל הדברים.</p>
+
+      <div class="api-endpoints">
+        <div class="ep">
+          <span class="method get">GET</span><span class="path">/api/v1/tickets</span>
+          <p>רשימת טיקטים. סינון לפי שלוח, סטטוס, פרויקט, ספרינט.</p>
+        </div>
+        <div class="ep">
+          <span class="method post">POST</span><span class="path">/api/v1/tickets</span>
+          <p>יצירת טיקט עם מטאדאטה מלאה — פרויקט, עדיפות, סוג, שלוח.</p>
+        </div>
+        <div class="ep">
+          <span class="method patch">PATCH</span><span class="path">/api/v1/tickets/:id</span>
+          <p>עדכון סטטוס, שלוח, שם branch או כל שדה בטיקט.</p>
+        </div>
+        <div class="ep">
+          <span class="method get">GET</span><span class="path">/api/v1/projects</span>
+          <p>רשימת פרויקטים עם repo URL, branch ברירת מחדל ומידע ספרינט.</p>
+        </div>
+        <div class="ep">
+          <span class="method get">GET</span><span class="path">/api/v1/sprints/:id</span>
+          <p>נתוני ספרינט — טיקטים, נקודות, burn-down, ווולוסיטי, שיעור CI.</p>
+        </div>
+        <div class="ep">
+          <span class="method post">POST</span><span class="path">/tools/ai/code_review</span>
+          <p>שליחת diff לסקירת קוד AI. מחזיר verdict, ציון וממצאי Markdown.</p>
+        </div>
+        <div class="ep">
+          <span class="method post">POST</span><span class="path">/tools/ai/test_review</span>
+          <p>שליחת קובץ .feature לסקירת Cucumber AI והצעת תרחישים חסרים.</p>
+        </div>
+        <div class="ep">
+          <span class="method get">GET</span><span class="path">/api/v1/token</span>
+          <p>קבלה או חידוש של API token של המשתמש הנוכחי.</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+<span class="cm"># יצירת טיקט מ-CI או סקריפט אינציידנט</span>
+curl -s -X <span class="ck">POST</span> <span class="cv">"$DEVTEAM_URL/api/v1/tickets"</span> \
+  -H <span class="cv">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="cv">"Content-Type: application/json"</span> \
+  -d <span class="cv">'{ "ticket": { "project_id": 3, "title": "DB timeout בצ\'אקאוט", "priority": "high" } }'</span>
+
+<span class="cm"># סקירת קוד AI משלב ב-CI pipeline</span>
+curl -s -X <span class="ck">POST</span> <span class="cv">"$DEVTEAM_URL/tools/ai/code_review"</span> \
+  -H <span class="cv">"Authorization: Bearer $TOKEN"</span> \
+  --data-urlencode <span class="cv">"language=go"</span> \
+  --data-urlencode <span class="cv">"diff@-"</span> &lt; my.diff
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CLI ── -->
+  <section id="cli" style="margin-top:70px;">
+    <div class="sec-head">
+      <div class="sec-kicker">CLI למפתחים</div>
+      <h2>devteam — כל הפלטפורמה מהטרמינל</h2>
+      <p>קובץ בינארי Go יחיד. ללא runtime, ללא Node, ללא Python. עובד על Mac, Linux ו-Windows.
+         כעת עם בדיקות Cucumber דרך <code>godog</code>.</p>
+    </div>
+
+    <div class="cli-panel">
+<span class="prompt">$</span> <span class="cmd">devteam ticket 42 open</span>
+<span class="ok">✓ T-42 "תיקון באג לוגין"</span>
+<span class="ok">✓ branch feature/t-42-fix-login-bug נוצר מ-main ו-checkout בוצע</span>
+<span class="info">↳ `devteam ticket 42 start` להתחלת ה-work session</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam ticket 42 start</span>
+<span class="ok">✓ work session התחיל — T-42 עכשיו in_progress</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam ticket 42 commit -m "handle nil user on checkout"</span>
+<span class="ok">✓ committed: T-42: handle nil user on checkout</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam ticket 42 push</span>
+<span class="ok">✓ pushed → origin/feature/t-42-fix-login-bug</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam ticket 42 done</span>
+<span class="ok">✓ מסומן כ-done — T-42 עכשיו done</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam status</span>
+<span class="out">folder  /home/dev/projects/api-core</span>
+<span class="out">branch  feature/t-42-fix-login-bug  ↑1 ↓0  clean</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam test ./app/models</span>
+<span class="info">• מריץ: bundle exec rspec app/models</span>
+<span class="ok">✓ בדיקות עברו</span>
+    </div>
+
+    <div class="grid-3" style="margin-top:20px;">
+      <div class="card card-teal">
+        <div class="card-icon">🎫</div>
+        <h3>ticket</h3>
+        <p>פתח, התחל, עצור, commit, push, בוצע — מחזור חיים מלא של טיקט מה-shell.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-icon">🧪</div>
+        <h3>test</h3>
+        <p>הרץ בדיקות לקובץ או תיקייה. מוגדר לכל repo דרך <code>.devteam.yml</code>.</p>
+      </div>
+      <div class="card card-purple">
+        <div class="card-icon">📦</div>
+        <h3>commit / push</h3>
+        <p>Stage, commit עם הודעה עם prefix של טיקט, ו-push — בשלוש פקודות קצרות.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── GALLERY ── -->
+  <section style="margin-top:70px;">
+    <div class="sec-head">
+      <div class="sec-kicker">צילומי מסך מהפלטפורמה</div>
+      <h2>ראו את כל מה שהפלטפורמה כוללת</h2>
+      <p>כל תצוגה — לוחות טיקטים, דשבורדי CI, דוחות, מנהל ועוד.</p>
+    </div>
+
+    <div class="gallery">
+      <div class="gallery-item"><img src="../docs/screenshots/he/02_dashboard.png" alt="דשבורד"><div class="gallery-caption">דשבורד</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/07_current_sprint.png" alt="ספרינט נוכחי"><div class="gallery-caption">ספרינט נוכחי</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/09_projects.png" alt="פרויקטים"><div class="gallery-caption">פרויקטים</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/12_project_ci_runs.png" alt="CI Runs"><div class="gallery-caption">ריצות CI</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/13_project_deployments.png" alt="פריסות"><div class="gallery-caption">פריסות</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/15_project_pull_requests.png" alt="Pull Requests"><div class="gallery-caption">Pull Requests</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/20_calendar.png" alt="לוח שנה"><div class="gallery-caption">לוח שנה של הצוות</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/21_notifications.png" alt="התראות"><div class="gallery-caption">התראות</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/28_ci_run_detail.png" alt="פרטי CI Run"><div class="gallery-caption">פרטי CI Run</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/31_pull_request_detail.png" alt="פרטי PR"><div class="gallery-caption">פרטי Pull Request</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/32_report_ci_summary.png" alt="סיכום CI"><div class="gallery-caption">דוח סיכום CI</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/he/33_report_deployments.png" alt="דוח פריסות"><div class="gallery-caption">דוח פריסות</div></div>
+    </div>
+  </section>
+
+  <!-- ── TEAM VOICES ── -->
+  <section style="margin-top:70px;">
+    <div class="sec-head">
+      <div class="sec-kicker">בנוי לצוותי פיתוח אמיתיים</div>
+      <h2>פלטפורמה אחת, כל תפקיד</h2>
+    </div>
+    <div class="team-row">
+      <div class="team-card">
+        <img src="../docs/users-icons/face1.jpg" alt="">
+        <p>"בדיקת המוכנות של ה-AI לבדה חוסכת לנו ישיבת תכנון שלמה. סיפורים מעורפלים לא מגיעים ללוח יותר."</p>
+        <div class="name">ירון כ.</div>
+        <div class="role">מנהל הנדסה</div>
+      </div>
+      <div class="team-card">
+        <img src="../docs/users-icons/face4.jpg" alt="">
+        <p>"אני פותח branch, עושה commit ומעלה PR בלי לצאת מהטרמינל. ה-CLI משלם את עצמו כל יום."</p>
+        <div class="name">דנה ר.</div>
+        <div class="role">מפתחת בכירה</div>
+      </div>
+      <div class="team-card">
+        <img src="../docs/users-icons/face7.jpg" alt="">
+        <p>"סקירת הבדיקות של Cucumber תופסת edge cases שתמיד שכחתי. זה כמו QA engineer בתוך ה-CI."</p>
+        <div class="name">אילן מ.</div>
+        <div class="role">ראש QA</div>
+      </div>
+      <div class="team-card">
+        <img src="../docs/users-icons/face10.jpg" alt="">
+        <p>"דוחות הווולוסיטי מאפשרים לי סוף-סוף להראות לבעלי עניין למה אנחנו מאטים — עם נתונים, לא תחושת בטן."</p>
+        <div class="name">שירה ב.</div>
+        <div class="role">מנהלת מוצר</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section id="contact" style="margin-top:70px;">
+    <div class="section-panel" style="text-align:center;padding:56px 40px;">
+      <div class="sec-kicker">להתחיל</div>
+      <h2 style="font-size:2rem;font-weight:900;color:var(--navy);margin-bottom:12px;">מוכנים להריץ את DevTeam Hub על השרתים שלכם?</h2>
+      <p style="color:var(--muted);font-size:1rem;max-width:600px;margin:0 auto 28px;">
+        פקודת Docker אחת. ללא חשבונות ענן. ללא מידע שיוצא מהרשת שלכם.
+        צרו איתנו קשר להדגמה, רישיון ניסיון, או תמיכה בהתקנה מקומית.
+      </p>
+      <div class="hero-actions" style="justify-content:center;">
+        <a class="btn-primary" href="mailto:assaf.goldstein@cenevo.com">בקש הדגמה</a>
+        <a class="btn-outline" href="/devteam-cli.html">קרא את תיעוד ה-CLI</a>
+      </div>
+      <div style="margin-top:28px;color:var(--muted);font-size:.83rem;">
+        🔒 On-Premises · 🤖 AI מקומי (Ollama) · 🧪 Cucumber מובנה · 🖥️ Go CLI · 🔌 REST API
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p><strong>DevTeam Hub</strong> — פלטפורמת אג'יל On-Premises לצוותי פיתוח</p>
+    <p style="margin-top:6px;"><a href="landing_en.html">English</a> · <a href="/devteam-cli.html">תיעוד CLI</a> · <a href="/ai-for-devteam.html">מדריך AI</a> · <a href="mailto:assaf.goldstein@cenevo.com">צור קשר</a></p>
+    <p style="margin-top:10px;color:var(--muted);">© 2026 Cenevo. כל הזכויות שמורות.</p>
+  </footer>
+
+</div>
+</body>
+</html>

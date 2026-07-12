@@ -1,0 +1,33 @@
+<% doc_to_render = defined?(@new_doc) && @new_doc ? @new_doc : @document %>
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <h1 class="fw-bold mb-0">
+    <% if defined?(@new_doc) && @new_doc&.template %>
+      New Document from Template: <span class="text-warning"><%= @new_doc.template.title %></span>
+    <% elsif params[:template] == "true" %>
+      New Template — <%= @project.name %>
+    <% else %>
+      New Document — <%= @project.name %>
+    <% end %>
+  </h1>
+  <% if @templates&.any? && !(defined?(@new_doc) && @new_doc) %>
+    <div class="dropdown">
+      <button class="btn btn-outline-warning btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-file-earmark-code me-1"></i>Start from Template
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <% @templates.each do |tmpl| %>
+          <li><%= link_to tmpl.title, new_from_template_document_path(tmpl), class: "dropdown-item" %></li>
+        <% end %>
+        <li><hr class="dropdown-divider"></li>
+        <li><%= link_to "Browse all templates", templates_project_documents_path(@project), class: "dropdown-item text-muted" %></li>
+      </ul>
+    </div>
+  <% end %>
+</div>
+
+<% if params[:template] == "true" && doc_to_render.is_template? == false %>
+  <% doc_to_render.is_template = true %>
+<% end %>
+
+<%= render "form", document: doc_to_render %>

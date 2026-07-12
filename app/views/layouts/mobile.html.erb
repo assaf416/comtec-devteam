@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>" dir="<%= I18n.locale.to_s == 'he' ? 'rtl' : 'ltr' %>">
+  <head>
+    <title><%= content_for(:title) || "DevTeam" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#4a90d9">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <%= stylesheet_link_tag "mobile", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+  </head>
+
+  <body>
+    <% if user_signed_in? %>
+    <div class="mobile-shell">
+
+      <%# ── Top bar ──────────────────────────────────────────────────── %>
+      <header class="mobile-topbar">
+        <span class="mobile-topbar-title">
+          <%= content_for?(:page_title) ? yield(:page_title) : "DevTeam" %>
+        </span>
+
+        <% if @unread_notification_count.to_i > 0 %>
+          <span class="mobile-notif-badge mobile-topbar-action">
+            🔔<span class="badge"><%= @unread_notification_count %></span>
+          </span>
+        <% else %>
+          <span class="mobile-topbar-action">🔔</span>
+        <% end %>
+
+        <%= link_to mobile_today_path, class: "mobile-topbar-action" do %>
+          <img src="/icon.png" width="28" height="28" style="border-radius:6px;vertical-align:middle;" alt="DevTeam">
+        <% end %>
+      </header>
+
+      <%# ── Flash ───────────────────────────────────────────────────── %>
+      <% if flash.any? %>
+        <div class="mobile-flash">
+          <% flash.each do |type, message| %>
+            <div class="notification <%= type.to_s == 'alert' ? 'is-danger' : 'is-success' %> is-light py-2 px-4" style="border-radius:10px;font-size:0.875rem;">
+              <%= message %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# ── Page content ─────────────────────────────────────────────── %>
+      <main class="mobile-content">
+        <%= yield %>
+      </main>
+
+      <%# ── Bottom navigation ────────────────────────────────────────── %>
+      <nav class="mobile-bottom-nav">
+        <%= link_to mobile_today_path,       class: "nav-tab #{current_page?(mobile_today_path)       ? 'is-active' : ''}" do %>
+          <span class="nav-icon">☀️</span>
+          <span><%= t('mobile.nav.today') %></span>
+        <% end %>
+
+        <%= link_to mobile_messages_path,    class: "nav-tab #{current_page?(mobile_messages_path)    ? 'is-active' : ''}" do %>
+          <span class="nav-icon">💬</span>
+          <span><%= t('mobile.nav.messages') %></span>
+        <% end %>
+
+        <%= link_to mobile_meetings_path,    class: "nav-tab #{current_page?(mobile_meetings_path)    ? 'is-active' : ''}" do %>
+          <span class="nav-icon">📅</span>
+          <span><%= t('mobile.nav.meetings') %></span>
+        <% end %>
+
+        <%= link_to mobile_projects_path,    class: "nav-tab #{current_page?(mobile_projects_path)    ? 'is-active' : ''}" do %>
+          <span class="nav-icon">🗂️</span>
+          <span><%= t('mobile.nav.projects') %></span>
+        <% end %>
+
+        <%= link_to mobile_tickets_path,     class: "nav-tab #{current_page?(mobile_tickets_path)     ? 'is-active' : ''}" do %>
+          <span class="nav-icon">🎫</span>
+          <span><%= t('mobile.nav.tickets') %></span>
+        <% end %>
+
+        <%= link_to mobile_video_calls_path, class: "nav-tab #{current_page?(mobile_video_calls_path) ? 'is-active' : ''}" do %>
+          <span class="nav-icon">📹</span>
+          <span><%= t('mobile.nav.video') %></span>
+        <% end %>
+      </nav>
+    </div>
+    <% else %>
+      <div class="hero is-fullheight is-primary">
+        <div class="hero-body has-text-centered">
+          <%= yield %>
+        </div>
+      </div>
+    <% end %>
+  </body>
+</html>

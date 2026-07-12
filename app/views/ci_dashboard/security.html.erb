@@ -1,0 +1,133 @@
+<% content_for :title, "Security Scans" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-0">🔒 Security Scans</h1>
+      <p class="text-muted mb-0">Trivy container & dependency vulnerability report</p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to ci_dashboard_path, class: "btn btn-outline-secondary btn-sm" do %>← CI Overview<% end %>
+  </div>
+</div>
+
+<%# ── Summary stats ──────────────────────────────────────────────────── %>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card p-3 stat-card text-center border-danger">
+      <div class="stat-number text-danger"><%= @critical_total %></div>
+      <div class="stat-label">Critical</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 stat-card text-center border-warning">
+      <div class="stat-number text-warning"><%= @high_total %></div>
+      <div class="stat-label">High</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 stat-card text-center">
+      <div class="stat-number text-info"><%= @medium_total %></div>
+      <div class="stat-label">Medium</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3 stat-card text-center">
+      <div class="stat-number text-secondary"><%= @low_total %></div>
+      <div class="stat-label">Low</div>
+    </div>
+  </div>
+</div>
+
+<%# ── Alert banner if critical issues exist ──────────────────────────── %>
+<% if @critical_total > 0 %>
+  <div class="alert alert-danger d-flex align-items-center gap-2 mb-4" role="alert">
+    <span style="font-size:1.3rem;">🚨</span>
+    <div>
+      <strong><%= @critical_total %> critical <%= "vulnerability".pluralize(@critical_total) %> detected</strong>
+      — immediate remediation required before next production deployment.
+    </div>
+  </div>
+<% end %>
+
+<%# ── Per-project findings ───────────────────────────────────────────── %>
+<% @findings.each do |f| %>
+  <%
+    total = f[:critical].size + f[:high].size + f[:medium].size + f[:low].size
+    worst = if f[:critical].any? then "danger"
+            elsif f[:high].any?  then "warning"
+            elsif f[:medium].any? then "info"
+            else "success" end
+  %>
+  <div class="card mb-3 border-<%= worst %>">
+    <div class="card-header d-flex justify-content-between align-items-center bg-<%= worst %>-subtle">
+      <div class="d-flex align-items-center gap-2">
+        <span class="fw-bold fs-6"><%= f[:project].name %></span>
+        <code class="text-muted small"><%= f[:image] %></code>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <% if f[:critical].any? %>
+          <span class="badge bg-danger"><%= f[:critical].size %> Critical</span>
+        <% end %>
+        <% if f[:high].any? %>
+          <span class="badge bg-warning text-dark"><%= f[:high].size %> High</span>
+        <% end %>
+        <% if f[:medium].any? %>
+          <span class="badge bg-info text-dark"><%= f[:medium].size %> Medium</span>
+        <% end %>
+        <span class="badge bg-secondary"><%= f[:low].size %> Low</span>
+        <span class="text-muted small">Scanned <%= time_ago_in_words(f[:scanned_at]) %> ago</span>
+      </div>
+    </div>
+
+    <% if total > 0 %>
+      <div class="card-body p-0">
+        <table class="table table-sm table-hover mb-0 fs-7">
+          <thead class="table-light">
+            <tr>
+              <th style="width:90px;">Severity</th>
+              <th style="width:130px;">CVE</th>
+              <th style="width:140px;">Package</th>
+              <th style="width:90px;">Installed</th>
+              <th style="width:90px;">Fixed in</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% [ [:critical, "danger"], [:high, "warning"], [:medium, "info"], [:low, "secondary"] ].each do |sev, color| %>
+              <% f[sev].each do |vuln| %>
+                <tr>
+                  <td><span class="badge bg-<%= color %> <%= color == 'warning' ? 'text-dark' : '' %>"><%= sev.to_s.upcase %></span></td>
+                  <td>
+                    <%= link_to vuln[:cve],
+                          "https://nvd.nist.gov/vuln/detail/#{vuln[:cve]}",
+                          target: "_blank",
+                          rel: "noopener noreferrer",
+                          class: "font-monospace text-decoration-none small" %>
+                  </td>
+                  <td><code><%= vuln[:pkg] %></code></td>
+                  <td><code class="text-danger"><%= vuln[:ver] %></code></td>
+                  <td><code class="text-success"><%= vuln[:fix] %></code></td>
+                  <td class="text-muted"><%= vuln[:desc] %></td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="card-body">
+        <span class="text-success">✅ No vulnerabilities found</span>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<p class="text-muted small mt-3">
+  Security scan data is provided by
+  <a href="https://trivy.dev" target="_blank" rel="noopener noreferrer">Trivy</a>
+  and refreshed on each CI run.
+  CVE details link to the
+  <a href="https://nvd.nist.gov" target="_blank" rel="noopener noreferrer">NVD</a>.
+</p>

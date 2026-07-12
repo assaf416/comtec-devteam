@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI in On-Premises Projects — Local LLM &amp; Hardware Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f3f0e8; --panel: #fffdf7; --ink: #12252b; --muted: #5c6f76;
+      --line: #d7d0c2; --teal: #0b7a75; --navy: #17324a; --orange: #d26d18;
+      --red: #b63a34; --green: #1a7a3a; --purple: #6d28d9; --blue: #4a90d9;
+      --shadow: 0 18px 44px rgba(18,37,43,0.09); --radius: 18px;
+      --mono: "JetBrains Mono", monospace; --sans: "Manrope", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      margin: 0; color: var(--ink); font-family: var(--sans); line-height: 1.6;
+      background: radial-gradient(900px 420px at 0% 0%, rgba(11,122,117,0.14), transparent),
+                  radial-gradient(760px 340px at 100% 0%, rgba(210,109,24,0.12), transparent), var(--bg);
+    }
+    .shell { max-width: 1100px; margin: 0 auto; padding: 24px 18px 60px; }
+    .topbar {
+      position: sticky; top: 0; z-index: 20; background: rgba(255,253,247,0.92);
+      border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(8px);
+      box-shadow: var(--shadow); margin-bottom: 16px; display: flex;
+      align-items: center; justify-content: space-between; padding: 10px 22px;
+    }
+    .topbar-logo { font-weight: 800; font-size: 1.15rem; color: var(--teal); display: flex; align-items: center; gap: 8px; }
+    .topbar-logo span { font-size: 1.4rem; }
+    .topbar-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+    .topbar-nav a { color: var(--muted); font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 8px; transition: 0.15s; }
+    .topbar-nav a:hover { background: rgba(11,122,117,0.08); color: var(--teal); }
+
+    .hero { text-align: center; padding: 48px 18px 32px; }
+    .hero h1 { font-size: 2.4rem; font-weight: 800; color: var(--navy); margin: 0 0 10px; }
+    .hero p { font-size: 1.05rem; color: var(--muted); max-width: 760px; margin: 0 auto; }
+    .hero .pills { margin-top: 18px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .hero .pill { background: var(--panel); border: 1px solid var(--line); border-radius: 100px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; color: var(--teal); }
+
+    .section {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 32px 36px; margin-bottom: 20px; box-shadow: var(--shadow);
+    }
+    .section h2 { font-size: 1.4rem; font-weight: 800; color: var(--navy); margin: 0 0 10px; display: flex; align-items: center; gap: 10px; }
+    .section h2 .icon { font-size: 1.5rem; }
+    .section h3 { font-size: 1.05rem; font-weight: 700; color: var(--teal); margin: 24px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+    .section h4 { font-size: 0.95rem; font-weight: 700; color: var(--orange); margin: 18px 0 6px; }
+    .section p, .section li { line-height: 1.7; }
+    .section ul, .section ol { padding-left: 22px; }
+    .lead { font-size: 1.02rem; color: var(--muted); }
+
+    code { font-family: var(--mono); font-size: 0.86em; background: rgba(11,122,117,0.07); color: var(--teal); padding: 2px 7px; border-radius: 5px; }
+    pre { background: #1c2833; color: #e8e6df; font-family: var(--mono); font-size: 0.84rem; padding: 18px 22px; border-radius: 12px; overflow-x: auto; margin: 12px 0 16px; line-height: 1.55; }
+    pre code { background: none; padding: 0; color: inherit; }
+
+    .tip { background: rgba(11,122,117,0.06); border-left: 3px solid var(--teal); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .tip strong { color: var(--teal); }
+    .warn { background: rgba(210,109,24,0.06); border-left: 3px solid var(--orange); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .warn strong { color: var(--orange); }
+    .bad { background: rgba(182,58,52,0.06); border-left: 3px solid var(--red); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .bad strong { color: var(--red); }
+    .rec { background: rgba(109,40,217,0.06); border-left: 3px solid var(--purple); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .rec strong { color: var(--purple); }
+
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 8px; }
+    th { text-align: left; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 8px 12px; border-bottom: 2px solid var(--line); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 0.9rem; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    .num { font-family: var(--mono); white-space: nowrap; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 820px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } .hero h1 { font-size: 2rem; } .section { padding: 24px 20px; } }
+
+    .tool-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; transition: 0.2s; }
+    .tool-card:hover { border-color: var(--teal); transform: translateY(-2px); box-shadow: var(--shadow); }
+    .tool-card.winner { border: 2px solid var(--teal); background: rgba(11,122,117,0.03); }
+    .tool-card .name { font-size: 1.1rem; font-weight: 800; color: var(--navy); margin-bottom: 2px; }
+    .tool-card .tagline { font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; }
+    .tool-card ul { padding-left: 18px; margin: 8px 0 0; font-size: 0.86rem; }
+    .badge { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; margin: 0 4px 4px 0; }
+    .badge-green { background: rgba(26,122,58,0.12); color: var(--green); }
+    .badge-blue { background: rgba(74,144,217,0.12); color: var(--blue); }
+    .badge-orange { background: rgba(210,109,24,0.12); color: var(--orange); }
+    .badge-red { background: rgba(182,58,52,0.12); color: var(--red); }
+    .badge-purple { background: rgba(109,40,217,0.12); color: var(--purple); }
+    .badge-teal { background: rgba(11,122,117,0.15); color: var(--teal); }
+
+    .chart-wrap { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 1.5rem; margin: 1.5rem 0; }
+    .chart-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--navy); }
+    canvas { max-height: 340px; }
+
+    .verdict-box {
+      background: linear-gradient(135deg, rgba(11,122,117,0.08), rgba(109,40,217,0.06));
+      border: 2px solid var(--teal); border-radius: 16px; padding: 28px 32px; margin: 20px 0; text-align: center;
+    }
+    .verdict-box .verdict-title { font-size: 1.5rem; font-weight: 800; color: var(--teal); margin-bottom: 8px; }
+    .verdict-box .verdict-sub { font-size: 1rem; color: var(--muted); }
+
+    .footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 12px; }
+    .footer a { color: var(--teal); }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="topbar-logo"><span>🤖</span> Local AI on-prem</div>
+    <nav class="topbar-nav">
+      <a href="#why">Why local</a>
+      <a href="#features">Dev features</a>
+      <a href="#hardware">Hardware</a>
+      <a href="#landscape">Model scan</a>
+      <a href="#mapping">Feature → model</a>
+      <a href="#memory">Memory</a>
+      <a href="#verdict">Verdict</a>
+      <a href="#setup">Setup</a>
+    </nav>
+  </div>
+
+  <div class="hero">
+    <h1>AI in On-Premises Projects</h1>
+    <p>A practical guide to running <strong>free, local large-language models</strong> on your own hardware to power
+       development workflows — code review, fixing errors from tickets, generating documents and presentations, and
+       more — without a single byte of source code leaving the LAN.</p>
+    <div class="pills">
+      <span class="pill">100% on-prem</span>
+      <span class="pill">Apache-2.0 friendly</span>
+      <span class="pill">Mac mini M5</span>
+      <span class="pill">Ollama + DevTeam Hub</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ Why local ═══════════════════════════════ -->
+  <div class="section" id="why">
+    <h2><span class="icon">🔒</span> Why a local LLM for on-prem projects</h2>
+    <p class="lead">For teams that <strong>cannot or will not</strong> send their work to a third-party SaaS — for
+      data-residency, NDA, air-gapped or cost reasons — a local model is the only way to get AI assistance while keeping
+      everything on infrastructure you control.</p>
+    <table>
+      <thead><tr><th>On-prem pain</th><th>How a local LLM solves it</th></tr></thead>
+      <tbody>
+        <tr><td>Can't send source code to OpenAI / Anthropic</td><td>The model runs on your own machine — code, tickets and customer data never leave the LAN.</td></tr>
+        <tr><td>Air-gapped / regulated environment</td><td>No outbound internet dependency at inference time.</td></tr>
+        <tr><td>Per-seat SaaS AI licensing</td><td>One machine serves the whole team at a flat, one-time hardware cost.</td></tr>
+        <tr><td>Vendor outages &amp; rate limits</td><td>A pinned local model is always available and deterministic for CI.</td></tr>
+        <tr><td>Data residency / customer NDAs</td><td>Every prompt and response stays inside your perimeter.</td></tr>
+      </tbody>
+    </table>
+    <div class="tip"><strong>Context:</strong> DevTeam Hub already speaks to a local model over a plain HTTP REST
+      API (<code>Ai::OllamaClient</code> → Ollama). This guide is about <em>which model</em> and <em>which box</em> to
+      put behind that endpoint.</div>
+  </div>
+
+  <!-- ═══════════════════════════════ Dev features ═══════════════════════════════ -->
+  <div class="section" id="features">
+    <h2><span class="icon">⚙️</span> The development features we want to power</h2>
+    <p>The model has to be good at <strong>real engineering work</strong>, not just chat. These are the jobs DevTeam Hub
+      asks of it today (and where we're heading):</p>
+    <div class="grid-2">
+      <div class="tool-card">
+        <div class="name">🔍 Code review</div>
+        <div class="tagline">Multi-language diff review (Go / Ruby / C# / Node)</div>
+        <ul><li>Finds bugs, security &amp; lint issues, suggests fixes</li><li>Needs strong <em>code reasoning</em> + long context for big diffs</li></ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">🐛 Fix errors from tickets</div>
+        <div class="tagline">Read a bug ticket → diagnose root cause → propose a fix</div>
+        <ul><li>Benefits from <em>agentic</em> coding skill (read files, edit, run tests)</li><li>Devstral / Qwen3-Coder shine here</li></ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">🧩 Break stories into estimated tasks</div>
+        <div class="tagline">Decompose a story, calibrate estimates on history</div>
+        <ul><li>Needs reasoning + instruction-following + structured output</li></ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">📄 Generate documents &amp; specs</div>
+        <div class="tagline">Specifications from user stories, runbooks, READMEs</div>
+        <ul><li>Rewards strong <em>prose</em> + structure (Gemma, Qwen, Phi)</li></ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">📊 Generate presentations of current code/status</div>
+        <div class="tagline">Summarise a repo or project state into slides</div>
+        <ul><li>Summarisation + long context over code &amp; metrics</li></ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">🧪 Test review &amp; generation</div>
+        <div class="tagline">Critique Cucumber/specs, suggest missing scenarios</div>
+        <ul><li>Code + test reasoning; medium context</li></ul>
+      </div>
+    </div>
+    <div class="tip"><strong>Takeaway:</strong> a single <em>code-specialised</em> model (Qwen3-Coder) covers most of
+      this; pair it with a small <em>embedding</em> model for search/RAG and optionally a <em>prose-leaning</em> model
+      (Gemma) for documents and slides.</div>
+  </div>
+
+  <!-- ═══════════════════════════════ Hardware ═══════════════════════════════ -->
+  <div class="section" id="hardware">
+    <h2><span class="icon">🖥️</span> Hardware — which Mac mini M5 to buy</h2>
+    <p>Apple Silicon is an excellent fit for local LLMs: the <strong>unified memory</strong> is shared between CPU and
+      GPU, so the model weights sit directly in fast memory and Ollama uses the Metal GPU backend automatically. On a
+      Mac mini, <strong>RAM is the single most important spec</strong> — it caps the model size and context window you
+      can run.</p>
+
+    <h3>The 2026 Mac mini line-up</h3>
+    <table>
+      <thead><tr><th>Config</th><th>Unified RAM</th><th>From (USD)</th><th>What it can run</th></tr></thead>
+      <tbody>
+        <tr><td>Mac mini <strong>M5</strong> (base)</td><td class="num">16 GB</td><td class="num">~$599</td><td>7B–14B coding models (Qwen2.5-Coder 14B). Fine for a single developer.</td></tr>
+        <tr><td>Mac mini <strong>M5</strong> ⭐</td><td class="num">32 GB</td><td class="num">~$999</td><td><strong>Qwen3-Coder 30B-A3B</strong> at Q4 with real context + a small embedding model. The sweet spot.</td></tr>
+        <tr><td>Mac mini <strong>M5 Pro</strong></td><td class="num">48 GB</td><td class="num">~$1,399+</td><td>Same 30B models with huge context, or two models loaded at once for a team.</td></tr>
+        <tr><td>Mac mini <strong>M5 Pro</strong></td><td class="num">64 GB</td><td class="num">~$1,799+</td><td>Headroom for larger MoE models / concurrent users / future growth.</td></tr>
+      </tbody>
+    </table>
+    <p class="lead" style="font-size:0.85rem;">RAM options confirmed for 2026: M5 ships in 16/24/32&nbsp;GB; M5&nbsp;Pro in 24/48/64&nbsp;GB. Entry storage is now 512&nbsp;GB. Prices are launch estimates — verify at purchase.</p>
+
+    <div class="rec"><strong>Recommendation:</strong> Buy the <strong>Mac mini M5 with 32&nbsp;GB RAM</strong> (and
+      512&nbsp;GB+ SSD). It runs the recommended <em>Qwen3-Coder 30B-A3B</em> workhorse comfortably with room for a
+      large context window <em>and</em> a concurrent embedding model — covering every DevTeam Hub feature. If several
+      engineers will hit it at once, or you want to keep a code model <em>and</em> a prose model resident
+      simultaneously, step up to the <strong>M5 Pro with 48&nbsp;GB</strong>.</p></div>
+    <div class="warn"><strong>16&nbsp;GB is the floor, not the target.</strong> It works — but leaves you on 7B–14B
+      models and tight context. Great for a personal assistant; limiting for team-wide code review on large diffs.</div>
+    <div class="tip"><strong>Rule of thumb:</strong> keep <strong>30–40% of RAM free</strong> for the KV-cache
+      (context) and the OS. A 32&nbsp;GB box realistically dedicates ~20&nbsp;GB to weights — exactly a 30B model at Q4.</div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">Model weight footprint vs. Mac mini RAM (Q4_K_M)</div>
+      <canvas id="ramChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ Model scan ═══════════════════════════════ -->
+  <div class="section" id="landscape">
+    <h2><span class="icon">🧠</span> The free local-LLM landscape (mid-2026)</h2>
+    <p>All of these are <strong>open-weight</strong> models you can <code>ollama pull</code> and run fully offline. The
+      footprint column is the approximate Q4_K_M weight size; budget an extra 2–6&nbsp;GB for context.</p>
+    <table>
+      <thead><tr><th>Model</th><th>Params</th><th>~Q4 footprint</th><th>License</th><th>Best for</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Qwen3-Coder 30B-A3B</strong></td><td class="num">30B MoE / 3.3B active</td><td class="num">~18–20 GB</td><td><span class="badge badge-green">Apache 2.0</span></td><td>Primary coding workhorse — review, fixes, agentic, 256K context</td></tr>
+        <tr><td><strong>Qwen2.5-Coder 14B</strong></td><td class="num">14B dense</td><td class="num">~9–10 GB</td><td><span class="badge badge-green">Apache 2.0</span></td><td>Code on a 16&nbsp;GB box; fast &amp; reliable</td></tr>
+        <tr><td>Qwen2.5-Coder 7B</td><td class="num">7B dense</td><td class="num">~5 GB</td><td><span class="badge badge-green">Apache 2.0</span></td><td>Snappy completion / small box / CI</td></tr>
+        <tr><td><strong>Devstral Small 24B</strong></td><td class="num">24B dense</td><td class="num">~14–15 GB</td><td><span class="badge badge-green">Apache 2.0</span></td><td>Agentic SWE — multi-file fixes from tickets</td></tr>
+        <tr><td>DeepSeek-Coder-V2-Lite 16B</td><td class="num">16B MoE / 2.4B active</td><td class="num">~10 GB</td><td><span class="badge badge-blue">DeepSeek (open)</span></td><td>Strong code, large context, efficient</td></tr>
+        <tr><td><strong>Gemma 3 27B</strong></td><td class="num">27B dense</td><td class="num">~16–17 GB</td><td><span class="badge badge-orange">Gemma terms</span></td><td>Documents, specs &amp; presentations (excellent prose)</td></tr>
+        <tr><td>Gemma 3 / 2 9B</td><td class="num">9B dense</td><td class="num">~6 GB</td><td><span class="badge badge-orange">Gemma terms</span></td><td>Prose &amp; summaries on a small box</td></tr>
+        <tr><td><strong>Phi-4 14B</strong></td><td class="num">14B dense</td><td class="num">~9 GB</td><td><span class="badge badge-green">MIT</span></td><td>Reasoning, structured specs &amp; estimation</td></tr>
+        <tr><td>Llama 3.3 / 3.1 8B</td><td class="num">8B dense</td><td class="num">~5 GB</td><td><span class="badge badge-blue">Llama Community</span></td><td>General-purpose fallback / chat</td></tr>
+        <tr><td>Codestral 22B</td><td class="num">22B dense</td><td class="num">~13 GB</td><td><span class="badge badge-red">Non-commercial (MNPL)</span></td><td>Great FIM/completion — but license blocks production use</td></tr>
+        <tr><td>nomic-embed-text / bge-m3</td><td class="num">0.1–0.6B</td><td class="num">&lt; 1 GB</td><td><span class="badge badge-green">Apache 2.0</span></td><td>Embeddings for code/ticket search &amp; RAG</td></tr>
+      </tbody>
+    </table>
+    <div class="warn"><strong>Watch the license.</strong> For a commercial product, prefer <strong>Apache-2.0 / MIT</strong>
+      (Qwen, Devstral, Phi). <strong>Codestral's</strong> MNPL forbids production/commercial use — fine for experiments,
+      not for shipping. Gemma's terms are permissive but have a use-policy; review before relying on it commercially.</div>
+
+    <h3>Top picks, in detail</h3>
+    <div class="grid-3">
+      <div class="tool-card winner">
+        <div class="name">Qwen3-Coder 30B-A3B</div>
+        <div class="tagline">The recommended default</div>
+        <div><span class="badge badge-teal">Coding</span><span class="badge badge-green">Apache 2.0</span></div>
+        <ul>
+          <li>MoE: 30B total but only ~3.3B active per token → fast</li>
+          <li>256K-token context — whole files / big diffs</li>
+          <li>Trained for agentic coding (read/edit/test)</li>
+          <li>Fits 32&nbsp;GB at Q4 with context to spare</li>
+        </ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">Devstral Small 24B</div>
+        <div class="tagline">Best for "fix it" agents</div>
+        <div><span class="badge badge-purple">Agentic</span><span class="badge badge-green">Apache 2.0</span></div>
+        <ul>
+          <li>Tuned for SWE-bench-style multi-file edits</li>
+          <li>Ideal for "fix errors from a ticket" flows</li>
+          <li>Runs on 16–24&nbsp;GB at Q4</li>
+        </ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">Gemma 3 27B</div>
+        <div class="tagline">Best writer for docs &amp; slides</div>
+        <div><span class="badge badge-blue">Prose</span><span class="badge badge-orange">Gemma terms</span></div>
+        <ul>
+          <li>Polished, well-structured long-form output</li>
+          <li>Great for specs, runbooks, status presentations</li>
+          <li>~16–17&nbsp;GB at Q4 (needs 24&nbsp;GB+)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">Relative strength by job (higher = better fit · indicative)</div>
+      <canvas id="capChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ Feature → model ═══════════════════════════════ -->
+  <div class="section" id="mapping">
+    <h2><span class="icon">🎯</span> Which model for which DevTeam Hub feature</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Recommended model</th><th>Lightweight (16&nbsp;GB) alternative</th></tr></thead>
+      <tbody>
+        <tr><td>Code review (Go/Ruby/C#/Node)</td><td>Qwen3-Coder 30B-A3B</td><td>Qwen2.5-Coder 14B</td></tr>
+        <tr><td>Fix errors based on tickets</td><td>Devstral Small 24B <em>or</em> Qwen3-Coder 30B</td><td>Qwen2.5-Coder 14B</td></tr>
+        <tr><td>Break stories into estimated tasks</td><td>Qwen3-Coder 30B / Phi-4 14B</td><td>Phi-4 14B</td></tr>
+        <tr><td>Generate specs &amp; documents</td><td>Gemma 3 27B <em>or</em> Qwen3-Coder 30B</td><td>Gemma 3 9B / Phi-4</td></tr>
+        <tr><td>Generate status / code presentations</td><td>Gemma 3 27B / Qwen3-Coder 30B</td><td>Gemma 3 9B</td></tr>
+        <tr><td>Test review &amp; missing scenarios</td><td>Qwen3-Coder 30B</td><td>Qwen2.5-Coder 14B</td></tr>
+        <tr><td>Ticket / code search &amp; duplicate detection (RAG)</td><td>bge-m3 (embeddings)</td><td>nomic-embed-text</td></tr>
+      </tbody>
+    </table>
+    <div class="tip"><strong>One-model start:</strong> if you only run a single model, make it
+      <strong>Qwen3-Coder 30B-A3B</strong> — it is competent at all of the above, including writing the documents and
+      presentations. Add Gemma only if you want noticeably nicer long-form prose, and add an embedding model when you
+      build search/RAG features.</div>
+  </div>
+
+  <!-- ═══════════════════════════════ Memory cheat-sheet ═══════════════════════════════ -->
+  <div class="section" id="memory">
+    <h2><span class="icon">📐</span> Memory &amp; quantization cheat-sheet</h2>
+    <p>Quantization shrinks the weights to fit memory. <strong>Q4_K_M</strong> is the standard sweet spot — ~4 bits per
+      weight, near-full quality. The quick estimate:</p>
+    <pre><code>RAM for weights ≈ params(billions) × 0.6 GB        (at Q4_K_M)
+total RAM needed ≈ weights + 2–6 GB for context (KV-cache) + OS
+
+examples:
+  7B   → ~5 GB    (runs on 16 GB easily)
+  14B  → ~9 GB    (16 GB ok)
+  24B  → ~15 GB   (24 GB comfortable)
+  30B  → ~19 GB   (32 GB sweet spot; 24 GB tight)</code></pre>
+    <table>
+      <thead><tr><th>Your RAM</th><th>Run comfortably</th><th>Largest sensible model</th></tr></thead>
+      <tbody>
+        <tr><td class="num">16 GB</td><td>7B–14B at Q4</td><td>Qwen2.5-Coder 14B</td></tr>
+        <tr><td class="num">24 GB</td><td>up to ~24B at Q4</td><td>Devstral 24B / Gemma 3 27B (tight)</td></tr>
+        <tr><td class="num">32 GB ⭐</td><td>30B MoE at Q4 + context + embeddings</td><td>Qwen3-Coder 30B-A3B</td></tr>
+        <tr><td class="num">48–64 GB</td><td>30B with huge context, or two models resident</td><td>Qwen3-Coder 30B + Gemma 3 27B together</td></tr>
+      </tbody>
+    </table>
+    <div class="tip"><strong>Quality dial:</strong> prefer a <em>bigger model at Q4</em> over a smaller model at Q8.
+      For code, drop below Q4 (e.g. Q3) only as a last resort — accuracy degrades quickly.</div>
+  </div>
+
+  <!-- ═══════════════════════════════ Verdict ═══════════════════════════════ -->
+  <div class="section" id="verdict">
+    <h2><span class="icon">🏆</span> Recommendation</h2>
+    <div class="verdict-box">
+      <div class="verdict-title">Mac mini M5 · 32 GB RAM · running Qwen3-Coder 30B-A3B</div>
+      <div class="verdict-sub">One ~$1,000 box, Apache-2.0 model, covers every feature — review, fixes, docs, specs and presentations — fully on-prem.</div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h4>The shopping list</h4>
+        <ul>
+          <li><strong>Mac mini M5, 32&nbsp;GB unified memory, 512&nbsp;GB SSD</strong> (~$999)</li>
+          <li>Primary model: <code>qwen3-coder:30b-a3b-q4_K_M</code></li>
+          <li>Prose model (optional): <code>gemma3:27b</code> for docs/slides</li>
+          <li>Embeddings (for search/RAG): <code>bge-m3</code> or <code>nomic-embed-text</code></li>
+        </ul>
+      </div>
+      <div>
+        <h4>When to size up to M5 Pro 48 GB</h4>
+        <ul>
+          <li>Several engineers hitting the model concurrently</li>
+          <li>Keeping a code model <em>and</em> a prose model loaded at once</li>
+          <li>Very large diffs / whole-repo context regularly</li>
+          <li>Room to adopt bigger models over the next 2–3 years</li>
+        </ul>
+      </div>
+    </div>
+    <div class="rec"><strong>Why not 16&nbsp;GB?</strong> It's a fine personal assistant but caps you at 14B-class
+      models and short context — noticeably weaker on big code reviews and long documents. The jump to 32&nbsp;GB is the
+      best value in the whole stack.</div>
+  </div>
+
+  <!-- ═══════════════════════════════ Setup ═══════════════════════════════ -->
+  <div class="section" id="setup">
+    <h2><span class="icon">🚀</span> Setup — from box to DevTeam Hub</h2>
+    <h3>1 · On the Mac mini</h3>
+    <pre><code># Install Ollama (https://ollama.com/download), then expose it on the LAN
+launchctl setenv OLLAMA_HOST "0.0.0.0:11434"
+ollama serve
+
+# Pull the workhorse (and optional companions)
+ollama pull qwen3-coder:30b-a3b-q4_K_M
+ollama pull gemma3:27b           # optional — nicer docs/slides
+ollama pull bge-m3               # optional — embeddings for search/RAG
+
+# Smoke test
+curl http://localhost:11434/api/tags</code></pre>
+
+    <h3>2 · Point DevTeam Hub at it</h3>
+    <p>Set the environment variables (see <code>.env.example</code>) so <code>Ai::OllamaClient</code> reaches the Mac mini:</p>
+    <pre><code>OLLAMA_URL=http://your-mac-mini.local:11434
+OLLAMA_MODEL=qwen3-coder:30b-a3b-q4_K_M
+OLLAMA_TIMEOUT=300</code></pre>
+    <p>That's it — the AI Agent panel (ticket readiness, code review, fix-that-bug, task breakdown),
+      the live sprint analysis, and the document generators (status presentation, specification) all run against this
+      model. The <strong>AI Reports</strong> page shows the connection status and every run as an auditable
+      <code>AiReview</code>.</p>
+
+    <div class="warn"><strong>First call is slow.</strong> The model loads into memory on first use; subsequent calls
+      are fast. Raise <code>OLLAMA_TIMEOUT</code> and consider an <code>ollama run &lt;model&gt; ""</code> warm-up at
+      boot.</div>
+    <div class="tip"><strong>Networking:</strong> keep the Mac mini on a trusted VLAN; Ollama has no auth, so restrict
+      access to the DevTeam Hub host (firewall / reverse proxy) rather than exposing port&nbsp;11434 broadly.</div>
+  </div>
+
+  <div class="footer">
+    DevTeam Hub · Local AI on-premises guide · generated June 2026.<br>
+    Sources: Qwen3-Coder model card &amp; Ollama library, Macworld / MacObserver M5 Mac mini reports,
+    apxml &amp; PromptQuorum local-LLM-on-Apple-Silicon guides. Verify model licenses and hardware prices at purchase time.
+  </div>
+
+</div>
+
+<script>
+  const teal = '#0b7a75', navy = '#17324a', orange = '#d26d18', purple = '#6d28d9', blue = '#4a90d9', muted = '#5c6f76';
+
+  // RAM footprint chart
+  new Chart(document.getElementById('ramChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Qwen2.5-Coder 7B', 'Phi-4 14B', 'Qwen2.5-Coder 14B', 'Devstral 24B', 'Gemma 3 27B', 'Qwen3-Coder 30B'],
+      datasets: [{
+        label: 'Approx. Q4 weight footprint (GB)',
+        data: [5, 9, 9.5, 15, 17, 19],
+        backgroundColor: [blue, blue, teal, purple, orange, teal],
+        borderRadius: 6
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => c.parsed.y + ' GB weights (+context)' } }
+      },
+      scales: {
+        y: { title: { display: true, text: 'GB' }, suggestedMax: 32,
+             grid: { color: 'rgba(0,0,0,0.06)' } },
+        x: { ticks: { color: muted, font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Capability radar-ish bar chart
+  new Chart(document.getElementById('capChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Code review', 'Fix from ticket', 'Docs / specs', 'Presentations', 'Reasoning'],
+      datasets: [
+        { label: 'Qwen3-Coder 30B', data: [9, 8.5, 8, 8, 8], backgroundColor: teal, borderRadius: 5 },
+        { label: 'Devstral 24B',    data: [8, 9, 6.5, 6, 7], backgroundColor: purple, borderRadius: 5 },
+        { label: 'Gemma 3 27B',     data: [6.5, 6, 9, 9, 7.5], backgroundColor: orange, borderRadius: 5 }
+      ]
+    },
+    options: {
+      plugins: { legend: { position: 'bottom', labels: { color: navy, font: { size: 11 } } } },
+      scales: {
+        y: { suggestedMax: 10, beginAtZero: true, title: { display: true, text: 'fit (0–10)' }, grid: { color: 'rgba(0,0,0,0.06)' } },
+        x: { ticks: { color: muted, font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+</script>
+</body>
+</html>

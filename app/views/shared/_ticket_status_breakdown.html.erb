@@ -1,0 +1,27 @@
+<%# locals: counts (hash status => n), total (integer) %>
+<% colors = {
+  "backlog" => "bg-secondary", "open" => "bg-primary", "in_progress" => "bg-info",
+  "in_review" => "bg-warning", "testing" => "bg-warning", "done" => "bg-success",
+  "closed" => "bg-success", "blocked" => "bg-danger"
+} %>
+<div class="card p-3 mb-4">
+  <h2 class="fs-6 fw-bold mb-3">Tickets by status</h2>
+  <% if total.to_i.zero? %>
+    <p class="text-muted fs-7 mb-0">No tickets yet.</p>
+  <% else %>
+    <div class="progress mb-3" style="height:14px;">
+      <% Ticket.statuses.keys.each do |st| %>
+        <% c = counts[st].to_i; next if c.zero? %>
+        <div class="progress-bar <%= colors[st] %>" role="progressbar"
+             style="width:<%= (c * 100.0 / total).round %>%"
+             title="<%= st.humanize %>: <%= c %>"></div>
+      <% end %>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <% Ticket.statuses.keys.each do |st| %>
+        <% c = counts[st].to_i; next if c.zero? %>
+        <span class="badge <%= colors[st] %>"><%= st.humanize %>: <%= c %></span>
+      <% end %>
+    </div>
+  <% end %>
+</div>

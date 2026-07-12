@@ -1,0 +1,497 @@
+he:
+  date:
+    formats:
+      default: "%d/%m/%Y"
+      short: "%d %b"
+      long: "%d ב%B %Y"
+    day_names:
+      - ראשון
+      - שני
+      - שלישי
+      - רביעי
+      - חמישי
+      - שישי
+      - שבת
+    abbr_day_names:
+      - א'
+      - ב'
+      - ג'
+      - ד'
+      - ה'
+      - ו'
+      - ש'
+    month_names:
+      - ~
+      - ינואר
+      - פברואר
+      - מרץ
+      - אפריל
+      - מאי
+      - יוני
+      - יולי
+      - אוגוסט
+      - ספטמבר
+      - אוקטובר
+      - נובמבר
+      - דצמבר
+    abbr_month_names:
+      - ~
+      - ינו'
+      - פבר'
+      - מרץ
+      - אפר'
+      - מאי
+      - יוני
+      - יולי
+      - אוג'
+      - ספט'
+      - אוק'
+      - נוב'
+      - דצמ'
+  time:
+    formats:
+      default: "%d/%m/%Y %H:%M"
+      short: "%d %b %H:%M"
+      long: "%d ב%B %Y %H:%M"
+  app_name: "DevTeam Hub"
+  nav:
+    today: "היום"
+    dashboard: "לוח מחוונים"
+    projects: "פרויקטים"
+    tickets: "כרטיסים"
+    sprints: "ספרינטים"
+    meetings: "פגישות"
+    documents: "מסמכים"
+    ci: "CI/CD"
+    deployments: "פריסות"
+    reports: "דוחות"
+    admin: "ניהול"
+    notifications: "התראות"
+    calendar: "לוח שנה"
+    customers: "לקוחות"
+    sign_out: "התנתק"
+    profile: "פרופיל"
+  dashboard:
+    title: "לוח מחוונים"
+    my_tickets: "הכרטיסים שלי"
+    recent_ci: "ריצות CI אחרונות"
+    recent_deployments: "פריסות אחרונות"
+    upcoming_meetings: "פגישות קרובות"
+    failing_ci: "בנייות כושלות"
+    ci_stats: "סטטיסטיקת CI (7 ימים אחרונים)"
+  tickets:
+    created: "הכרטיס נוצר בהצלחה."
+    updated: "הכרטיס עודכן בהצלחה."
+    deleted: "הכרטיס נמחק."
+    status_updated: "סטטוס הכרטיס שונה ל-%{status}."
+    all: "כל הכרטיסים"
+    filtered:
+      mine: "הכרטיסים שלי"
+      late: "כרטיסים באיחור"
+      backlog_list: "Backlog"
+      current_sprint: "כרטיסי ספרינט נוכחי"
+      empty: "לא נמצאו כרטיסים."
+    filters:
+      all_statuses: "כל הסטטוסים"
+      all_projects: "כל הפרויקטים"
+      all_assignees: "כל המשויכים"
+      all_owners: "כל הבעלים"
+      filter: "סנן"
+    move:
+      current_sprint: "העבר לספרינט הנוכחי"
+      next_sprint: "העבר לספרינט הבא"
+      backlog: "העבר ל-Backlog"
+      moved_to_current: "הכרטיס הועבר לספרינט הנוכחי."
+      moved_to_next: "הכרטיס הועבר לספרינט הבא."
+      moved_to_backlog: "הכרטיס הועבר ל-Backlog."
+      no_current_sprint: "לא נמצא ספרינט פעיל לפרויקט זה."
+      no_next_sprint: "לא נמצא ספרינט עתידי לפרויקט זה."
+      invalid_target: "יעד העברה לא ידוע."
+    statuses:
+      backlog: "Backlog"
+      open: "פתוח"
+      in_progress: "בעבודה"
+      in_review: "בסקירה"
+      testing: "בבדיקה"
+      done: "הושלם"
+      closed: "סגור"
+      blocked: "חסום"
+    priorities:
+      low: "נמוך"
+      medium: "בינוני"
+      high: "גבוה"
+      critical: "קריטי"
+  ci_runs:
+    statuses:
+      pending: "ממתין"
+      running: "רץ"
+      passed: "עבר"
+      failed: "נכשל"
+      cancelled: "בוטל"
+      error: "שגיאה"
+  deployments:
+    statuses:
+      pending: "ממתין"
+      in_progress: "בפריסה"
+      succeeded: "הצליח"
+      failed: "נכשל"
+      rolled_back: "הוחזר"
+    types:
+      web_app: "אפליקציית Web"
+      windows_installer: "מתקין Windows"
+      windows_service: "שירות Windows"
+      docker: "Docker"
+  meetings:
+    types:
+      daily_standup: "סטנד-אפ יומי"
+      sprint_planning: "תכנון ספרינט"
+      sprint_review: "סקירת ספרינט"
+      retrospective: "רטרוספקטיבה"
+      demo: "הדגמה"
+      one_on_one: "פגישה 1:1"
+      other: "אחר"
+  sprints:
+    new_sprint: "ספרינט חדש"
+  documents:
+    types:
+      spec: "מפרט"
+      risk_management: "ניהול סיכונים"
+      user_story: "סיפור משתמש"
+      timeline: "ציר זמן"
+      test_coverage: "כיסוי בדיקות"
+      architecture: "ארכיטקטורה"
+      runbook: "Runbook"
+      other: "אחר"
+      presentation: "מצגת"
+  users:
+    roles:
+      developer: "מפתח"
+      team_lead: "ראש צוות"
+      project_manager: "מנהל פרויקט"
+      admin: "מנהל מערכת"
+      qa: "QA"
+  mailers:
+    ticket_assigned: "[DevTeam] כרטיס #%{ticket_id} הוקצה לך: %{title}"
+    ticket_status_changed: "[DevTeam] סטטוס כרטיס #%{ticket_id} שונה ל-%{status}"
+    ci_failed: "[DevTeam] CI נכשל עבור כרטיס #%{ticket_id}"
+    deploy_failed: "[DevTeam] פריסה נכשלה עבור כרטיס #%{ticket_id}"
+  today:
+    title: "היום שלי"
+    greeting: "שלום, %{name}!"
+    next_meeting: "פגישה הבאה"
+    join: "הצטרף"
+    active_tickets: "כרטיסים פעילים"
+    meetings: "פגישות"
+    ci_runs: "ריצות CI היום"
+    deploys: "פריסות היום"
+    docs_changed: "מסמכים שונו"
+    milestones: "אבני דרך"
+    active_tickets_header: "הכרטיסים הפעילים שלי"
+    no_tickets: "אין כרטיסים פעילים — ליהנות!"
+    meetings_header: "פגישות היום"
+    no_meetings: "אין פגישות מתוכננות היום."
+    ci_header: "ריצות CI היום"
+    no_ci: "לא הופעלו ריצות CI היום."
+    ci_jobs: "קישורים מהירים ל-CI"
+    deploys_header: "הפריסות שלי היום"
+    no_deploys: "אין פריסות היום."
+    docs_header: "מסמכים שעודכנו היום"
+    no_docs: "לא עודכנו מסמכים היום."
+    milestones_header: "אבני דרך"
+    due_today: "תאריך יעד היום"
+    overdue: "באיחור"
+  common:
+    search: "חיפוש"
+    status: "סטטוס"
+    view: "צפייה"
+    edit: "עריכה"
+    delete: "מחיקה"
+    confirm_delete: "האם אתה בטוח שברצונך למחוק?"
+    actions:
+      new: "חדש"
+      edit: "עריכה"
+      save: "שמור"
+      join: "הצטרף"
+      mark_read: "סמן כנקרא"
+      resolve: "סמן כפתור"
+      remove: "הסר"
+      view_log: "צפה בלוג"
+  buttons:
+    new_project: "פרויקט חדש"
+    new_ticket: "כרטיס חדש"
+    new_sprint: "ספרינט חדש"
+    new_document: "מסמך חדש"
+    new_notification: "התראה חדשה"
+    new_support_ticket: "כרטיס תמיכה חדש"
+    new_story: "סיפור חדש"
+    track_new_installation: "התקנה חדשה"
+    edit_notes: "עריכת הערות"
+    save_recording: "שמור הקלטה"
+    save_as_template: "שמור כתבנית"
+    new_doc_from_template: "מסמך חדש מהתבנית"
+    join_video: "הצטרף"
+  customers:
+    title: "לקוחות"
+    new: "לקוח חדש"
+    search_placeholder: "חיפוש לקוחות…"
+    active_only: "פעילים בלבד"
+    name: "שם"
+    company: "חברה"
+    email: 'דוא"ל'
+    open_tickets: "כרטיסים פתוחים"
+    installations: "התקנות"
+    none_found: "לא נמצאו לקוחות."
+    created: "הלקוח נוצר בהצלחה."
+    updated: "הלקוח עודכן בהצלחה."
+    destroyed: "הלקוח נמחק."
+  customer_tickets:
+    created: "כרטיס תמיכה נוצר בהצלחה."
+    updated: "כרטיס תמיכה עודכן בהצלחה."
+    destroyed: "כרטיס תמיכה נמחק."
+    resolved: "הכרטיס סומן כפתור."
+    linked: "הכרטיס קושר לכרטיס פיתוח."
+  installations:
+    created: "ההתקנה נוצרה בהצלחה."
+    updated: "ההתקנה עודכנה בהצלחה."
+    destroyed: "ההתקנה נמחקה."
+  errors:
+    not_authorized: "אין לך הרשאה לבצע פעולה זו."
+  log_viewer:
+    title: "צופה לוגים"
+    subtitle: "לוגים חיים של האפליקציות מהמאגר המרכזי, עם הדגשת שגיאות וחריגות."
+    connected: "Loki מחובר"
+    disconnected: "Loki לא זמין"
+    errors: "שגיאות"
+    warnings: "אזהרות"
+    watch: "מעקב"
+    empty: "אין רשומות לוג עבור המסננים שנבחרו."
+    filters:
+      service: "שירות"
+      all_services: "כל השירותים"
+      level: "רמה"
+      all_levels: "כל הרמות"
+      range: "טווח"
+      search: "חיפוש"
+      search_ph: "סינון הודעות (למשל NullReference, timeout)…"
+  ai:
+    reports_title: "דוחות AI"
+    reports_subtitle: "ביקורות וניתוחים בסיוע AI המורצים על שרת ה-LLM המקומי (Ollama)."
+    recent_reviews: "תוצאות ביקורת אחרונות"
+    recent_reviews_subtitle: "ביקורות קוד שהופקו על ידי ה-LLM המקומי."
+    recent_test_reviews: "ביקורות בדיקות אחרונות"
+    recent_test_reviews_subtitle: "ביקורות בדיקות Cucumber שהופקו על ידי ה-LLM המקומי."
+    recent_runs: "הרצות אחרונות"
+    recent_failures: "כשלים אחרונים"
+    online: "Ollama מחובר"
+    offline: "Ollama מנותק"
+    offline_hint: "מכונת ה-LLM המקומית אינה זמינה. ודא ש-Ollama פועל על ה-Mac mini וש-OLLAMA_URL נכון."
+    none_yet: "אין עדיין ביקורות AI."
+    failed: "נכשל"
+    no_output: "המודל לא החזיר פלט."
+    show_prompt: "הצג את ההנחיה שנשלחה למודל"
+    sprint_analysis_title: "ניתוח ספרינט AI"
+    analyzing: "מנתח ספרינט…"
+    refresh: "רענן"
+    open_full: "פתח דוח מלא"
+    col:
+      kind: "שירות"
+      subject: "נושא"
+      verdict: "הכרעה"
+      score: "ציון"
+      status: "סטטוס"
+      when: "מתי"
+  sidebar:
+    nav_label: "ניווט"
+    sprints_label: "ספרינטים"
+    channels_label: "ערוצים"
+    projects_label: "פרויקטים"
+    reports_label: "דוחות"
+    ci_label: "CI / DevOps"
+    ci:
+      overview: "סקירת CI"
+      runs: "כל הריצות"
+      security: "אבטחה (Trivy)"
+      performance: "ביצועים"
+      test_results: "תוצאות בדיקות"
+      deployments: "פריסות"
+      logs: "צופה לוגים"
+      code_review: "סקירת קוד"
+      servers: "שרתים"
+    admin_label: "ניהול"
+    team_label: "צוות"
+    ai_label: "סוכן AI"
+    ai:
+      reports: "דוחות AI"
+      review_results: "תוצאות ביקורת אחרונות"
+      test_reviews: "ביקורות בדיקות אחרונות"
+    all: "הכל"
+    active_sprint_prefix: "ספרינט:"
+    active_badge: "פעיל"
+    you: "(את/ה)"
+    reports:
+      ci_summary: "סיכום CI"
+      deployments: "פריסות"
+      test_coverage: "כיסוי בדיקות"
+      velocity: "מהירות"
+      estimation_accuracy: "דיוק הערכות"
+    tickets_label: "כרטיסים"
+    tickets:
+      all_tickets: "כל הכרטיסים"
+      my_tickets: "הכרטיסים שלי"
+      late: "כרטיסים באיחור"
+      backlog: "Backlog"
+      current_sprint: "ספרינט נוכחי"
+    new_project: "פרויקט חדש"
+    admin:
+      users: "משתמשים"
+      clients: "לקוחות"
+  mobile:
+    nav:
+      today: "היום"
+      messages: "הודעות"
+      meetings: "פגישות"
+      projects: "פרויקטים"
+      tickets: "כרטיסים"
+      video: "וידאו"
+    today:
+      up_next: "הבא"
+      join_now: "📹 הצטרף"
+      stat_tickets: "כרטיסים"
+      stat_meetings: "פגישות"
+      stat_ci: "ריצות CI"
+      stat_deploys: "פריסות"
+      stat_prs: "PR פתוחים"
+      stat_chat: "צ'אט"
+      my_open_tickets: "הכרטיסים הפתוחים שלי"
+      meetings_today: "פגישות היום"
+      failing_builds: "⚠️ בנייות כושלות"
+      open_prs: "Pull Requests פתוחים"
+      quick_links: "קישורים מהירים"
+      desktop_view: "🖥 תצוגת מחשב"
+      full_today: "📊 היום המלא"
+      all_projects: "🗂 כל הפרויקטים"
+      all_meetings: "📅 כל הפגישות"
+      more_tickets: "+%{count} נוספים ←"
+    messages:
+      no_messages_yet: "אין הודעות עדיין"
+      no_rooms: "לא נמצאו חדרי שיחה."
+    meetings:
+      upcoming: "קרובות"
+      today_label: "היום"
+      join: "הצטרף"
+      by: "על ידי"
+      no_upcoming: "אין פגישות קרובות."
+      past: "פגישות קודמות"
+      no_past: "אין פגישות קודמות."
+    projects:
+      sprint_prefix: "ספרינט:"
+      no_sprint: "אין ספרינט פעיל"
+      active: "פעיל"
+      inactive: "לא פעיל"
+      open: "פתוח"
+      prs: "PRs"
+      done: "הושלם"
+      no_projects: "אין פרויקטים עדיין."
+      view: "👁 צפייה"
+      tickets_btn: "🎫 כרטיסים"
+      sprints_btn: "🏃 ספרינטים"
+      meetings_btn: "📅 פגישות"
+    tickets:
+      my_tickets: "הכרטיסים שלי"
+      open_header: "פתוח (%{count})"
+      done_header: "הושלמו לאחרונה"
+      all_caught_up: "עדכני לגמרי!"
+      no_open: "אין כרטיסים פתוחים שהוקצו לך."
+      browse_all: "עיין בכל הפרויקטים ←"
+    video_calls:
+      live_now: "🔴 שידור חי"
+      in_progress_label: "בתהליך"
+      started: "התחיל"
+      host_label: "מארח:"
+      upcoming: "שיחות וידאו קרובות"
+      in_minutes: "בעוד %{count} דק'"
+      host: "מארח"
+      join: "📹 הצטרף"
+      jitsi_link: "🔗 קישור Jitsi"
+      details: "👁 פרטים"
+      invite: "📨 הזמן"
+      no_upcoming: "אין שיחות וידאו קרובות."
+      schedule: "+ תזמן פגישה"
+      new_meeting: "+ פגישה חדשה"
+      join_meeting: "📹 הצטרף לפגישה"
+  profile:
+    title: "פרופיל"
+    edit_title: "עריכת פרופיל"
+    name: "שם"
+    email: 'דוא"ל'
+    role: "תפקיד"
+    language: "שפה"
+    language_en: "אנגלית"
+    language_he: "עברית"
+    password_section: "שינוי סיסמה"
+    current_password: "סיסמה נוכחית"
+    new_password: "סיסמה חדשה"
+    confirm_password: "אימות סיסמה"
+    save: "שמור שינויים"
+    updated: "הפרופיל עודכן בהצלחה."
+    leave_blank: "השאר ריק לשמור על הסיסמה הנוכחית"
+  table_headers:
+    id: "#"
+    title: "כותרת"
+    project: "פרויקט"
+    priority: "עדיפות"
+    status: "סטטוס"
+    assignee: "מוקצה"
+    sprint: "ספרינט"
+    build: "בנייה"
+    branch: "ענף"
+    commit: "Commit"
+    duration: "משך"
+    test_results: "תוצאות בדיקות"
+    triggered_by: "הופעל ע״י"
+    started: "התחלה"
+    when: "מתי"
+    name: "שם"
+    email: 'דוא"ל'
+    role: "תפקיד"
+    notes: "הערות"
+    type: "סוג"
+    date: "תאריך"
+    recording: "הקלטה"
+    log: "לוג"
+    message: "הודעה"
+    error: "שגיאה"
+    created: "נוצר"
+    actions: "פעולות"
+    assigned_to: "מוקצה ל"
+    opened: "נפתח"
+    software: "תוכנה"
+    version: "גרסה"
+    environment: "סביבה"
+    installed: "הותקן"
+    suite: "חבילה"
+    total: "סה״כ"
+    passed: "עבר"
+    failed: "נכשל"
+    skipped: "דולג"
+    pass_rate: "אחוז הצלחה"
+    developer: "מפתח"
+    tickets: "כרטיסים"
+    total_estimated: "סה״כ הערכה"
+    total_actual: "סה״כ בפועל"
+    variance: "סטייה"
+    under_estimated: "הערכת חסר"
+    over_estimated: "הערכת יתר"
+    accuracy_score: "ציון דיוק"
+    ticket: "כרטיס"
+    estimator: "מעריך"
+    est_dev: "הערכה (פיתוח)"
+    actual: "בפועל"
+    last_updated: "עדכון אחרון"
+    deployed_at: "תאריך פריסה"
+    start: "התחלה"
+    "end": "סיום"
+    velocity: "מהירות"
+    deploy_type: "סוג"
+    submitted: "הוגש"
+    updated: "עודכן"

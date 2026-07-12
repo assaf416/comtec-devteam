@@ -1,0 +1,154 @@
+<% content_for :title, t('dashboard.title') %>
+
+<h1 class="fw-bold"><%= t('dashboard.title') %></h1>
+
+<%# ─── CI Stats row ─────────────────────────────────────────────────────── %>
+<div class="row">
+  <div class="col-3">
+    <div class="card p-3 mb-3 stat-card bg-success-subtle">
+      <div class="stat-number text-success"><%= @ci_stats[:passed] %></div>
+      <div class="stat-label">Builds Passed (7d)</div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card p-3 mb-3 stat-card bg-danger-subtle">
+      <div class="stat-number text-danger"><%= @ci_stats[:failed] %></div>
+      <div class="stat-label">Builds Failed (7d)</div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card p-3 mb-3 stat-card bg-info-subtle">
+      <div class="stat-number text-info"><%= @ci_stats[:total] %></div>
+      <div class="stat-label">Total CI Runs (7d)</div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card p-3 mb-3 stat-card bg-warning-subtle">
+      <div class="stat-number text-warning-dark"><%= @my_tickets.count %></div>
+      <div class="stat-label"><%= t('dashboard.my_tickets') %></div>
+    </div>
+  </div>
+</div>
+
+<%# ─── Main content grid ─────────────────────────────────────────────────── %>
+<div class="row">
+  <%# My Tickets %>
+  <div class="col-6">
+    <div class="card p-3 mb-3">
+      <h2 class="subfw-bold"><%= t('dashboard.my_tickets') %></h2>
+      <% if @my_tickets.any? %>
+        <table class="table table-hover w-100 fs-7">
+          <thead>
+            <tr><th><%= t('table_headers.id') %></th><th><%= t('table_headers.title') %></th><th><%= t('table_headers.project') %></th><th><%= t('table_headers.priority') %></th><th><%= t('table_headers.status') %></th><th>Progress</th></tr>
+          </thead>
+          <tbody>
+            <% @my_tickets.each do |ticket| %>
+              <tr>
+                <td><%= ticket.id %></td>
+                <td><%= link_to ticket.title, ticket, class: "text-primary" %></td>
+                <td><%= ticket.project.name %></td>
+                <td><%= priority_tag(ticket.priority) %></td>
+                <td><%= status_tag(ticket.status) %></td>
+                <td><%= render "tickets/progress_cell", ticket: ticket %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-muted">No open tickets assigned to you.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Recent CI Runs %>
+  <div class="col-6">
+    <div class="card p-3 mb-3">
+      <h2 class="subfw-bold"><%= t('dashboard.recent_ci') %></h2>
+      <% if @recent_ci_runs.any? %>
+        <table class="table w-100 fs-7">
+          <thead>
+            <tr><th><%= t('table_headers.build') %></th><th><%= t('table_headers.project') %></th><th><%= t('table_headers.branch') %></th><th><%= t('table_headers.status') %></th><th><%= t('table_headers.when') %></th></tr>
+          </thead>
+          <tbody>
+            <% @recent_ci_runs.each do |run| %>
+              <tr>
+                <td><%= link_to "##{run.build_number}", run, class: "text-primary" %></td>
+                <td><%= run.project.name %></td>
+                <td><code class="fs-7"><%= run.branch_name %></code></td>
+                <td><%= status_tag(run.status) %></td>
+                <td><%= time_ago_in_words(run.created_at) %> ago</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-muted">No CI runs yet.</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <%# Upcoming Meetings %>
+  <div class="col-4">
+    <div class="card p-3 mb-3">
+      <h2 class="subfw-bold"><%= t('dashboard.upcoming_meetings') %></h2>
+      <% if @upcoming_meetings.any? %>
+        <% @upcoming_meetings.each do |meeting| %>
+          <div class="media mb-2">
+            <div class="media-content">
+              <p class="fs-7">
+                <strong><%= link_to meeting.title, meeting %></strong><br>
+                <span class="text-muted"><%= meeting.scheduled_at.strftime('%d/%m %H:%M') %></span>
+              </p>
+            </div>
+            <div class="media-right">
+              <%= link_to t("common.actions.join"), meeting.jitsi_url, target: "_blank", class: "btn btn-secondary btn-sm is-link" %>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="text-muted">No upcoming meetings.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Recent Deployments %>
+  <div class="col-4">
+    <div class="card p-3 mb-3">
+      <h2 class="subfw-bold"><%= t('dashboard.recent_deployments') %></h2>
+      <% if @recent_deployments.any? %>
+        <% @recent_deployments.each do |dep| %>
+          <div class="level is-mobile fs-7 mb-1">
+            <div class="level-left">
+              <span><strong><%= dep.project.name %></strong>
+              <span class="badge bg-light text-dark ms-1"><%= dep.version %></span></span>
+            </div>
+            <div class="level-right"><%= status_tag(dep.status) %></div>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="text-muted">No deployments yet.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Projects %>
+  <div class="col-4">
+    <div class="card p-3 mb-3">
+      <h2 class="subfw-bold"><%= t('nav.projects') %></h2>
+      <% @projects.each do |project| %>
+        <div class="level is-mobile fs-7 mb-1">
+          <div class="level-left">
+            <%= link_to project.name, project, class: "text-primary fw-semibold" %>
+          </div>
+          <div class="level-right">
+            <span class="badge bg-light text-dark"><%= project.tickets.where.not(status: [:done, :closed]).count %> open</span>
+          </div>
+        </div>
+      <% end %>
+      <hr class="my-2">
+      <%= link_to "All Projects →", projects_path, class: "btn btn-secondary btn-sm is-light w-100" %>
+    </div>
+  </div>
+</div>

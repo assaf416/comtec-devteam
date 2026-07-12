@@ -1,0 +1,29 @@
+<%# locals: prs (Array/Relation of PullRequest) %>
+<% if prs.present? && prs.any? %>
+  <div class="box p-0" style="overflow:hidden;">
+    <% prs.each do |pr| %>
+      <%
+        st = pr.status.to_s
+        pr_class = { "open" => "is-success is-light", "review" => "is-info is-light",
+                     "merged" => "is-link is-light", "closed" => "is-light" }.fetch(st, "is-light")
+        summary = pr.respond_to?(:test_summary) ? pr.test_summary : nil
+      %>
+      <%= link_to pull_request_path(pr), class: "ticket-item px-3" do %>
+        <span class="ticket-dot dot-default"></span>
+        <div style="flex:1;overflow:hidden;">
+          <div class="ticket-title">#<%= pr.pr_number %> · <%= pr.title.to_s.truncate(40) %></div>
+          <div class="mobile-card-meta">
+            <%= pr.author.presence || "unknown" %>
+            <% if pr.coverage_percent.present? %> · 📊 <%= pr.coverage_percent %>%<% end %>
+            <% if summary && summary["total"].to_i > 0 %>
+              · 🧪 <%= summary["passed"] %>/<%= summary["total"] %>
+            <% end %>
+          </div>
+        </div>
+        <span class="tag is-rounded is-small <%= pr_class %>"><%= st.humanize %></span>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <p style="color:#a0aec0;font-size:0.82rem;padding:0.25rem 0 0.5rem;">No pull requests.</p>
+<% end %>

@@ -1,0 +1,104 @@
+<% content_for :title, t("log_viewer.title") %>
+
+<style>
+  .log-toolbar { display:flex; flex-wrap:wrap; gap:.5rem; align-items:flex-end; margin-bottom:1rem; }
+  .log-toolbar .field { display:flex; flex-direction:column; }
+  .log-toolbar label { font-size:.7rem; color:#64748b; margin-bottom:2px; }
+  .log-console {
+    background:#0e1116; color:#d7dde3; border-radius:10px; padding:.5rem 0;
+    font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:.78rem; line-height:1.5; height:64vh; overflow-y:auto;
+    border:1px solid #1c2330;
+  }
+  .log-line {
+    display:flex; gap:.65rem; padding:.12rem .9rem; white-space:pre-wrap;
+    word-break:break-word; border-left:3px solid transparent;
+  }
+  .log-line:hover { background:rgba(255,255,255,.04); }
+  .log-ts { color:#6b7785; flex-shrink:0; }
+  .log-level { flex-shrink:0; font-size:.62rem; align-self:center; }
+  .log-service { color:#7aa2f7; flex-shrink:0; min-width:90px; }
+  .log-msg { flex:1; min-width:0; }
+  .log-msg mark { background:#ffe066; color:#0e1116; padding:0 1px; border-radius:2px; }
+  .log-flag { flex-shrink:0; }
+  /* Highlighting */
+  .log-error, .log-exception { background:rgba(232,69,69,.12); border-left-color:#e84545; }
+  .log-error .log-msg, .log-exception .log-msg { color:#ff9b9b; }
+  .log-warn { background:rgba(230,126,34,.10); border-left-color:#e67e22; }
+  .log-warn .log-msg { color:#ffce8a; }
+  .log-debug .log-msg { color:#8a93a0; }
+  .log-empty { color:#6b7785; padding:1.5rem .9rem; text-align:center; }
+</style>
+
+<div class="level mb-3">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-1">📜 <%= t("log_viewer.title") %></h1>
+      <p class="text-muted fs-7"><%= t("log_viewer.subtitle") %></p>
+    </div>
+  </div>
+  <div class="level-right d-flex gap-2 align-items-center">
+    <span class="badge <%= @available ? 'bg-success' : 'bg-danger' %>">
+      <%= @available ? t("log_viewer.connected") : t("log_viewer.disconnected") %>
+    </span>
+    <span class="badge bg-danger"><%= @error_count %> <%= t("log_viewer.errors") %></span>
+    <span class="badge bg-warning text-dark"><%= @warn_count %> <%= t("log_viewer.warnings") %></span>
+  </div>
+</div>
+
+<div data-controller="log-viewer"
+     data-log-viewer-url-value="<%= log_viewer_tail_path %>">
+
+  <%# ── Filters ──────────────────────────────────────────────────────────── %>
+  <%= form_with url: log_viewer_path, method: :get,
+        data: { log_viewer_target: "form", action: "change->log-viewer#submit" } do %>
+    <div class="log-toolbar">
+      <div class="field">
+        <label><%= t("log_viewer.filters.service") %></label>
+        <select name="service" class="form-select form-select-sm">
+          <option value=""><%= t("log_viewer.filters.all_services") %></option>
+          <% @service_options.each do |svc| %>
+            <option value="<%= svc %>" <%= "selected" if params[:service] == svc %>><%= svc %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="field">
+        <label><%= t("log_viewer.filters.level") %></label>
+        <select name="level" class="form-select form-select-sm">
+          <option value=""><%= t("log_viewer.filters.all_levels") %></option>
+          <% LogQueryService::LEVELS.each do |lvl| %>
+            <option value="<%= lvl %>" <%= "selected" if params[:level] == lvl %>><%= lvl.upcase %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="field">
+        <label><%= t("log_viewer.filters.range") %></label>
+        <select name="range" class="form-select form-select-sm">
+          <% LogQueryService::RANGES.keys.each do |r| %>
+            <option value="<%= r %>" <%= "selected" if (params[:range].presence || "1h") == r %>><%= r %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="field flex-grow-1">
+        <label><%= t("log_viewer.filters.search") %></label>
+        <input type="search" name="search" value="<%= params[:search] %>"
+               class="form-control form-control-sm"
+               placeholder="<%= t('log_viewer.filters.search_ph') %>"
+               data-action="keydown.enter->log-viewer#submit">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button type="button" class="btn btn-sm btn-secondary"
+                data-log-viewer-target="watchButton"
+                data-action="log-viewer#toggleWatch">
+          ▶ <%= t("log_viewer.watch") %>
+        </button>
+      </div>
+    </div>
+  <% end %>
+
+  <%# ── Console ──────────────────────────────────────────────────────────── %>
+  <div class="log-console" data-log-viewer-target="console">
+    <%= render "log_viewer/lines", entries: @entries %>
+  </div>
+</div>

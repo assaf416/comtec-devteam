@@ -1,0 +1,19 @@
+<%# locals: notes (Array/Relation of Document) %>
+<% if notes.present? && notes.any? %>
+  <div class="box p-0" style="overflow:hidden;">
+    <% notes.each do |note| %>
+      <%= link_to document_path(note), class: "ticket-item px-3" do %>
+        <span style="font-size:1.1rem;flex-shrink:0;">📄</span>
+        <div style="flex:1;overflow:hidden;">
+          <div class="ticket-title"><%= note.title.to_s.truncate(44) %></div>
+          <div class="mobile-card-meta">
+            <%= note.doc_type.to_s.humanize %> · <%= note.updated_at.strftime("%b %-d, %Y") %>
+          </div>
+        </div>
+        <span style="color:#cbd5e0;">›</span>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <p style="color:#a0aec0;font-size:0.82rem;padding:0.25rem 0 0.5rem;">No notes or documents.</p>
+<% end %>

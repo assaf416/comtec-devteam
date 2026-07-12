@@ -1,0 +1,43 @@
+<% content_for :title, "Code Reviews" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-1">🔍 Code Reviews</h1>
+      <p class="text-muted fs-7">Review Gitea pull requests — diff, files, test results and comments.</p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to "+ New review", new_code_review_path, class: "btn btn-primary btn-sm" %>
+  </div>
+</div>
+
+<% if @code_reviews.any? %>
+  <div class="card">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr>
+        <th>PR</th><th>Repo</th><th>Reviewer</th><th>Decision</th><th>When</th>
+      </tr></thead>
+      <tbody>
+        <% @code_reviews.each do |cr| %>
+          <tr style="cursor:pointer;" onclick="window.location='<%= code_review_path(cr) %>'">
+            <td>
+              <span class="text-muted">#<%= cr.pr_number %></span>
+              <%= cr.display_title.truncate(60) %>
+            </td>
+            <td class="fs-7 text-muted"><%= [ cr.repo_owner, cr.repo_name ].compact.join("/") %></td>
+            <td class="fs-7"><%= cr.reviewer&.display_name || "—" %></td>
+            <td><span class="badge <%= cr.status_badge_class %>"><%= cr.status.humanize %></span></td>
+            <td class="fs-7 text-muted"><%= time_ago_in_words(cr.created_at) %> ago</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <div class="mt-3"><%= paginate @code_reviews if respond_to?(:paginate) %></div>
+<% else %>
+  <div class="card p-5 text-center text-muted">
+    <p>No code reviews yet.</p>
+    <div><%= link_to "Start your first review", new_code_review_path, class: "btn btn-primary btn-sm" %></div>
+  </div>
+<% end %>

@@ -1,0 +1,35 @@
+<%# locals: tickets (Array/Relation of Ticket) %>
+<% if tickets.present? && tickets.any? %>
+  <div class="box p-0" style="overflow:hidden;">
+    <% tickets.each do |ticket| %>
+      <%
+        dot_class = case ticket.priority.to_s
+                    when "critical" then "dot-critical"
+                    when "high"     then "dot-high"
+                    when "medium"   then "dot-medium"
+                    when "low"      then "dot-low"
+                    else "dot-default"
+                    end
+        status_color = { "in_progress" => "is-info is-light", "in_review" => "is-warning is-light",
+                         "testing" => "is-warning is-light", "done" => "is-success is-light",
+                         "closed" => "is-light", "blocked" => "is-danger is-light" }
+        st_class = status_color.fetch(ticket.status.to_s, "is-light")
+      %>
+      <%= link_to mobile_ticket_path(ticket), class: "ticket-item px-3" do %>
+        <span class="ticket-dot <%= dot_class %>"></span>
+        <div style="flex:1;overflow:hidden;">
+          <div class="ticket-title">#<%= ticket.id %> · <%= ticket.title.truncate(42) %></div>
+          <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+            <% if ticket.assignee %>
+              <span style="font-size:0.7rem;color:#8a93a2;">👤 <%= ticket.assignee.display_name %></span>
+            <% end %>
+            <%= render "tickets/progress_badges", ticket: ticket %>
+          </div>
+        </div>
+        <span class="tag is-rounded is-small <%= st_class %>"><%= ticket.status.to_s.humanize %></span>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <p style="color:#a0aec0;font-size:0.82rem;padding:0.25rem 0 0.5rem;">No tickets.</p>
+<% end %>

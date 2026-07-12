@@ -1,0 +1,47 @@
+<% content_for(:page_title) { t('mobile.nav.messages') } %>
+
+<% if @chat_rooms.any? %>
+  <div class="box p-0" style="overflow:hidden;">
+    <% @chat_rooms.each do |room| %>
+      <%
+        last_msg = room.chat_messages.order(:created_at).last
+        initials  = room.name.split.first(2).map { |w| w[0].upcase }.join
+      %>
+      <%= link_to chat_room_path(room), class: "mobile-msg-row px-4" do %>
+        <div class="msg-avatar"><%= initials %></div>
+        <div class="msg-body">
+          <div class="msg-name"># <%= room.name %></div>
+          <div class="msg-preview">
+            <% if last_msg %>
+              <strong><%= last_msg.user&.display_name.to_s.split.first %>:</strong>
+              <%= last_msg.body.truncate(45) %>
+            <% else %>
+              <em style="color:#bbb;"><%= t('mobile.messages.no_messages_yet') %></em>
+            <% end %>
+          </div>
+        </div>
+        <div class="is-flex is-flex-direction-column is-align-items-flex-end" style="gap:4px;">
+          <div class="msg-time">
+            <% if last_msg %>
+              <%= last_msg.created_at > 1.day.ago ? last_msg.created_at.strftime("%H:%M") : last_msg.created_at.strftime("%b %-d") %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="has-text-centered py-6" style="color:#bbb;">
+    <p style="font-size:3rem;">💬</p>
+    <p style="color:#8a93a2;"><%= t('mobile.messages.no_rooms') %></p>
+    <%= link_to new_chat_room_path, class: "button is-primary is-rounded mt-3" do %>
+      + New Chat Room
+    <% end %>
+  </div>
+<% end %>
+
+<div class="mt-4" style="text-align:right;">
+  <%= link_to new_chat_room_path, class: "button is-primary is-rounded is-small" do %>
+    + New Room
+  <% end %>
+</div>

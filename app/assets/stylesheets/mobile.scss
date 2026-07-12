@@ -1,0 +1,460 @@
+// Mobile-specific stylesheet using Bulma
+@import "bulma/bulma";
+
+// ── Mobile Shell ──────────────────────────────────────────────────────────────
+:root {
+    --bottom-nav-height: 64px;
+    --mobile-top-height: 56px;
+    --brand-color: #4a90d9;
+    --brand-dark: #2c6fac;
+}
+
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+    background: #f4f5f7;
+    font-family: 'Assistant', sans-serif;
+}
+
+* {
+    font-family: 'Assistant', sans-serif;
+}
+
+.mobile-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    background: #ffffff;
+    position: relative;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.12);
+}
+
+// ── Top Bar ───────────────────────────────────────────────────────────────────
+.mobile-topbar {
+    flex-shrink: 0;
+    height: var(--mobile-top-height);
+    background: var(--brand-color);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    gap: 0.75rem;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+    .mobile-topbar-title {
+        flex: 1;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: #fff;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mobile-topbar-action {
+        color: #fff;
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        opacity: 0.9;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    .mobile-notif-badge {
+        position: relative;
+
+        .badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #e74c3c;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.6rem;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+}
+
+// ── Scrollable Content Area ───────────────────────────────────────────────────
+.mobile-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    padding-bottom: calc(var(--bottom-nav-height) + 0.5rem);
+    -webkit-overflow-scrolling: touch;
+}
+
+// ── Bottom Navigation ─────────────────────────────────────────────────────────
+.mobile-bottom-nav {
+    flex-shrink: 0;
+    height: var(--bottom-nav-height);
+    background: #fff;
+    border-top: 1px solid #e8eaed;
+    display: flex;
+    align-items: stretch;
+    z-index: 20;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+
+    .nav-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #8a93a2;
+        font-size: 0.62rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        gap: 3px;
+        transition: color 0.15s, background 0.15s;
+        padding: 0 2px;
+        -webkit-tap-highlight-color: transparent;
+
+        .nav-icon {
+            font-size: 1.35rem;
+            line-height: 1;
+        }
+
+        &:hover,
+        &.is-active {
+            color: var(--brand-color);
+            background: #f0f6ff;
+        }
+
+        &.is-active .nav-icon {
+            transform: scale(1.1);
+        }
+    }
+}
+
+// ── Bulma overrides for mobile ────────────────────────────────────────────────
+.box {
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+}
+
+.tag {
+    font-size: 0.7rem;
+}
+
+.mobile-section-title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8a93a2;
+    margin-bottom: 0.5rem;
+    margin-top: 1rem;
+
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+.mobile-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+
+    .mobile-card-header {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        gap: 0.75rem;
+        border-bottom: 1px solid #f0f2f5;
+    }
+
+    .mobile-card-body {
+        padding: 0.75rem 1rem;
+    }
+
+    .mobile-card-meta {
+        font-size: 0.75rem;
+        color: #8a93a2;
+    }
+}
+
+// ── Stat cards (Today page) ───────────────────────────────────────────────────
+.mobile-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.mobile-stat {
+    background: #fff;
+    border-radius: 12px;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+    text-decoration: none;
+    display: block;
+    color: inherit;
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1;
+        color: #2d3748;
+    }
+
+    .stat-label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #8a93a2;
+        margin-top: 0.2rem;
+    }
+
+    &.is-warning {
+        background: #fffbea;
+
+        .stat-value {
+            color: #d97706;
+        }
+    }
+
+    &.is-danger {
+        background: #fff5f5;
+
+        .stat-value {
+            color: #e53e3e;
+        }
+    }
+
+    &.is-info {
+        background: #ebf8ff;
+
+        .stat-value {
+            color: #3182ce;
+        }
+    }
+
+    &.is-success {
+        background: #f0fff4;
+
+        .stat-value {
+            color: #38a169;
+        }
+    }
+}
+
+// ── Message rows ──────────────────────────────────────────────────────────────
+.mobile-msg-row {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    gap: 0.75rem;
+    border-bottom: 1px solid #f0f2f5;
+    text-decoration: none;
+    color: inherit;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .msg-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--brand-color);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .msg-body {
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .msg-name {
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .msg-preview {
+        font-size: 0.78rem;
+        color: #8a93a2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .msg-time {
+        font-size: 0.7rem;
+        color: #8a93a2;
+        flex-shrink: 0;
+    }
+
+    .msg-unread {
+        width: 8px;
+        height: 8px;
+        background: var(--brand-color);
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+}
+
+// ── Meeting rows ──────────────────────────────────────────────────────────────
+.meeting-slot {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+
+    .meeting-time-col {
+        width: 48px;
+        text-align: right;
+        flex-shrink: 0;
+        font-size: 0.72rem;
+        color: #8a93a2;
+        padding-top: 0.1rem;
+    }
+
+    .meeting-bar {
+        width: 3px;
+        border-radius: 2px;
+        background: var(--brand-color);
+        align-self: stretch;
+        flex-shrink: 0;
+    }
+
+    .meeting-info {
+        flex: 1;
+    }
+
+    .meeting-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .meeting-meta {
+        font-size: 0.75rem;
+        color: #8a93a2;
+    }
+}
+
+// ── Ticket pill list ──────────────────────────────────────────────────────────
+.ticket-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f0f2f5;
+    text-decoration: none;
+    color: inherit;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .ticket-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .ticket-title {
+        flex: 1;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .ticket-project {
+        font-size: 0.72rem;
+        color: #8a93a2;
+    }
+}
+
+// ── Priority colors ───────────────────────────────────────────────────────────
+.dot-critical {
+    background: #e53e3e;
+}
+
+.dot-high {
+    background: #e8853d;
+}
+
+.dot-medium {
+    background: #d4ac0d;
+}
+
+.dot-low {
+    background: #38a169;
+}
+
+.dot-default {
+    background: #a0aec0;
+}
+
+// ── Video call card ───────────────────────────────────────────────────────────
+.video-card {
+    background: linear-gradient(135deg, var(--brand-color), var(--brand-dark));
+    border-radius: 14px;
+    padding: 1.1rem;
+    color: #fff;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 4px 16px rgba(74, 144, 217, 0.3);
+
+    .video-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .video-meta {
+        font-size: 0.78rem;
+        opacity: 0.85;
+        margin-bottom: 0.75rem;
+    }
+
+    .button.is-white-outlined {
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        color: #fff;
+        background: transparent;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+    }
+}
+
+// ── Flash toast ───────────────────────────────────────────────────────────────
+.mobile-flash {
+    position: fixed;
+    top: calc(var(--mobile-top-height) + 0.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    width: calc(100% - 2rem);
+    max-width: 420px;
+}

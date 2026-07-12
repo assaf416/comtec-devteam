@@ -1,0 +1,650 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+#
+# DevTeam Hub CLI
+# Usage: devteam <command> [options]
+#
+# Run `devteam help` for a full list of commands.
+
+require "thor"
+require "net/http"
+require "uri"
+require "json"
+require "yaml"
+require "fileutils"
+require "open3"
+
+# ─── Configuration ─────────────────────────────────────────────────────────────
+
+module DevTeam
+  CONFIG_PATH = File.expand_path("~/.devteam.yml")
+  DEFAULT_HOST = "http://localhost:3000"
+
+  def self.config
+    @config ||= File.exist?(CONFIG_PATH) ? YAML.load_file(CONFIG_PATH) : {}
+  end
+
+  def self.save_config(data)
+    FileUtils.mkdir_p(File.dirname(CONFIG_PATH))
+    File.write(CONFIG_PATH, data.to_yaml)
+    @config = data
+  end
+
+  def self.host
+    config["host"] || DEFAULT_HOST
+  end
+
+  def self.token
+    config["token"]
+  end
+
+  # ─── API Client ──────────────────────────────────────────────────────────────
+
+  def self.api(method, path, body: nil)
+    uri = URI("#{host}/api/v1#{path}")
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = uri.scheme == "https"
+    http.open_timeout = 5
+    http.read_timeout = 10
+
+    req = case method
+    when :get    then Net::HTTP::Get.new(uri)
+    when :post   then Net::HTTP::Post.new(uri)
+    when :patch  then Net::HTTP::Patch.new(uri)
+    end
+
+    req["Authorization"] = "Bearer #{token}"
+    req["Content-Type"]  = "application/json"
+    req["Accept"]        = "application/json"
+    req.body = body.to_json if body
+
+    res = http.request(req)
+    data = JSON.parse(res.body) rescue { "raw" => res.body }
+
+    if res.code.to_i >= 400
+      abort paint(:red, "API error #{res.code}: #{data['error'] || data.inspect}")
+    end
+
+    data
+  rescue Errno::ECONNREFUSED
+    abort paint(:red, "Cannot connect to DevTeam Hub at #{host}. Is the server running?")
+  rescue Net::OpenTimeout
+    abort paint(:red, "Connection to #{host} timed out.")
+  end
+
+  # ─── Git helpers ─────────────────────────────────────────────────────────────
+
+  def self.git(cmd, capture: false)
+    full = "git #{cmd}"
+    if capture
+      out, err, st = Open3.capture3(full)
+      st.success? ? out.strip : nil
+    else
+      system(full)
+    end
+  end
+
+  def self.current_branch
+    git("rev-parse --abbrev-ref HEAD", capture: true)
+  end
+
+  def self.repo_root
+    git("rev-parse --show-toplevel", capture: true) || Dir.pwd
+  end
+
+  def self.ticket_id_from_branch(branch = nil)
+    branch ||= current_branch
+    m = branch&.match(%r{(?:feature|bugfix|hotfix|chore)/T-(\d+)})
+    m&.[](1)&.to_i
+  end
+
+  # ─── Display helpers ─────────────────────────────────────────────────────────
+
+  COLORS = { red: 31, green: 32, yellow: 33, blue: 34, magenta: 35, cyan: 36, bold: 1 }.freeze
+
+  def self.paint(color, text)
+    return text unless $stdout.tty?
+    "\e[#{COLORS[color]}m#{text}\e[0m"
+  end
+
+  def self.box(title, rows)
+    max_label = rows.map { |r| r[0].length }.max || 0
+    puts
+    puts paint(:bold, "  ┌─ #{title}")
+    rows.each do |label, value|
+      puts "  │ #{paint(:cyan, label.ljust(max_label))}  #{value}"
+    end
+    puts "  └─"
+    puts
+  end
+
+  STATUS_ICON = {
+    "open"        => "○",
+    "backlog"     => "·",
+    "in_progress" => "►",
+    "in_review"   => "◎",
+    "done"        => "✓",
+    "cancelled"   => "✗"
+  }.freeze
+
+  PRIORITY_COLOR = {
+    "critical" => :red,
+    "high"     => :yellow,
+    "medium"   => :cyan,
+    "low"      => :magenta
+  }.freeze
+
+  def self.fmt_status(s)
+    icon = STATUS_ICON[s] || "?"
+    paint(:bold, "#{icon} #{s}")
+  end
+
+  def self.fmt_priority(p)
+    paint(PRIORITY_COLOR[p] || :bold, p.upcase)
+  end
+end
+
+# ─── Commands ───────────────────────────────────────────────────────────────────
+
+class DevTeamCLI < Thor
+  include Thor::Actions
+  class_option :host, desc: "DevTeam Hub URL", default: nil
+
+  # Override host if --host flag passed
+  def self.exit_on_failure? = true
+
+  no_commands do
+    def host_override
+      options[:host] || DevTeam.host
+    end
+  end
+
+  # ── setup ────────────────────────────────────────────────────────────────────
+
+  desc "setup", "Configure the CLI (host + API token)"
+  def setup
+    say "\n  DevTeam Hub CLI Setup\n\n"
+
+    host  = ask("  Hub URL [#{DevTeam::DEFAULT_HOST}]:").strip
+    host  = DevTeam::DEFAULT_HOST if host.empty?
+
+    token = ask("  API token (from #{host}/api/v1/token):").strip
+    if token.empty?
+      say paint(:red, "  Token is required. Get it from: #{host}/api/v1/me")
+      exit 1
+    end
+
+    DevTeam.save_config("host" => host, "token" => token)
+
+    # Verify
+    DevTeam.config.replace(DevTeam.config.merge("host" => host, "token" => token))
+    user = DevTeam.api(:get, "/me")
+    say paint(:green, "\n  ✓ Authenticated as #{user['name']} (#{user['role']})\n")
+    say "  Config saved to #{DevTeam::CONFIG_PATH}"
+  end
+
+  # ── whoami ───────────────────────────────────────────────────────────────────
+
+  desc "whoami", "Show current authenticated user"
+  def whoami
+    require_auth!
+    user = DevTeam.api(:get, "/me")
+    DevTeam.box("You", [
+      [ "Name",     user["name"] ],
+      [ "Email",    user["email"] ],
+      [ "Role",     user["role"] ],
+      [ "Projects", user["projects"].map { |p| p["name"] }.join(", ") ],
+      [ "Open tickets", user["tickets"].to_s ]
+    ])
+  end
+
+  # ── ticket ───────────────────────────────────────────────────────────────────
+
+  desc "ticket SUBCOMMAND", "Manage tickets"
+  subcommand "ticket", Class.new(Thor) {
+    include Thor::Actions
+
+    no_commands {
+      def require_auth!
+        DevTeamCLI.new.send(:require_auth!)
+      end
+    }
+
+    desc "list", "List your assigned tickets"
+    method_option :status,  aliases: "-s", desc: "Filter by status"
+    method_option :project, aliases: "-p", desc: "Project ID"
+    method_option :all,     aliases: "-a", type: :boolean, desc: "Show all (not just mine)"
+    def list
+      require_auth!
+      params = "?assignee=me"
+      params += "&status=#{options[:status]}"   if options[:status]
+      params += "&project_id=#{options[:project]}" if options[:project]
+      params = "" if options[:all]
+
+      tickets = DevTeam.api(:get, "/tickets#{params}")
+
+      if tickets.empty?
+        say DevTeam.paint(:yellow, "  No tickets found.")
+        return
+      end
+
+      say "\n"
+      tickets.each do |t|
+        status_str   = DevTeam.fmt_status(t["status"])
+        priority_str = DevTeam.fmt_priority(t["priority"])
+        say "  #{DevTeam.paint(:bold, "T-#{t['id']}")}  #{priority_str.ljust(12)}  #{status_str.ljust(22)}  #{t['title']}"
+        say "       #{DevTeam.paint(:cyan, t.dig('project', 'name'))}  #{t.dig('assignee', 'name') || '—'}"
+        say ""
+      end
+    end
+
+    desc "show ID", "Show ticket details"
+    def show(id)
+      require_auth!
+      t = DevTeam.api(:get, "/tickets/#{id}")
+      DevTeam.box("T-#{t['id']}: #{t['title']}", [
+        [ "Status",    DevTeam.fmt_status(t["status"]) ],
+        [ "Priority",  DevTeam.fmt_priority(t["priority"]) ],
+        [ "Kind",      t["kind"] ],
+        [ "Level",     t["level"] ],
+        [ "Project",   t.dig("project", "name") ],
+        [ "Assignee",  t.dig("assignee", "name") || "—" ],
+        [ "Branch",    t["branch_name"] || "—" ],
+        [ "PR",        t["pr_url"] || "—" ],
+        [ "Dev est.",  t["dev_estimate_hours"] ? "#{t['dev_estimate_hours']}h" : "—" ],
+        [ "QA est.",   t["tester_estimate_hours"] ? "#{t['tester_estimate_hours']}h" : "—" ]
+      ])
+      if t["description"].to_s.length > 0
+        say "  #{DevTeam.paint(:bold, 'Description')}"
+        say "  #{t['description']}\n"
+      end
+      if t["how_to_reproduce"].to_s.length > 0
+        say "  #{DevTeam.paint(:bold, 'How to reproduce')}"
+        say "  #{t['how_to_reproduce']}\n"
+      end
+    end
+
+    desc "update ID", "Update a ticket field"
+    method_option :status,   aliases: "-s", desc: "New status (open/in_progress/in_review/done)"
+    method_option :priority, aliases: "-p", desc: "New priority (low/medium/high/critical)"
+    method_option :pr,       desc: "PR number"
+    method_option :pr_url,   desc: "PR URL"
+    def update(id)
+      require_auth!
+      body = {}
+      body[:status]    = options[:status]   if options[:status]
+      body[:priority]  = options[:priority] if options[:priority]
+      body[:pr_number] = options[:pr].to_i  if options[:pr]
+      body[:pr_url]    = options[:pr_url]   if options[:pr_url]
+
+      if body.empty?
+        say DevTeam.paint(:yellow, "  Nothing to update. Use --status, --priority, --pr, or --pr-url")
+        return
+      end
+
+      t = DevTeam.api(:patch, "/tickets/#{id}", body: { ticket: body })
+      say DevTeam.paint(:green, "  ✓ T-#{t['id']} updated → status: #{t['status']}, priority: #{t['priority']}")
+    end
+
+    desc "start ID", "Checkout branch + set status to in_progress"
+    def start(id)
+      require_auth!
+      # Delegate to checkout command
+      DevTeamCLI.new.checkout(id)
+    end
+
+    desc "done ID", "Set ticket to done"
+    def done(id)
+      require_auth!
+      t = DevTeam.api(:patch, "/tickets/#{id}", body: { ticket: { status: "done" } })
+      say DevTeam.paint(:green, "  ✓ T-#{t['id']} marked done")
+
+      branch = DevTeam.current_branch
+      if branch && branch.include?("T-#{id}")
+        say DevTeam.paint(:cyan, "  Current branch: #{branch}")
+        say "  Push with: git push -u origin #{branch}"
+      end
+    end
+
+    self
+  }
+
+  # ── checkout ─────────────────────────────────────────────────────────────────
+
+  desc "checkout TICKET_ID", "Checkout the git branch for a ticket (creates it if needed)"
+  method_option :assign, type: :boolean, default: true, desc: "Auto-assign ticket to yourself"
+  def checkout(ticket_id = nil)
+    require_auth!
+
+    if ticket_id.nil?
+      # Try to detect from current branch
+      ticket_id = DevTeam.ticket_id_from_branch
+      abort paint(:yellow, "  Provide a ticket ID: devteam checkout <T-ID>") unless ticket_id
+    end
+
+    info = DevTeam.api(:post, "/checkout", body: { ticket_id: ticket_id.to_i, assign: options[:assign] })
+
+    branch = info["branch"]
+    base   = info["base"]
+
+    say "\n  #{DevTeam.paint(:bold, "T-#{info['ticket_id']}")} #{info['title']}"
+    say "  Branch: #{DevTeam.paint(:cyan, branch)}\n\n"
+
+    # Check if branch already exists locally
+    local_branches = DevTeam.git("branch --list #{branch}", capture: true).to_s.strip
+    remote_exists  = DevTeam.git("ls-remote --heads origin #{branch}", capture: true).to_s.strip
+
+    if local_branches.include?(branch)
+      say "  Switching to existing local branch..."
+      DevTeam.git("checkout #{branch}")
+    elsif remote_exists.include?(branch)
+      say "  Fetching and checking out from remote..."
+      DevTeam.git("fetch origin #{branch}:#{branch}")
+      DevTeam.git("checkout #{branch}")
+    else
+      say "  Creating new branch from #{base}..."
+      DevTeam.git("fetch origin #{base} --quiet")
+      DevTeam.git("checkout -b #{branch} origin/#{base}")
+    end
+
+    say DevTeam.paint(:green, "\n  ✓ Ready on #{branch}\n")
+  end
+
+  # ── status ───────────────────────────────────────────────────────────────────
+
+  desc "status", "Show your current work context"
+  def status
+    require_auth!
+
+    branch    = DevTeam.current_branch
+    ticket_id = DevTeam.ticket_id_from_branch(branch)
+
+    say "\n  #{DevTeam.paint(:bold, 'Current branch:')} #{branch}"
+
+    if ticket_id
+      t = DevTeam.api(:get, "/tickets/#{ticket_id}")
+      say "  #{DevTeam.paint(:bold, 'Ticket:')} T-#{t['id']} — #{t['title']}"
+      say "  #{DevTeam.paint(:bold, 'Status:')} #{DevTeam.fmt_status(t['status'])}"
+      say "  #{DevTeam.paint(:bold, 'Priority:')} #{DevTeam.fmt_priority(t['priority'])}"
+      say ""
+
+      # Suggest next action
+      case t["status"]
+      when "open", "backlog"
+        say "  #{DevTeam.paint(:yellow, 'Tip:')} Start working: devteam ticket update #{ticket_id} --status=in_progress"
+      when "in_progress"
+        say "  #{DevTeam.paint(:yellow, 'Tip:')} Submit for review: devteam ticket update #{ticket_id} --status=in_review"
+      when "in_review"
+        say "  #{DevTeam.paint(:yellow, 'Tip:')} Mark done: devteam ticket done #{ticket_id}"
+      end
+    else
+      say "  #{DevTeam.paint(:yellow, "  No ticket linked to this branch.")}"
+      say "  Start a ticket: devteam checkout <ticket-id>"
+    end
+    say ""
+  end
+
+  # ── run ──────────────────────────────────────────────────────────────────────
+
+  desc "run", "Start the development server"
+  method_option :port, aliases: "-p", default: "3000", desc: "Port to bind"
+  method_option :stop, type: :boolean, desc: "Stop the running server"
+  def run_server
+    if options[:stop]
+      pid = `lsof -ti :#{options[:port]}`.strip
+      if pid.empty?
+        say DevTeam.paint(:yellow, "  No server running on port #{options[:port]}")
+      else
+        system("kill #{pid}")
+        say DevTeam.paint(:green, "  ✓ Server on port #{options[:port]} stopped (PID #{pid})")
+      end
+      return
+    end
+
+    say DevTeam.paint(:cyan, "  Starting Rails server on port #{options[:port]}...")
+    exec("bin/rails server -p #{options[:port]}")
+  end
+  map "run" => :run_server
+
+  # ── test ─────────────────────────────────────────────────────────────────────
+
+  desc "test [FILE_OR_PATTERN]", "Run the test suite"
+  method_option :only, aliases: "-o", desc: "Run only matching test name"
+  method_option :parallel, type: :boolean, desc: "Run in parallel"
+  def test(file_or_pattern = nil)
+    cmd = "bin/rails test"
+    cmd += " #{file_or_pattern}"   if file_or_pattern
+    cmd += " -n '#{options[:only]}'" if options[:only]
+    cmd += " --parallel"             if options[:parallel]
+
+    say DevTeam.paint(:cyan, "  $ #{cmd}\n")
+    exec(cmd)
+  end
+
+  # ── deploy ───────────────────────────────────────────────────────────────────
+
+  desc "deploy ENV", "Deploy to an environment (staging|production)"
+  method_option :branch, aliases: "-b", desc: "Override branch to deploy"
+  method_option :migrate, type: :boolean, default: true, desc: "Run DB migrations after deploy"
+  method_option :dry_run, type: :boolean, desc: "Show what would run without executing"
+  def deploy(env = "staging")
+    require_auth!
+    abort paint(:red, "  Unknown env '#{env}'. Use: staging | production") unless %w[staging production].include?(env)
+
+    branch = options[:branch] || DevTeam.current_branch
+    ticket_id = DevTeam.ticket_id_from_branch(branch)
+
+    say "\n  #{DevTeam.paint(:bold, "Deploying to #{env.upcase}")}"
+    say "  Branch : #{DevTeam.paint(:cyan, branch)}"
+    say "  Ticket : T-#{ticket_id}" if ticket_id
+    say ""
+
+    steps = [
+      [ "Push branch",      "git push -u origin #{branch}" ],
+      [ "Run migrations",   "bin/rails db:migrate RAILS_ENV=#{env}" ],
+      [ "Restart server",   "touch tmp/restart.txt" ]
+    ]
+    steps.reject! { |s, _| s == "Run migrations" } unless options[:migrate]
+
+    steps.each do |label, cmd|
+      say "  #{DevTeam.paint(:bold, label)}: #{DevTeam.paint(:cyan, cmd)}"
+      unless options[:dry_run]
+        success = system(cmd)
+        unless success
+          abort DevTeam.paint(:red, "  ✗ Failed at: #{cmd}")
+        end
+      end
+    end
+
+    # Auto-update ticket status if deploying to production
+    if env == "production" && ticket_id && !options[:dry_run]
+      DevTeam.api(:patch, "/tickets/#{ticket_id}", body: { ticket: { status: "done" } })
+      say DevTeam.paint(:green, "  ✓ T-#{ticket_id} marked done")
+    end
+
+    say DevTeam.paint(:green, options[:dry_run] ? "\n  (dry-run — nothing executed)" : "\n  ✓ Deploy complete")
+  end
+
+  # ── pr ───────────────────────────────────────────────────────────────────────
+
+  desc "pr", "Open a pull request for the current branch"
+  method_option :title,  aliases: "-t", desc: "PR title (defaults to ticket title)"
+  method_option :web,    type: :boolean, default: true, desc: "Open in browser"
+  def pr
+    require_auth!
+
+    branch    = DevTeam.current_branch
+    ticket_id = DevTeam.ticket_id_from_branch(branch)
+
+    if ticket_id
+      t     = DevTeam.api(:get, "/tickets/#{ticket_id}")
+      title = options[:title] || "T-#{ticket_id}: #{t['title']}"
+      repo  = t.dig("project", "repo_url")
+    else
+      title = options[:title] || branch
+      repo  = nil
+    end
+
+    # Push first
+    say "  Pushing #{branch}..."
+    DevTeam.git("push -u origin #{branch}")
+
+    if repo
+      pr_url = "#{repo}/compare/#{branch}?title=#{URI.encode_www_form_component(title)}"
+      say DevTeam.paint(:green, "  ✓ PR URL: #{pr_url}")
+      system("open '#{pr_url}'") if options[:web]
+
+      # Update ticket with PR info if we have a PR number
+      if ticket_id
+        DevTeam.api(:patch, "/tickets/#{ticket_id}",
+                    body: { ticket: { status: "in_review", pr_url: pr_url } })
+        say DevTeam.paint(:cyan, "  T-#{ticket_id} → in_review")
+      end
+    else
+      say DevTeam.paint(:yellow, "  Branch pushed. Open a PR manually on your Git host.")
+    end
+  end
+
+  # ── log ──────────────────────────────────────────────────────────────────────
+
+  desc "log", "Show recent git log with ticket links"
+  method_option :n, default: "10", desc: "Number of commits"
+  def log
+    format = "%C(yellow)%h%Creset  %C(cyan)%ar%Creset  %s  %C(dim)%an%Creset"
+    DevTeam.git("log --oneline --format='#{format}' -#{options[:n]}")
+  end
+
+  # ── projects ─────────────────────────────────────────────────────────────────
+
+  desc "projects", "List projects you are a member of"
+  def projects
+    require_auth!
+    projects = DevTeam.api(:get, "/projects")
+
+    if projects.empty?
+      say DevTeam.paint(:yellow, "  You are not a member of any project.")
+      return
+    end
+
+    say "\n"
+    projects.each do |p|
+      status = p["active"] ? DevTeam.paint(:green, "active") : DevTeam.paint(:yellow, "inactive")
+      say "  #{DevTeam.paint(:bold, p['id'].to_s.rjust(3))}  #{p['name'].ljust(40)} #{status}  #{p['open_tickets']} open tickets"
+    end
+    say ""
+  end
+
+  # ─── Logs ────────────────────────────────────────────────────────────────────
+
+  desc "logs [SUBCOMMAND]", "Query and manage application logs"
+  long_desc "Query unified logs from Grafana Loki via DevTeam Hub API.\nSubcommands: services, stats, push"
+  option :service,  type: :string,  desc: "Filter by service name (e.g. devteam-hub, tdi2)"
+  option :level,    type: :string,  desc: "Filter by log level (debug/info/warn/error/fatal)"
+  option :from,     type: :string,  desc: "Start time (ISO 8601 or relative, e.g. '2h ago')"
+  option :to,       type: :string,  desc: "End time (ISO 8601)"
+  option :query,    type: :string,  desc: "Full-text search in log messages"
+  option :limit,    type: :numeric, default: 50, desc: "Max entries to return"
+  option :json,     type: :boolean, default: false, desc: "Output raw JSON"
+  def logs(subcommand = nil)
+    require_auth!
+
+    case subcommand
+    when "services"
+      resp = DevTeam.api(:get, "/logs/services")
+      say "\n  Available log services:"
+      (resp["services"] || []).each { |s| say "    • #{s}" }
+      say ""
+    when "stats"
+      resp = DevTeam.api(:get, "/logs/stats")
+      say "\n  #{DevTeam.paint(:bold, 'Log Statistics (last 24h)')}"
+      say "  Errors:   #{DevTeam.paint(:red, resp['error_count_24h'].to_s)}"
+      say "  Warnings: #{DevTeam.paint(:yellow, resp['warn_count_24h'].to_s)}"
+      if resp["volume_by_service"]
+        say "\n  Volume by service:"
+        resp["volume_by_service"].each { |svc, count| say "    #{svc.ljust(25)} #{count}" }
+      end
+      say ""
+    when "push"
+      say DevTeam.paint(:red, "  Use: dt logs push --service <name> --level <level> --message <msg>")
+      say "  Or use the push subcommand directly."
+    else
+      query_logs
+    end
+  end
+
+  desc "logs-push", "Push a log entry to Loki"
+  option :service,  type: :string,  required: true, desc: "Service name"
+  option :level,    type: :string,  default: "info", desc: "Log level"
+  option :message,  type: :string,  required: true, desc: "Log message"
+  option :env,      type: :string,  default: "production", desc: "Environment"
+  def logs_push
+    require_auth!
+    DevTeam.api(:post, "/logs/push", body: {
+      entries: [ {
+        timestamp:   Time.now.utc.iso8601,
+        service:     options[:service],
+        level:       options[:level],
+        message:     options[:message],
+        environment: options[:env]
+      } ]
+    })
+    say DevTeam.paint(:green, "  ✓ Log entry pushed")
+  end
+
+  private
+
+  def query_logs
+    params = {}
+    params[:service] = options[:service] if options[:service]
+    params[:level]   = options[:level]   if options[:level]
+    params[:from]    = options[:from]    if options[:from]
+    params[:to]      = options[:to]      if options[:to]
+    params[:query]   = options[:query]   if options[:query]
+    params[:limit]   = options[:limit]
+
+    query_string = params.map { |k, v| "#{k}=#{URI.encode_www_form_component(v.to_s)}" }.join("&")
+    resp = DevTeam.api(:get, "/logs?#{query_string}")
+    logs = resp["logs"] || []
+
+    if logs.empty?
+      say DevTeam.paint(:yellow, "  No logs found.")
+      return
+    end
+
+    if options[:json]
+      puts JSON.pretty_generate(logs)
+    else
+      say ""
+      logs.each do |l|
+        ts    = l["timestamp"].to_s[11..22]
+        level = (l["level"] || "info").upcase.ljust(5)
+        svc   = (l["service"] || "?").ljust(16)
+        msg   = l["message"] || l.to_json
+
+        color = case l["level"]
+        when "error", "fatal" then :red
+        when "warn"           then :yellow
+        when "debug"          then :cyan
+        else :white
+        end
+
+        say "  #{ts}  #{DevTeam.paint(color, level)}  #{DevTeam.paint(:bold, svc)}  #{msg}"
+      end
+      say "\n  #{DevTeam.paint(:bold, logs.size.to_s)} entries"
+      say ""
+    end
+  end
+
+  def require_auth!
+    return if DevTeam.token
+    say DevTeam.paint(:red, "  Not configured. Run: devteam setup")
+    exit 1
+  end
+
+  def paint(color, text)
+    DevTeam.paint(color, text)
+  end
+end
+
+DevTeamCLI.start(ARGV)

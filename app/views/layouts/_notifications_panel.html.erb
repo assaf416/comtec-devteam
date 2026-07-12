@@ -1,0 +1,125 @@
+<%# ── Right Notifications Panel ──────────────────────────────────────────────── %>
+<div class="right-panel-header">
+  <span>🔔 Activity</span>
+  <div class="right-panel-nav nav-tabs">
+    <button class="is-active" id="panelTabNotif"
+            onclick="switchPanelTab('notif')">Notifications</button>
+    <button id="panelTabActivity"
+            onclick="switchPanelTab('activity')">Feed</button>
+  </div>
+</div>
+
+<%# Mark all read %>
+<% if (panel_notifications.any? { |n| n.read_at.nil? } rescue false) %>
+  <div class="right-panel-mark-all">
+    <%= link_to "Mark all read",
+          mark_all_read_notifications_path,
+          data: { turbo_method: :post },
+          class: "fs-7" %>
+  </div>
+<% end %>
+
+<div class="right-panel-body" id="notifPanelBody">
+
+  <% if panel_notifications.blank? %>
+    <div style="padding:1.5rem 1rem;text-align:center;color:#bbb;font-size:0.82rem;">
+      <div style="font-size:2rem;margin-bottom:0.5rem;">🎉</div>
+      All caught up!
+    </div>
+  <% else %>
+    <% panel_notifications.each do |notif| %>
+      <%
+        notif_class = case notif.type.to_s.downcase
+          when /ci/       then "ci"
+          when /deploy/   then "deploy"
+          when /ticket/   then "ticket"
+          when /pull|pr/  then "pr"
+          else "other"
+        end
+        notif_text   = notif.message_text
+        notif_error  = notif.error_text
+        notif_url    = notif.target_url.presence || notifications_path
+      %>
+       <div class="alert alert-secondary-entry js-notif-row <%= notif.read_at.nil? ? 'is-unread' : '' %>"
+         data-notif-id="<%= notif.id %>"
+         data-notif-url="<%= notif_url %>">
+        <div class="alert alert-secondary-type-badge <%= notif_class %>"><%= notif_class.upcase %></div>
+        <div class="alert alert-secondary-text"><%= notif_text.truncate(100) %></div>
+        <% if notif_error.present? %>
+          <div class="alert alert-secondary-time text-danger"><%= notif_error.truncate(90) %></div>
+        <% end %>
+        <div class="alert alert-secondary-time"><%= time_ago_in_words(notif.created_at) %> ago</div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# View all link %>
+  <div style="padding:0.75rem 1rem;text-align:center;">
+    <%= link_to "View all notifications →", notifications_path,
+          style: "font-size:0.78rem;color:#4a90d9;" %>
+  </div>
+</div>
+
+<%# Activity feed tab (recent CI/deploys) %>
+<div class="right-panel-body" id="activityPanelBody" style="display:none;">
+
+  <% panel_activity.each do |item| %>
+    <% case item[:type] %>
+    <% when :ci %>
+      <% ci_badge_class = item[:obj].passed? ? "is-success" : item[:obj].failed? ? "is-danger" : "is-warning" %>
+      <div class="alert alert-secondary-entry">
+        <div class="alert alert-secondary-type-badge ci">CI</div>
+        <div class="alert alert-secondary-text">
+          <%= link_to "##{item[:obj].build_number}", ci_run_path(item[:obj]), style: "color:#2b6cb0;font-weight:600;" %>
+          <span class="badge bg-secondary <%= ci_badge_class %> ms-1">
+            <%= item[:obj].status %>
+          </span>
+        </div>
+        <div class="alert alert-secondary-time"><%= item[:obj].project.name %> · <%= time_ago_in_words(item[:obj].updated_at) %> ago</div>
+      </div>
+    <% when :deploy %>
+      <% deploy_badge_class = item[:obj].succeeded? ? "is-success" : item[:obj].failed? ? "is-danger" : "is-warning" %>
+      <div class="alert alert-secondary-entry">
+        <div class="alert alert-secondary-type-badge deploy">DEPLOY</div>
+        <div class="alert alert-secondary-text">
+          <%= link_to "v#{item[:obj].version}", deployment_path(item[:obj]), style: "color:#276749;font-weight:600;" %>
+          → <strong><%= item[:obj].environment %></strong>
+          <span class="badge bg-secondary <%= deploy_badge_class %> ms-1">
+            <%= item[:obj].status %>
+          </span>
+        </div>
+        <div class="alert alert-secondary-time"><%= item[:obj].project.name %> · <%= time_ago_in_words(item[:obj].updated_at) %> ago</div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% if panel_activity.blank? %>
+    <div style="padding:1.5rem 1rem;text-align:center;color:#bbb;font-size:0.82rem;">No recent activity</div>
+  <% end %>
+</div>
+
+<script nonce="<%= request.content_security_policy_nonce %>">
+function switchPanelTab(tab) {
+  document.getElementById('notifPanelBody').style.display = tab === 'notif' ? '' : 'none';
+  document.getElementById('activityPanelBody').style.display = tab === 'activity' ? '' : 'none';
+  document.getElementById('panelTabNotif').classList.toggle('is-active', tab === 'notif');
+  document.getElementById('panelTabActivity').classList.toggle('is-active', tab === 'activity');
+}
+
+function markNotifRead(id, url) {
+  fetch('/notifications/' + id + '/mark_read', {
+    method: 'PATCH',
+    headers: { 'X-CSRF-Token': document.querySelector('meta[name=csrf-token]').content }
+  }).then(() => {
+    const el = document.querySelector('[data-notif-id="' + id + '"]');
+    if (el) el.classList.remove('is-unread');
+    window.location.href = url;
+  });
+}
+
+document.querySelectorAll('.js-notif-row').forEach((row) => {
+  row.addEventListener('click', () => {
+    markNotifRead(row.dataset.notifId, row.dataset.notifUrl);
+  });
+});
+</script>

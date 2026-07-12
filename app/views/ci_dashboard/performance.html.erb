@@ -1,0 +1,133 @@
+<% content_for :title, "Performance Testing" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold mb-0">⚡ Performance</h1>
+      <p class="text-muted mb-0">Build duration, test execution times, and pipeline performance</p>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to ci_dashboard_path, class: "btn btn-outline-secondary btn-sm" do %>← CI Overview<% end %>
+  </div>
+</div>
+
+<%# ── Build duration trend ───────────────────────────────────────────── %>
+<div class="card p-3 mb-4">
+  <h3 class="fw-semibold mb-3">Build Duration Trend (last 20 runs)</h3>
+  <% if @duration_trend.any? %>
+    <%= line_chart @duration_trend,
+          suffix: " min",
+          height: "260px",
+          library: { plugins: { legend: { display: false } } } %>
+  <% else %>
+    <p class="text-muted">No completed runs with duration data yet.</p>
+  <% end %>
+</div>
+
+<%# ── Per-project avg duration ───────────────────────────────────────── %>
+<div class="card p-3 mb-4">
+  <h3 class="fw-semibold mb-3">Average Build Duration by Project</h3>
+  <% projects_with_data = @duration_by_project.select { |p| p[:avg_duration] } %>
+  <% if projects_with_data.any? %>
+    <%= column_chart(
+          projects_with_data.map { |p| [ p[:project].name, p[:avg_duration] ] }.to_h,
+          suffix: " min",
+          height: "260px",
+          colors: [ "#3b82f6" ]
+        ) %>
+
+    <table class="table table-sm table-hover w-100 fs-7 mt-3">
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Avg Duration</th>
+          <th>Min</th>
+          <th>Max</th>
+          <th>Samples</th>
+          <th>Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @duration_by_project.each do |row| %>
+          <% next if row[:runs].empty? %>
+          <%
+            durations = row[:runs].map(&:duration).compact
+            next if durations.empty?
+            min_d = durations.min
+            max_d = durations.max
+            # Simple trend: compare first half avg vs second half avg
+            half = [ durations.size / 2, 1 ].max
+            first_avg  = durations.first(half).sum.to_f / half
+            second_avg = durations.last(half).sum.to_f / half
+            trend = second_avg < first_avg * 0.9 ? "⬇️ Improving" : second_avg > first_avg * 1.1 ? "⬆️ Slower" : "➡️ Stable"
+          %>
+          <tr>
+            <td><%= link_to row[:project].name, project_path(row[:project]), class: "text-decoration-none fw-semibold" %></td>
+            <td><strong><%= row[:avg_duration] %> min</strong></td>
+            <td><%= min_d %> min</td>
+            <td><%= max_d %> min</td>
+            <td><%= durations.size %></td>
+            <td><%= trend %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-muted">No build duration data available yet.</p>
+  <% end %>
+</div>
+
+<%# ── Slowest test suites ─────────────────────────────────────────────── %>
+<div class="card p-3 mb-4">
+  <h3 class="fw-semibold mb-3">Slowest Test Suites</h3>
+  <% if @slow_suites.any? %>
+    <table class="table table-hover w-100 fs-7">
+      <thead>
+        <tr>
+          <th>Suite</th>
+          <th>Project</th>
+          <th>Duration</th>
+          <th>Total Tests</th>
+          <th>Passed</th>
+          <th>Failed</th>
+          <th>Build</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @slow_suites.each do |tr| %>
+          <%
+            duration_s = (tr.duration_ms / 1000.0).round(1)
+            duration_label = duration_s >= 60 ? "#{(duration_s / 60).round(1)} min" : "#{duration_s}s"
+            badge_class = duration_s >= 60 ? "bg-danger" : duration_s >= 30 ? "bg-warning text-dark" : "bg-success"
+          %>
+          <tr>
+            <td class="fw-semibold"><%= tr.suite_name %></td>
+            <td><%= tr.ci_run.project.name %></td>
+            <td><span class="badge <%= badge_class %>"><%= duration_label %></span></td>
+            <td><%= tr.total %></td>
+            <td class="text-success"><%= tr.passed %></td>
+            <td class="<%= tr.failed > 0 ? 'text-danger fw-bold' : 'text-muted' %>"><%= tr.failed %></td>
+            <td>
+              <%= link_to "##{tr.ci_run.build_number}", ci_run_path(tr.ci_run), class: "text-muted small" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-muted">No test suite data available yet.</p>
+  <% end %>
+</div>
+
+<%# ── Performance tips ───────────────────────────────────────────────── %>
+<div class="card p-3 bg-light">
+  <h3 class="fw-semibold mb-3">💡 Performance Tips</h3>
+  <ul class="mb-0 text-muted fs-7">
+    <li class="mb-1">Run unit and integration suites in <strong>parallel</strong> to cut total pipeline time.</li>
+    <li class="mb-1">Cache dependency directories (<code>node_modules</code>, <code>~/.bundle</code>, <code>bun.lock</code>) between runs.</li>
+    <li class="mb-1">Split large test suites into smaller shards and distribute across agents.</li>
+    <li class="mb-1">Use <strong>test impact analysis</strong> to skip unchanged test paths on feature branches.</li>
+    <li>Enable Docker layer caching in multi-stage builds to reduce image build time.</li>
+  </ul>
+</div>

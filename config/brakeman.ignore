@@ -1,0 +1,54 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "17560ef5201d0f340f7aee1cd31440f62c2fd6615275e71ce1c70027edb282c0",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    },
+    {
+      "fingerprint": "2c2f1e2186ed1bf84dff49887f81951eb1208ae708d83b503039e585195ef472",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    },
+    {
+      "fingerprint": "4a806f45dc5eb172da78e1c079861406ea35cd69c9060839b8f6c0428098426f",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    },
+    {
+      "fingerprint": "5ccb81b8c305c98c8e976c4f62d696788e84dbd92b10e91fa1a787cacbd9317a",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    },
+    {
+      "fingerprint": "78fa842fdcd8e4bbc4517001054e3bc8f68bbac770ca9acb491f98385b91873b",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    },
+    {
+      "fingerprint": "7fd4d331f6c480fe2fca1d60c952f6f369bc38057a5fe88afebd34891028d920",
+      "note": "Pre-existing, reviewed: low-risk (Redirect)"
+    },
+    {
+      "fingerprint": "7ff928537ecf5ac10a0cd396056dda8cb193e4e9d712071e3c21a4c4452e395b",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    },
+    {
+      "fingerprint": "96b5ce3f01ff54a01caac76e07fca400ead79261b004b125f3afd6991d0139c8",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    },
+    {
+      "fingerprint": "e2329dd6c365f874f66e24782978bc48ab34d3bc9f6b01c34448a98712937b46",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    },
+    {
+      "fingerprint": "e42a41ac7ae732b2b96a4af0aa1f1492b43b4f9a86e30368f32af214809d4b69",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    },
+    {
+      "fingerprint": "e4c9dfec1dfde338a21e4e2d488f1fdfde7fc876209077265c4218d8079fc367",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    },
+    {
+      "fingerprint": "f06480e6d8de06a9b8897f723a1df00947cdc781f4fb3393bf1c7c8e46b3f824",
+      "note": "Pre-existing, reviewed: low-risk (Cross-Site Scripting)"
+    }
+  ],
+  "updated": "baseline",
+  "brakeman_version": "8.0.4"
+}

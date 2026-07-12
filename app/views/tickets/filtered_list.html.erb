@@ -1,0 +1,46 @@
+<% content_for :title, t("tickets.filtered.#{action_name}") %>
+
+<div class="level">
+  <div class="level-left">
+    <h1 class="fw-bold"><%= t("tickets.filtered.#{action_name}") %></h1>
+  </div>
+</div>
+
+<%= render "tickets/quick_queries" %>
+
+<% if @tickets.any? %>
+  <div class="card p-3">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th><%= t('table_headers.id') %></th>
+          <th><%= t('table_headers.title') %></th>
+          <th><%= t('table_headers.project') %></th>
+          <th><%= t('table_headers.status') %></th>
+          <th><%= t('table_headers.priority') %></th>
+          <th><%= t('table_headers.assignee') %></th>
+          <th><%= t('table_headers.sprint') %></th>
+          <th>Progress</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @tickets.each do |ticket| %>
+          <tr onclick="window.location='<%= ticket_path(ticket) %>'" style="cursor:pointer;">
+            <td class="text-muted"><%= ticket.id %></td>
+            <td class="fw-semibold"><%= ticket.title %></td>
+            <td><%= ticket.project.name %></td>
+            <td><%= status_tag(ticket.status) %></td>
+            <td><%= priority_tag(ticket.priority) %></td>
+            <td><span class="d-inline-flex align-items-center gap-1"><%= user_avatar(ticket.assignee, size: 20) if ticket.assignee %><%= ticket.assignee&.display_name || "—" %></span></td>
+            <td><%= ticket.sprint&.name || "—" %></td>
+            <td><%= render "tickets/progress_cell", ticket: ticket %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <div class="card p-4 text-center text-muted">
+    <p class="mb-0"><%= t("tickets.filtered.empty") %></p>
+  </div>
+<% end %>

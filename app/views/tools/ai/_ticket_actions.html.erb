@@ -1,0 +1,50 @@
+<%# AI Agent panel rendered on the ticket page. Each form posts to a Tools::Ai
+    service endpoint which contacts the local Ollama LLM and stores an AiReview. %>
+<div class="card p-3 mb-3" id="ai-agent">
+  <h3 class="subfw-bold">🤖 <%= t("sidebar.ai_label") %></h3>
+
+  <%# Service #1 — readiness / story-telling check (may reassign to owner) %>
+  <%= button_to "✅ Check readiness", tools_ai_ticket_quality_path(ticket_id: ticket.id),
+        class: "btn btn-sm btn-outline-primary w-100 mb-2" %>
+
+  <%# Service #6 — suggest a solution %>
+  <%= button_to "💡 Suggest solution", tools_ai_solution_suggestion_path(ticket_id: ticket.id),
+        class: "btn btn-sm btn-outline-primary w-100 mb-2" %>
+
+  <%# "Fix that bug" — diagnose and propose a fix %>
+  <%= button_to "🐛 Fix that bug", tools_ai_fix_bug_path(ticket_id: ticket.id),
+        class: "btn btn-sm btn-outline-danger w-100 mb-2" %>
+
+  <%# "Generate tasks and estimations" — break the story into estimated tasks %>
+  <%= button_to "🧩 Generate tasks & estimations", tools_ai_generate_tasks_path(ticket_id: ticket.id),
+        class: "btn btn-sm btn-outline-primary w-100 mb-2" %>
+
+  <%# Service #2 — code review of a pasted diff %>
+  <details class="mb-2">
+    <summary class="btn btn-sm btn-outline-secondary w-100">🔍 Code review</summary>
+    <%= form_with url: tools_ai_code_review_path, method: :post, class: "mt-2" do |f| %>
+      <%= f.hidden_field :ticket_id, value: ticket.id %>
+      <select name="language" class="form-select form-select-sm mb-1">
+        <option value="">Auto-detect language</option>
+        <option value="go">Go</option>
+        <option value="ruby">Ruby</option>
+        <option value="csharp">C#</option>
+        <option value="node">Node.js</option>
+      </select>
+      <textarea name="diff" rows="5" class="form-control form-control-sm mb-1"
+                placeholder="Paste a diff / patch…"></textarea>
+      <%= f.submit "Review code", class: "btn btn-sm btn-primary w-100" %>
+    <% end %>
+  </details>
+
+  <%# Service #3 — cucumber test review %>
+  <details>
+    <summary class="btn btn-sm btn-outline-secondary w-100">🧪 Test review</summary>
+    <%= form_with url: tools_ai_test_review_path, method: :post, class: "mt-2" do |f| %>
+      <%= f.hidden_field :ticket_id, value: ticket.id %>
+      <textarea name="feature" rows="5" class="form-control form-control-sm mb-1"
+                placeholder="Paste a .feature file…"></textarea>
+      <%= f.submit "Review tests", class: "btn btn-sm btn-primary w-100" %>
+    <% end %>
+  </details>
+</div>

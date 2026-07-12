@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Review &amp; Approval Tools — Recommendation &amp; Implementation Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f3f0e8; --panel: #fffdf7; --ink: #12252b; --muted: #5c6f76;
+      --line: #d7d0c2; --teal: #0b7a75; --navy: #17324a; --orange: #d26d18;
+      --red: #b63a34; --green: #1a7a3a; --purple: #6d28d9; --blue: #4a90d9;
+      --shadow: 0 18px 44px rgba(18,37,43,0.09); --radius: 18px;
+      --mono: "JetBrains Mono", monospace; --sans: "Manrope", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      margin: 0; color: var(--ink); font-family: var(--sans); line-height: 1.6;
+      background: radial-gradient(900px 420px at 0% 0%, rgba(11,122,117,0.14), transparent),
+                  radial-gradient(760px 340px at 100% 0%, rgba(210,109,24,0.12), transparent), var(--bg);
+    }
+    .shell { max-width: 1100px; margin: 0 auto; padding: 24px 18px 60px; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 20; background: rgba(255,253,247,0.92);
+      border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(8px);
+      box-shadow: var(--shadow); margin-bottom: 16px; display: flex;
+      align-items: center; justify-content: space-between; padding: 10px 22px;
+    }
+    .topbar-logo { font-weight: 800; font-size: 1.15rem; color: var(--teal); display: flex; align-items: center; gap: 8px; }
+    .topbar-logo span { font-size: 1.4rem; }
+    .topbar-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+    .topbar-nav a { color: var(--muted); font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 8px; transition: 0.15s; }
+    .topbar-nav a:hover { background: rgba(11,122,117,0.08); color: var(--teal); }
+
+    .hero { text-align: center; padding: 48px 18px 32px; }
+    .hero h1 { font-size: 2.4rem; font-weight: 800; color: var(--navy); margin: 0 0 10px; }
+    .hero p { font-size: 1.05rem; color: var(--muted); max-width: 720px; margin: 0 auto; }
+
+    .section {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 32px 36px; margin-bottom: 20px; box-shadow: var(--shadow);
+    }
+    .section h2 { font-size: 1.4rem; font-weight: 800; color: var(--navy); margin: 0 0 10px; display: flex; align-items: center; gap: 10px; }
+    .section h2 .icon { font-size: 1.5rem; }
+    .section h3 { font-size: 1.05rem; font-weight: 700; color: var(--teal); margin: 24px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+    .section h4 { font-size: 0.95rem; font-weight: 700; color: var(--orange); margin: 18px 0 6px; }
+    .section p, .section li { line-height: 1.7; }
+    .section ul, .section ol { padding-left: 22px; }
+
+    code { font-family: var(--mono); font-size: 0.86em; background: rgba(11,122,117,0.07); color: var(--teal); padding: 2px 7px; border-radius: 5px; }
+    pre { background: #1c2833; color: #e8e6df; font-family: var(--mono); font-size: 0.84rem; padding: 18px 22px; border-radius: 12px; overflow-x: auto; margin: 12px 0 16px; line-height: 1.55; }
+    pre code { background: none; padding: 0; color: inherit; }
+
+    .tip { background: rgba(11,122,117,0.06); border-left: 3px solid var(--teal); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .tip strong { color: var(--teal); }
+    .warn { background: rgba(210,109,24,0.06); border-left: 3px solid var(--orange); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .warn strong { color: var(--orange); }
+    .bad { background: rgba(182,58,52,0.06); border-left: 3px solid var(--red); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .bad strong { color: var(--red); }
+    .rec { background: rgba(109,40,217,0.06); border-left: 3px solid var(--purple); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0; font-size: 0.92rem; }
+    .rec strong { color: var(--purple); }
+
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 8px; }
+    th { text-align: left; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 8px 12px; border-bottom: 2px solid var(--line); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 0.92rem; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 820px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } .hero h1 { font-size: 2rem; } }
+
+    .tool-card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+      padding: 22px; transition: 0.2s;
+    }
+    .tool-card:hover { border-color: var(--teal); transform: translateY(-2px); box-shadow: var(--shadow); }
+    .tool-card.winner { border: 2px solid var(--teal); background: rgba(11,122,117,0.03); }
+    .tool-card .name { font-size: 1.1rem; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+    .tool-card .tagline { font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; }
+    .tool-card .badge { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; }
+    .badge-green { background: rgba(26,122,58,0.12); color: var(--green); }
+    .badge-blue { background: rgba(74,144,217,0.12); color: var(--blue); }
+    .badge-orange { background: rgba(210,109,24,0.12); color: var(--orange); }
+    .badge-red { background: rgba(182,58,52,0.12); color: var(--red); }
+    .badge-purple { background: rgba(109,40,217,0.12); color: var(--purple); }
+    .badge-teal { background: rgba(11,122,117,0.15); color: var(--teal); }
+
+    .chart-wrap { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 1.5rem; margin: 1.5rem 0; }
+    .chart-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--navy); }
+    canvas { max-height: 320px; }
+
+    .verdict-box {
+      background: linear-gradient(135deg, rgba(11,122,117,0.08), rgba(109,40,217,0.06));
+      border: 2px solid var(--teal); border-radius: 16px; padding: 28px 32px; margin: 20px 0;
+      text-align: center;
+    }
+    .verdict-box .verdict-title { font-size: 1.6rem; font-weight: 800; color: var(--teal); margin-bottom: 8px; }
+    .verdict-box .verdict-sub { font-size: 1rem; color: var(--muted); }
+
+    .footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 12px; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="topbar-logo"><span>🔍</span> Code Review Tools</div>
+    <nav class="topbar-nav">
+      <a href="#requirements">Requirements</a>
+      <a href="#landscape">Tool Landscape</a>
+      <a href="#ai-solutions">AI Solutions</a>
+      <a href="#comparison">Comparison</a>
+      <a href="#recommendation">Recommendation</a>
+      <a href="#implementation">Implementation</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
+  </div>
+
+  <div class="hero">
+    <h1>Code Review &amp; Approval in CI</h1>
+    <p>A comprehensive evaluation of automated code review tools for our multi-language stack — with emphasis on on-premises deployment, AI-assisted reviews, and CI pipeline integration.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Requirements                                        -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="requirements">
+    <h2><span class="icon">📋</span> Requirements</h2>
+    <p>Based on our team's stack and infrastructure constraints, the ideal code review/approval tool must meet:</p>
+
+    <h3>Language Coverage</h3>
+    <table>
+      <thead><tr><th>Project</th><th>Languages / Frameworks</th></tr></thead>
+      <tbody>
+        <tr><td>Print Server / TDI</td><td>C# (.NET 4.8.1), VB.NET, WinForms</td></tr>
+        <tr><td>TDI2</td><td>C# (ASP.NET Core 10), Razor Pages, JavaScript, SQL</td></tr>
+        <tr><td>Digital Internet Services</td><td>TypeScript, Vue 3, JavaScript, NestJS (Node.js), SQL</td></tr>
+        <tr><td>Work Management System</td><td>TypeScript, Next.js 16, Bun, SQL</td></tr>
+        <tr><td>DevTeam Hub</td><td>Ruby, Rails 8.1, JavaScript (Stimulus), ERB, HTML, CSS, SQL</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Languages needed:</strong> Ruby, C#, VB.NET, TypeScript, JavaScript, SQL, HTML/CSS, ERB, Razor Pages</p>
+
+    <h3>Must-Have Requirements</h3>
+    <ul>
+      <li><strong>On-premises deployment</strong> — All code stays on our internal network. No source code sent to external clouds.</li>
+      <li><strong>Multi-language support</strong> — Ruby, C#, TypeScript, JavaScript, VB.NET at minimum.</li>
+      <li><strong>CI integration</strong> — Runs as a step in Jenkins pipelines and GitHub Actions.</li>
+      <li><strong>Gitea compatibility</strong> — Posts review comments on Gitea pull requests via API.</li>
+      <li><strong>Static analysis</strong> — SAST (security), linting, code smells, complexity metrics.</li>
+      <li><strong>PR gate</strong> — Can block merge if quality thresholds are not met.</li>
+    </ul>
+
+    <h3>Nice-to-Have</h3>
+    <ul>
+      <li>AI-powered review suggestions (on-prem LLM or self-hosted AI)</li>
+      <li>Historical quality trends and dashboards</li>
+      <li>Custom rules per project/language</li>
+      <li>IDE integration (VS Code, Visual Studio)</li>
+      <li>Low resource footprint (we run on a single Windows Server)</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Tool Landscape                                      -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="landscape">
+    <h2><span class="icon">🗺️</span> Tool Landscape</h2>
+    <p>We evaluated tools in two categories: <strong>traditional static analysis</strong> (rule-based) and <strong>AI-powered review</strong> (LLM-based).</p>
+
+    <h3>Category A: Static Analysis &amp; Quality Gates</h3>
+
+    <div class="grid-3">
+      <div class="tool-card winner">
+        <div class="name">SonarQube</div>
+        <div class="tagline">The industry standard for continuous code quality</div>
+        <span class="badge badge-teal">★ RECOMMENDED</span>
+        <ul style="margin-top:10px;font-size:0.88rem;">
+          <li>30+ languages (all of ours covered)</li>
+          <li>Community Edition = free, on-prem</li>
+          <li>Quality Gates block merges</li>
+          <li>OWASP Top 10 security rules</li>
+          <li>Docker deployment</li>
+        </ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">CodeClimate</div>
+        <div class="tagline">Quality metrics and maintainability scores</div>
+        <span class="badge badge-orange">Cloud-only</span>
+        <ul style="margin-top:10px;font-size:0.88rem;">
+          <li>Ruby, JS, TS, C# support</li>
+          <li>No on-prem option</li>
+          <li>$15/user/month</li>
+          <li>Good GitHub integration</li>
+          <li>❌ No VB.NET or Razor</li>
+        </ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">Codacy</div>
+        <div class="tagline">Automated code reviews with dashboards</div>
+        <span class="badge badge-blue">Self-hosted available</span>
+        <ul style="margin-top:10px;font-size:0.88rem;">
+          <li>40+ languages</li>
+          <li>Self-hosted ($$$)</li>
+          <li>$15/user/month (cloud)</li>
+          <li>Gitea integration via API</li>
+          <li>Heavier than SonarQube</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Category B: Lightweight / CLI-Based</h3>
+
+    <div class="grid-3">
+      <div class="tool-card">
+        <div class="name">MegaLinter</div>
+        <div class="tagline">All-in-one linting aggregator (50+ linters)</div>
+        <span class="badge badge-green">Free &amp; open source</span>
+        <ul style="margin-top:10px;font-size:0.88rem;">
+          <li>Aggregates existing linters</li>
+          <li>Docker-based, fully on-prem</li>
+          <li>Gitea PR commenting</li>
+          <li>Free forever</li>
+          <li>No quality gate dashboard</li>
+        </ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">Reviewdog</div>
+        <div class="tagline">Post linter results as PR review comments</div>
+        <span class="badge badge-green">Free &amp; open source</span>
+        <ul style="margin-top:10px;font-size:0.88rem;">
+          <li>Language-agnostic (wraps any linter)</li>
+          <li>Gitea support built-in</li>
+          <li>Only posts comments, no analysis</li>
+          <li>Pairs well with SonarQube</li>
+        </ul>
+      </div>
+      <div class="tool-card">
+        <div class="name">Semgrep</div>
+        <div class="tagline">Fast, open-source SAST with custom rules</div>
+        <span class="badge badge-green">Free OSS / Paid cloud</span>
+        <ul style="margin-top:10px;font-size:0.88rem;">
+          <li>Focus on security (SAST)</li>
+          <li>Ruby, C#, TS, JS support</li>
+          <li>Custom rules via YAML</li>
+          <li>CLI-only (no dashboard)</li>
+          <li>❌ No VB.NET support</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- AI Solutions                                        -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="ai-solutions">
+    <h2><span class="icon">🤖</span> AI-Powered Code Review Solutions</h2>
+
+    <h3>Cloud-Based AI Reviewers</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Model</th><th>Languages</th><th>On-Prem</th><th>Pricing</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>GitHub Copilot Code Review</strong></td>
+          <td>GPT-4o</td>
+          <td>All major</td>
+          <td>❌ Cloud only</td>
+          <td>$19/user/mo (Business)<br>$39/user/mo (Enterprise)</td>
+          <td>Native GitHub integration. No Gitea support. Source code sent to Microsoft.</td>
+        </tr>
+        <tr>
+          <td><strong>CodeRabbit</strong></td>
+          <td>GPT-4 / Claude</td>
+          <td>All major</td>
+          <td>❌ Cloud only</td>
+          <td>Free (OSS)<br>$15/user/mo (Pro)</td>
+          <td>Great reviews. Gitea support planned but not available. Code sent to cloud.</td>
+        </tr>
+        <tr>
+          <td><strong>Sourcery</strong></td>
+          <td>Proprietary AI</td>
+          <td>Python, JS, TS</td>
+          <td>❌ Cloud only</td>
+          <td>Free (OSS)<br>$30/user/mo (Team)</td>
+          <td>❌ No Ruby, C#, VB.NET. Python-focused.</td>
+        </tr>
+        <tr>
+          <td><strong>Amazon CodeGuru Reviewer</strong></td>
+          <td>Amazon ML</td>
+          <td>Java, Python, JS</td>
+          <td>❌ AWS only</td>
+          <td>$0.75/100 lines</td>
+          <td>❌ No Ruby, C#, VB.NET. AWS-locked.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="bad">
+      <strong>❌ Problem with cloud AI:</strong> All cloud-based AI reviewers send your source code to external servers. This violates our on-premises requirement. None of them natively support Gitea.
+    </div>
+
+    <h3>Self-Hosted AI Review (On-Prem)</h3>
+    <table>
+      <thead><tr><th>Approach</th><th>Model</th><th>Languages</th><th>On-Prem</th><th>Cost</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Ollama + Custom Review Agent</strong></td>
+          <td>CodeLlama 34B, DeepSeek Coder V2, Qwen2.5-Coder</td>
+          <td>All major</td>
+          <td>✅ Fully on-prem</td>
+          <td>Free (hardware cost only)</td>
+          <td>Run open-source code LLMs locally. Requires GPU (16+ GB VRAM). We build a review script that sends diffs to the local LLM.</td>
+        </tr>
+        <tr>
+          <td><strong>SonarQube + AI CodeFix</strong><br>(Developer Edition)</td>
+          <td>Sonar proprietary AI</td>
+          <td>All SonarQube langs</td>
+          <td>✅ On-prem server</td>
+          <td>From $150/yr (Dev Ed)</td>
+          <td>AI-generated fix suggestions for detected issues. Integrated into the SonarQube workflow. AI runs on Sonar's edge, but only sends issue context (not full source).</td>
+        </tr>
+        <tr>
+          <td><strong>LiteLLM Proxy + Review Script</strong></td>
+          <td>Any (OpenAI, Anthropic, local)</td>
+          <td>All</td>
+          <td>✅ Self-hosted proxy</td>
+          <td>Free proxy + model costs</td>
+          <td>Unified API proxy. Route to local Ollama in dev, or pay-per-token API in prod. Flexible but requires custom scripting.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="rec">
+      <strong>🟣 Recommended AI approach:</strong> Start with <strong>SonarQube Community Edition</strong> for deterministic analysis, then add <strong>Ollama + a review script</strong> for AI-assisted suggestions on complex PRs. This gives us the best of both worlds — reliable quality gates + intelligent suggestions — fully on-prem.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Detailed Comparison                                 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="comparison">
+    <h2><span class="icon">📊</span> Detailed Comparison</h2>
+
+    <div class="chart-wrap">
+      <div class="chart-title">Tool Comparison — Scored by Our Requirements (0–10)</div>
+      <canvas id="comparisonChart"></canvas>
+    </div>
+
+    <table>
+      <thead><tr><th>Criteria</th><th>SonarQube CE</th><th>Codacy (Self-hosted)</th><th>MegaLinter</th><th>CodeClimate</th><th>Semgrep OSS</th></tr></thead>
+      <tbody>
+        <tr><td><strong>On-Prem Deployment</strong></td><td>✅ Docker</td><td>✅ Docker (complex)</td><td>✅ Docker</td><td>❌ Cloud only</td><td>✅ CLI</td></tr>
+        <tr><td><strong>Ruby</strong></td><td>✅</td><td>✅</td><td>✅ (via RuboCop)</td><td>✅</td><td>✅</td></tr>
+        <tr><td><strong>C# / .NET</strong></td><td>✅</td><td>✅</td><td>✅ (via dotnet-format)</td><td>⚠ Limited</td><td>✅</td></tr>
+        <tr><td><strong>VB.NET</strong></td><td>✅</td><td>⚠ Partial</td><td>⚠ (basic)</td><td>❌</td><td>❌</td></tr>
+        <tr><td><strong>TypeScript/JS</strong></td><td>✅</td><td>✅</td><td>✅ (via ESLint)</td><td>✅</td><td>✅</td></tr>
+        <tr><td><strong>Security (SAST)</strong></td><td>✅ OWASP rules</td><td>✅</td><td>✅ (via Semgrep)</td><td>⚠ Basic</td><td>✅ Focus</td></tr>
+        <tr><td><strong>Quality Gate</strong></td><td>✅ Built-in</td><td>✅ Built-in</td><td>❌ Exit code only</td><td>✅ Built-in</td><td>❌ Exit code</td></tr>
+        <tr><td><strong>Dashboard</strong></td><td>✅ Rich web UI</td><td>✅ Rich web UI</td><td>❌</td><td>✅ Cloud UI</td><td>❌</td></tr>
+        <tr><td><strong>Gitea Integration</strong></td><td>✅ (via plugin/webhook)</td><td>⚠ API only</td><td>✅ Built-in</td><td>❌</td><td>⚠ Manual</td></tr>
+        <tr><td><strong>Jenkins Integration</strong></td><td>✅ Plugin</td><td>✅ Plugin</td><td>✅ Docker step</td><td>❌</td><td>✅ CLI step</td></tr>
+        <tr><td><strong>Resource Usage</strong></td><td>~2 GB RAM</td><td>~4 GB RAM</td><td>~512 MB per run</td><td>N/A</td><td>~256 MB</td></tr>
+        <tr><td><strong>Price</strong></td><td><strong>Free (CE)</strong></td><td>Contact sales</td><td><strong>Free</strong></td><td>$15/user/mo</td><td><strong>Free (OSS)</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- RECOMMENDATION                                      -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="recommendation">
+    <h2><span class="icon">🏆</span> Recommendation</h2>
+
+    <div class="verdict-box">
+      <div class="verdict-title">SonarQube Community Edition + Ollama AI Review</div>
+      <div class="verdict-sub">On-premises, free, covers all our languages, with AI-assisted review for complex changes</div>
+    </div>
+
+    <h3>Why SonarQube Community Edition</h3>
+    <ol>
+      <li><strong>Full language coverage</strong> — Ruby, C#, VB.NET, TypeScript, JavaScript, HTML, CSS, SQL — all in one tool.</li>
+      <li><strong>Free and open source</strong> — Community Edition covers all our needs at zero license cost.</li>
+      <li><strong>On-premises</strong> — Docker deployment on our existing Windows Server. No code leaves the network.</li>
+      <li><strong>Quality Gates</strong> — Define pass/fail criteria for coverage, duplications, security hotspots, and code smells. Block merges that don't meet standards.</li>
+      <li><strong>Jenkins plugin</strong> — First-class <code>sonar-scanner</code> integration. Results post back to Gitea PRs.</li>
+      <li><strong>OWASP Security</strong> — Built-in security rules for OWASP Top 10, CWE, and SANS vulnerabilities.</li>
+      <li><strong>Historical trends</strong> — Track quality over time per project. Identify regression early.</li>
+      <li><strong>IDE integration</strong> — SonarLint extension for VS Code and Visual Studio (free).</li>
+    </ol>
+
+    <h3>Why Add Ollama for AI Review</h3>
+    <ol>
+      <li><strong>Fully on-premises</strong> — Ollama runs local LLMs (DeepSeek Coder V2, Qwen2.5-Coder 32B). No API calls to cloud.</li>
+      <li><strong>Complements SonarQube</strong> — SonarQube catches rule-based issues; the AI reviews logic, naming, architecture, and design patterns.</li>
+      <li><strong>Free</strong> — Open-source models. Only cost is hardware (GPU recommended but CPU works for small diffs).</li>
+      <li><strong>Customisable prompts</strong> — We tailor review prompts per language and project conventions.</li>
+    </ol>
+
+    <h3>Architecture Overview</h3>
+    <pre><code>┌──────────────┐    webhook     ┌──────────────┐    sonar-scanner    ┌──────────────┐
+│   Gitea      │ ──────────────▸│   Jenkins    │ ──────────────────▸ │  SonarQube   │
+│  (Git host)  │                │  (CI/CD)     │                     │  (Analysis)  │
+└──────┬───────┘                └──────┬───────┘                     └──────┬───────┘
+       │                               │                                    │
+       │  PR comment (results)         │ review script                      │ Quality Gate
+       │◂──────────────────────────────│◂───────────────────────────────────│ pass/fail
+       │                               │
+       │                        ┌──────▼───────┐
+       │                        │   Ollama     │
+       │◂───── AI suggestions ──│  (Local LLM) │
+       │                        └──────────────┘
+</code></pre>
+
+    <div class="tip">
+      <strong>💡 Phased rollout:</strong> Phase 1 — Deploy SonarQube + Jenkins integration (1–2 days). Phase 2 — Add Ollama AI review for the DevTeam Hub project (1 day). Phase 3 — Roll out AI review to all projects.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Pricing                                             -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="pricing">
+    <h2><span class="icon">💰</span> Pricing Summary</h2>
+
+    <h3>SonarQube Editions</h3>
+    <table>
+      <thead><tr><th>Edition</th><th>Price</th><th>On-Prem</th><th>Key Features</th><th>Our Need?</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Community (CE)</strong></td>
+          <td><strong>Free</strong></td>
+          <td>✅</td>
+          <td>30+ languages, Quality Gates, OWASP rules, Jenkins plugin, 60+ rules per language</td>
+          <td><span class="badge badge-teal">★ Start here</span></td>
+        </tr>
+        <tr>
+          <td><strong>Developer Edition</strong></td>
+          <td>From $150/yr</td>
+          <td>✅</td>
+          <td>CE + branch analysis, PR decoration, SAST taint analysis, AI CodeFix</td>
+          <td><span class="badge badge-blue">Future upgrade</span></td>
+        </tr>
+        <tr>
+          <td><strong>Enterprise</strong></td>
+          <td>From $20,000/yr</td>
+          <td>✅</td>
+          <td>Dev + portfolio management, OWASP ASVS, regulatory reports</td>
+          <td><span class="badge badge-orange">Overkill</span></td>
+        </tr>
+        <tr>
+          <td><strong>Data Center</strong></td>
+          <td>From $130,000/yr</td>
+          <td>✅</td>
+          <td>Enterprise + HA clustering</td>
+          <td><span class="badge badge-red">Not needed</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>AI Review Costs</h3>
+    <table>
+      <thead><tr><th>Option</th><th>Cost</th><th>Hardware Needed</th><th>Quality</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Ollama + DeepSeek Coder V2 (16B)</strong></td>
+          <td><strong>Free</strong></td>
+          <td>16 GB RAM, CPU-only OK (slow)</td>
+          <td>Good for most reviews</td>
+        </tr>
+        <tr>
+          <td><strong>Ollama + Qwen2.5-Coder (32B)</strong></td>
+          <td><strong>Free</strong></td>
+          <td>24+ GB RAM or GPU w/ 16+ GB VRAM</td>
+          <td>Excellent — near GPT-4 level for code</td>
+        </tr>
+        <tr>
+          <td><strong>Ollama + CodeLlama 34B</strong></td>
+          <td><strong>Free</strong></td>
+          <td>GPU with 24 GB VRAM recommended</td>
+          <td>Good, Meta's code model</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Total Cost</h3>
+    <div class="verdict-box">
+      <div class="verdict-title">$0 / year</div>
+      <div class="verdict-sub">SonarQube Community Edition (free) + Ollama with open-source models (free)<br>Only infrastructure cost: Docker containers on existing Windows Server</div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">Annual Cost Comparison (8-developer team)</div>
+      <canvas id="pricingChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- IMPLEMENTATION                                      -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="implementation">
+    <h2><span class="icon">🔧</span> Implementation Guide</h2>
+
+    <h3>Phase 1: Deploy SonarQube (Docker)</h3>
+    <h4>docker-compose.sonarqube.yml</h4>
+    <pre><code>version: "3.8"
+services:
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    ports:
+      - "9100:9000"
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    restart: unless-stopped
+    mem_limit: 2g
+
+volumes:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:</code></pre>
+
+    <pre><code># Start SonarQube
+docker compose -f docker-compose.sonarqube.yml up -d
+
+# Access at http://localhost:9100
+# Default login: admin / admin (change immediately!)
+# Create a project token for each project in Administration → Security → Tokens</code></pre>
+
+    <h3>Phase 2: Configure SonarQube Projects</h3>
+    <p>Create one project per repository in SonarQube:</p>
+    <table>
+      <thead><tr><th>SonarQube Project Key</th><th>Repo</th><th>Language Profile</th></tr></thead>
+      <tbody>
+        <tr><td><code>print-server-tdi</code></td><td>Print Server / TDI</td><td>C#, VB.NET</td></tr>
+        <tr><td><code>tdi2</code></td><td>TDI2</td><td>C#, JavaScript, SQL</td></tr>
+        <tr><td><code>digital-internet-services</code></td><td>Digital Internet Services</td><td>TypeScript, JavaScript</td></tr>
+        <tr><td><code>work-management-system</code></td><td>Work Management System</td><td>TypeScript, JavaScript</td></tr>
+        <tr><td><code>dev-team-hub</code></td><td>DevTeam Hub</td><td>Ruby, JavaScript, HTML</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Phase 3: sonar-project.properties (per repository)</h3>
+
+    <h4>DevTeam Hub (Rails)</h4>
+    <pre><code># sonar-project.properties — DevTeam Hub
+sonar.projectKey=dev-team-hub
+sonar.projectName=DevTeam Hub
+sonar.projectVersion=1.0
+
+sonar.sources=app,lib,config
+sonar.tests=spec,features
+sonar.exclusions=vendor/**,node_modules/**,tmp/**,log/**,public/**,storage/**
+
+sonar.ruby.coverage.reportPaths=coverage/.resultset.json
+sonar.ruby.rubocop.reportPaths=rubocop-report.json
+
+sonar.javascript.lcov.reportPaths=coverage/lcov.info
+
+sonar.qualitygate.wait=true</code></pre>
+
+    <h4>TDI2 (ASP.NET Core)</h4>
+    <pre><code># sonar-project.properties — TDI2
+sonar.projectKey=tdi2
+sonar.projectName=TDI2
+sonar.projectVersion=1.0
+
+sonar.sources=.
+sonar.exclusions=**/bin/**,**/obj/**,**/node_modules/**,**/wwwroot/lib/**
+sonar.cs.opencover.reportsPaths=**/TestResults/**/coverage.opencover.xml
+sonar.cs.vstest.reportsPaths=**/TestResults/*.trx
+
+sonar.qualitygate.wait=true</code></pre>
+
+    <h4>Digital Internet Services (Vue 3 + NestJS)</h4>
+    <pre><code># sonar-project.properties — Digital Internet Services
+sonar.projectKey=digital-internet-services
+sonar.projectName=Digital Internet Services
+sonar.projectVersion=1.0
+
+sonar.sources=src
+sonar.tests=test,__tests__
+sonar.exclusions=node_modules/**,dist/**,coverage/**
+
+sonar.typescript.lcov.reportPaths=coverage/lcov.info
+sonar.javascript.lcov.reportPaths=coverage/lcov.info
+
+sonar.qualitygate.wait=true</code></pre>
+
+    <h3>Phase 4: Jenkinsfile Integration</h3>
+
+    <h4>Jenkinsfile — Rails Project (DevTeam Hub)</h4>
+    <pre><code>pipeline {
+  agent any
+
+  environment {
+    SONAR_TOKEN = credentials('sonarqube-token')
+    SONAR_HOST  = 'http://sonarqube:9100'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Install') {
+      steps {
+        sh 'bundle install --jobs 4'
+        sh 'yarn install --frozen-lockfile'
+      }
+    }
+
+    stage('Lint') {
+      steps {
+        sh 'bundle exec rubocop -f json -o rubocop-report.json || true'
+      }
+    }
+
+    stage('Test') {
+      steps {
+        sh 'bundle exec rails db:test:prepare'
+        sh 'COVERAGE=true bundle exec rspec --format documentation'
+      }
+    }
+
+    stage('Security') {
+      parallel {
+        stage('Brakeman') { steps { sh 'bundle exec brakeman -q --no-pager' } }
+        stage('Bundler Audit') { steps { sh 'bundle exec bundler-audit check --update' } }
+      }
+    }
+
+    stage('SonarQube Analysis') {
+      steps {
+        sh """
+          docker run --rm \\
+            --network host \\
+            -e SONAR_HOST_URL=\${SONAR_HOST} \\
+            -e SONAR_TOKEN=\${SONAR_TOKEN} \\
+            -v \${WORKSPACE}:/usr/src \\
+            sonarsource/sonar-scanner-cli \\
+            -Dsonar.projectBaseDir=/usr/src
+        """
+      }
+    }
+
+    stage('Quality Gate') {
+      steps {
+        timeout(time: 5, unit: 'MINUTES') {
+          sh """
+            # Poll SonarQube Quality Gate status
+            RESULT=\$(curl -s -u \${SONAR_TOKEN}: \\
+              "\${SONAR_HOST}/api/qualitygates/project_status?projectKey=dev-team-hub" \\
+              | grep -o '"status":"[^"]*"' | head -1)
+            echo "Quality Gate: \$RESULT"
+            echo "\$RESULT" | grep -q '"OK"'
+          """
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      // Callback to DevTeam Hub API
+      sh """
+        curl -s -X POST \${DEVTEAM_HUB_URL}/api/v1/ci_runs \\
+          -H 'Authorization: Bearer \${DEVTEAM_API_TOKEN}' \\
+          -H 'Content-Type: application/json' \\
+          -d '{"ci_run": {"build_number": "\${BUILD_NUMBER}", "status": "\${currentBuild.result}", "branch": "\${env.BRANCH_NAME}"}}'
+      """
+    }
+  }
+}</code></pre>
+
+    <h4>Jenkinsfile — .NET Project (TDI2)</h4>
+    <pre><code>pipeline {
+  agent any
+
+  environment {
+    SONAR_TOKEN = credentials('sonarqube-token')
+    SONAR_HOST  = 'http://sonarqube:9100'
+  }
+
+  stages {
+    stage('SonarQube Begin') {
+      steps {
+        sh """
+          dotnet tool install --global dotnet-sonarscanner || true
+          dotnet sonarscanner begin \\
+            /k:"tdi2" \\
+            /d:sonar.host.url="\${SONAR_HOST}" \\
+            /d:sonar.token="\${SONAR_TOKEN}" \\
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+        """
+      }
+    }
+
+    stage('Build & Test') {
+      steps {
+        sh 'dotnet restore'
+        sh 'dotnet build --no-restore'
+        sh 'dotnet test --no-build --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover'
+      }
+    }
+
+    stage('SonarQube End') {
+      steps {
+        sh 'dotnet sonarscanner end /d:sonar.token="\${SONAR_TOKEN}"'
+      }
+    }
+  }
+}</code></pre>
+
+    <h3>Phase 5: GitHub Actions (DevTeam Hub)</h3>
+    <pre><code># .github/workflows/sonarqube.yml — runs alongside existing ci.yml
+name: SonarQube Analysis
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for blame data
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Run tests with coverage
+        run: |
+          bundle exec rails db:test:prepare
+          COVERAGE=true bundle exec rspec
+
+      - name: RuboCop JSON report
+        run: bundle exec rubocop -f json -o rubocop-report.json || true
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}</code></pre>
+
+    <h3>Phase 6: Ollama AI Review Script</h3>
+    <pre><code>#!/usr/bin/env ruby
+# ci/ai_review.rb — On-prem AI code review via Ollama
+# Usage: ruby ci/ai_review.rb [base_branch]
+#
+# Sends the git diff to a local Ollama LLM and posts
+# review comments back to Gitea via API.
+
+require "net/http"
+require "json"
+require "uri"
+
+OLLAMA_URL   = ENV.fetch("OLLAMA_URL",   "http://localhost:11434")
+OLLAMA_MODEL = ENV.fetch("OLLAMA_MODEL", "qwen2.5-coder:32b")
+GITEA_URL    = ENV.fetch("GITEA_URL",    "http://gitea:3001")
+GITEA_TOKEN  = ENV.fetch("GITEA_TOKEN",  "")
+MAX_DIFF_LINES = 500  # Skip AI review for huge diffs
+
+base_branch = ARGV[0] || "main"
+
+# 1. Get the diff
+diff = `git diff #{base_branch}...HEAD --unified=3 -- '*.rb' '*.cs' '*.ts' '*.js' '*.vb'`
+if diff.strip.empty?
+  puts "No code changes to review."
+  exit 0
+end
+
+# Truncate very large diffs
+lines = diff.lines
+if lines.size > MAX_DIFF_LINES
+  diff = lines.first(MAX_DIFF_LINES).join
+  diff += "\n... (diff truncated to #{MAX_DIFF_LINES} lines)\n"
+end
+
+# 2. Build the prompt
+prompt = &lt;&lt;~PROMPT
+  You are a senior code reviewer. Review the following git diff and provide
+  concise, actionable feedback. Focus on:
+  - Bugs and logic errors
+  - Security vulnerabilities (OWASP Top 10)
+  - Performance issues
+  - Code style and readability
+  - Missing error handling or edge cases
+
+  Format your response as a numbered list of findings. For each finding:
+  - State the file and approximate line
+  - Describe the issue
+  - Suggest a fix
+
+  If the code looks good, say "LGTM — no issues found."
+
+  ```diff
+  #{diff}
+  ```
+PROMPT
+
+# 3. Call Ollama
+uri = URI("#{OLLAMA_URL}/api/generate")
+body = { model: OLLAMA_MODEL, prompt: prompt, stream: false }
+http = Net::HTTP.new(uri.host, uri.port)
+http.read_timeout = 300  # LLMs can be slow on CPU
+
+req = Net::HTTP::Post.new(uri.path, "Content-Type" =&gt; "application/json")
+req.body = JSON.generate(body)
+
+puts "Sending diff to #{OLLAMA_MODEL} for review..."
+res = http.request(req)
+
+unless res.is_a?(Net::HTTPSuccess)
+  warn "Ollama error: #{res.code} #{res.body}"
+  exit 1
+end
+
+review = JSON.parse(res.body)["response"]
+puts "\n=== AI Code Review ===\n\n#{review}\n"
+
+# 4. Post to Gitea PR (if in CI with PR context)
+pr_number = ENV["GITEA_PR_NUMBER"] || ENV["CI_PULL_REQUEST"]
+repo      = ENV["GITEA_REPO"]       # e.g. "devteam/dev-team-hub"
+
+if pr_number &amp;&amp; repo &amp;&amp; !GITEA_TOKEN.empty?
+  comment_uri = URI("#{GITEA_URL}/api/v1/repos/#{repo}/issues/#{pr_number}/comments")
+  comment_body = "## 🤖 AI Code Review\n\n#{review}\n\n---\n*Reviewed by #{OLLAMA_MODEL} (on-prem)*"
+
+  comment_req = Net::HTTP::Post.new(comment_uri.path, {
+    "Content-Type"  =&gt; "application/json",
+    "Authorization" =&gt; "token #{GITEA_TOKEN}"
+  })
+  comment_req.body = JSON.generate({ body: comment_body })
+
+  comment_http = Net::HTTP.new(comment_uri.host, comment_uri.port)
+  comment_res = comment_http.request(comment_req)
+
+  if comment_res.is_a?(Net::HTTPSuccess)
+    puts "Review posted to Gitea PR ##{pr_number}"
+  else
+    warn "Failed to post to Gitea: #{comment_res.code}"
+  end
+else
+  puts "(No PR context — review printed to stdout only)"
+end</code></pre>
+
+    <h3>Phase 7: docker-compose.ollama.yml</h3>
+    <pre><code>version: "3.8"
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  ollama_models:
+
+# After starting, pull the model:
+# docker exec ollama ollama pull qwen2.5-coder:32b</code></pre>
+
+    <h3>Phase 8: SonarLint IDE Integration</h3>
+    <p>Install the free <strong>SonarLint</strong> extension in VS Code and Visual Studio to get SonarQube rules inline while coding:</p>
+    <pre><code># VS Code — install SonarLint extension
+# Settings → SonarLint → Connected Mode → Add SonarQube Connection:
+#   URL: http://sonarqube:9100
+#   Token: (your project token)
+#   Project: dev-team-hub
+
+# Visual Studio — install SonarLint via Extensions → Manage Extensions
+# Same connection setup in SonarLint → Connected Mode</code></pre>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Quality Gate Configuration                          -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="quality-gate">
+    <h2><span class="icon">🚦</span> Quality Gate Configuration</h2>
+    <p>The default SonarQube Quality Gate ("Sonar way") is a good starting point. Here's our recommended customisation:</p>
+
+    <table>
+      <thead><tr><th>Metric</th><th>Condition</th><th>Threshold</th><th>Rationale</th></tr></thead>
+      <tbody>
+        <tr><td>New Code Coverage</td><td>is less than</td><td><strong>70%</strong></td><td>Reasonable for our mix of UI + backend code</td></tr>
+        <tr><td>New Duplicated Lines</td><td>is greater than</td><td><strong>3%</strong></td><td>Keep DRY principle enforced</td></tr>
+        <tr><td>New Bugs</td><td>is greater than</td><td><strong>0</strong></td><td>Zero tolerance for new bugs</td></tr>
+        <tr><td>New Vulnerabilities</td><td>is greater than</td><td><strong>0</strong></td><td>Zero tolerance for security issues</td></tr>
+        <tr><td>New Security Hotspots Reviewed</td><td>is less than</td><td><strong>100%</strong></td><td>All hotspots must be triaged</td></tr>
+        <tr><td>New Code Smells (Blocker/Critical)</td><td>is greater than</td><td><strong>0</strong></td><td>No critical code smells in new code</td></tr>
+        <tr><td>Maintainability Rating</td><td>is worse than</td><td><strong>A</strong></td><td>Keep new code at top quality</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Rollout Plan                                        -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="section" id="rollout">
+    <h2><span class="icon">📅</span> Rollout Plan</h2>
+
+    <table>
+      <thead><tr><th>Phase</th><th>Task</th><th>Effort</th><th>Blocker?</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Deploy SonarQube Docker container</td><td>2 hours</td><td>—</td></tr>
+        <tr><td><strong>2</strong></td><td>Create projects + Quality Gates in SonarQube UI</td><td>1 hour</td><td>—</td></tr>
+        <tr><td><strong>3</strong></td><td>Add <code>sonar-project.properties</code> to each repo</td><td>1 hour</td><td>—</td></tr>
+        <tr><td><strong>4</strong></td><td>Add SonarQube stage to Jenkins pipelines</td><td>2 hours</td><td>—</td></tr>
+        <tr><td><strong>5</strong></td><td>Add SonarQube scan to GitHub Actions</td><td>30 min</td><td>—</td></tr>
+        <tr><td><strong>6</strong></td><td>Deploy Ollama + pull Qwen2.5-Coder model</td><td>1 hour</td><td>GPU optional</td></tr>
+        <tr><td><strong>7</strong></td><td>Add AI review script to Jenkins pipeline</td><td>1 hour</td><td>—</td></tr>
+        <tr><td><strong>8</strong></td><td>Install SonarLint in team IDEs</td><td>30 min</td><td>—</td></tr>
+        <tr><td><strong>9</strong></td><td>Team training + calibrate Quality Gate thresholds</td><td>2 hours</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip">
+      <strong>💡 Total estimated effort:</strong> ~10 hours across 1–2 days. No production downtime. Can be rolled out per-project incrementally.
+    </div>
+  </div>
+
+  <div class="footer">
+    DevTeam Hub — Code Review &amp; Approval Tools Recommendation — May 2026
+  </div>
+</div>
+
+<script>
+  // Comparison radar chart
+  new Chart(document.getElementById('comparisonChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Language Coverage', 'On-Prem Deploy', 'Quality Gates', 'Security (SAST)', 'Dashboard', 'Gitea Integration', 'Jenkins Integration', 'Price (10=free)'],
+      datasets: [
+        {
+          label: 'SonarQube CE',
+          data: [10, 10, 10, 9, 10, 8, 10, 10],
+          backgroundColor: 'rgba(11,122,117,0.15)',
+          borderColor: '#0b7a75',
+          borderWidth: 2,
+          pointBackgroundColor: '#0b7a75'
+        },
+        {
+          label: 'Codacy (Self-hosted)',
+          data: [8, 7, 9, 8, 9, 6, 8, 3],
+          backgroundColor: 'rgba(74,144,217,0.1)',
+          borderColor: '#4a90d9',
+          borderWidth: 2,
+          pointBackgroundColor: '#4a90d9'
+        },
+        {
+          label: 'MegaLinter',
+          data: [9, 10, 4, 7, 2, 9, 8, 10],
+          backgroundColor: 'rgba(210,109,24,0.1)',
+          borderColor: '#d26d18',
+          borderWidth: 2,
+          pointBackgroundColor: '#d26d18'
+        },
+        {
+          label: 'Semgrep OSS',
+          data: [7, 10, 4, 10, 2, 5, 7, 10],
+          backgroundColor: 'rgba(109,40,217,0.1)',
+          borderColor: '#6d28d9',
+          borderWidth: 2,
+          pointBackgroundColor: '#6d28d9'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'Manrope', size: 11 } } } },
+      scales: {
+        r: {
+          min: 0, max: 10,
+          ticks: { stepSize: 2, font: { family: 'Manrope' } },
+          grid: { color: 'rgba(18,37,43,0.08)' },
+          angleLines: { color: 'rgba(18,37,43,0.08)' },
+          pointLabels: { font: { family: 'Manrope', size: 11 } }
+        }
+      }
+    }
+  });
+
+  // Pricing comparison
+  new Chart(document.getElementById('pricingChart'), {
+    type: 'bar',
+    data: {
+      labels: ['SonarQube CE\n+ Ollama', 'Codacy\nSelf-hosted', 'CodeClimate\n(Cloud)', 'GitHub Copilot\nCode Review', 'CodeRabbit\nPro'],
+      datasets: [{
+        label: 'Annual cost (USD)',
+        data: [0, 5000, 1440, 3744, 1440],
+        backgroundColor: ['#0b7a75', '#4a90d9', '#d26d18', '#6d28d9', '#b63a34'],
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) { return '$' + ctx.raw.toLocaleString() + '/yr'; }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { callback: v => '$' + v.toLocaleString(), font: { family: 'Manrope' } },
+          title: { display: true, text: 'Annual cost (8 users)', font: { family: 'Manrope' } }
+        },
+        x: { ticks: { font: { family: 'Manrope', size: 11 } } }
+      }
+    }
+  });
+</script>
+</body>
+</html>

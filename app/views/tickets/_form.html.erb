@@ -1,0 +1,155 @@
+<%
+  editing = ticket.persisted?
+  # "specs" = the basics; "estimation" = refinement & estimation.
+  # New records always show specs (you can't estimate before it exists).
+  section = editing ? (local_assigns[:section].presence || "specs").to_s : "specs"
+  section = "specs" unless %w[specs estimation].include?(section)
+%>
+<%= simple_form_for(ticket.new_record? ? [ @project, ticket ] : ticket,
+      html: { multipart: true, class: "card p-3 mb-3" }) do |f| %>
+
+  <%= f.error_notification %>
+  <%= f.error_notification message: f.object.errors[:base].to_sentence if f.object.errors[:base].any? %>
+
+  <%# Remember which section we're editing, so a validation re-render stays put. %>
+  <%= hidden_field_tag :section, section %>
+
+  <% if section == "specs" %>
+    <%# ── Specs — what the ticket is ──────────────────────────────────── %>
+    <%= f.input :title, input_html: { class: "form-control" }, wrapper_html: { class: "mb-3" } %>
+
+    <%= f.input :description,
+          label: "Body",
+          as: :text,
+          input_html: { class: "form-control", rows: 5 },
+          wrapper_html: { class: "mb-3" } %>
+
+    <div class="mb-3">
+      <label class="form-label fw-semibold">How to Reproduce</label>
+      <%= f.hidden_field :how_to_reproduce, id: "ticket_how_to_reproduce_input" %>
+      <trix-editor input="ticket_how_to_reproduce_input" class="trix-content" style="min-height:120px;"></trix-editor>
+      <div class="form-text">Steps to reproduce the issue — most useful for bug fixes and hotfixes.</div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <%= f.input :kind,
+              collection: Ticket.kinds.keys.map { |k| [ k.humanize.gsub("_", " "), k ] },
+              selected: ticket.kind, include_blank: false,
+              input_html: { class: "form-select" }, label: "Kind" %>
+      </div>
+      <div class="col-md-4">
+        <%= f.input :priority,
+              collection: Ticket.priorities.keys.map { |p| [ p.capitalize, p ] },
+              selected: ticket.priority, include_blank: false,
+              input_html: { class: "form-select" } %>
+      </div>
+      <div class="col-md-4">
+        <%= f.input :owner_id,
+              label: "Reporter / Owner",
+              collection: User.order(:name).map { |u| [ u.display_name, u.id ] },
+              include_blank: "— None —",
+              input_html: { class: "form-select" } %>
+      </div>
+    </div>
+
+    <% if editing %>
+      <%= f.input :approved_at,
+            as: :string, label: "Approved at",
+            input_html: { type: "date", class: "form-control", value: ticket.approved_at&.to_date },
+            wrapper_html: { class: "mb-3" },
+            hint: "Set when the ticket is approved to move into refinement (or use the Approve button)." %>
+    <% end %>
+
+  <% else %>
+    <%# ── Estimation — refinement & estimation ────────────────────────── %>
+    <% if ticket.estimated? %>
+      <div class="alert alert-info d-flex flex-wrap gap-3 align-items-center fs-7 mb-3">
+        <span class="fw-semibold">Current estimation:</span>
+        <span><strong><%= ticket.story_points || "—" %></strong> pts</span>
+        <span>Dev <strong><%= ticket.dev_estimate_hours ? "#{ticket.dev_estimate_hours} h" : "—" %></strong></span>
+        <span>QA <strong><%= ticket.tester_estimate_hours ? "#{ticket.tester_estimate_hours} h" : "—" %></strong></span>
+        <% if ticket.estimated_by %>
+          <span class="text-muted ms-auto">by <%= ticket.estimated_by.display_name %></span>
+        <% end %>
+      </div>
+    <% elsif !ticket.approved? %>
+      <div class="alert alert-warning fs-7 mb-3">
+        This ticket isn't approved yet. Approve it from the ticket page before estimating, or estimate anyway below.
+      </div>
+    <% end %>
+
+    <fieldset class="border rounded p-3 mb-3">
+      <legend class="fs-6 fw-semibold float-none w-auto px-2 mb-2">🔍 Refinement &amp; Estimation</legend>
+
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <%= f.input :level,
+                collection: Ticket.levels.keys.map { |l| [ l.capitalize, l ] },
+                selected: ticket.level, include_blank: false,
+                input_html: { class: "form-select" }, label: "Complexity" %>
+        </div>
+        <div class="col-md-4">
+          <%= f.input :status,
+                collection: Ticket.statuses.keys.map { |s| [ s.humanize, s ] },
+                selected: ticket.status, include_blank: false,
+                input_html: { class: "form-select" } %>
+        </div>
+        <div class="col-md-4">
+          <%= f.input :assignee_id, label: "Assignee",
+                collection: User.order(:name).map { |u| [ u.display_name, u.id ] },
+                include_blank: "— Unassigned —", input_html: { class: "form-select" } %>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <%= f.input :sprint_id, label: "Sprint",
+                collection: @project.sprints.order(:name).map { |s| [ s.name, s.id ] },
+                include_blank: "— No Sprint —", input_html: { class: "form-select" } %>
+        </div>
+        <div class="col-md-6">
+          <%= f.input :milestone_id, label: "Milestone",
+                collection: @project.milestones.order(:name).map { |m| [ m.name, m.id ] },
+                include_blank: "— No Milestone —", input_html: { class: "form-select" } %>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-4"><%= f.input :story_points, label: "Story Points", input_html: { class: "form-control", min: 1, max: 100 } %></div>
+        <div class="col-md-4"><%= f.input :dev_estimate_hours, label: "Dev Estimate (h)", input_html: { class: "form-control", min: 0, step: 0.5 } %></div>
+        <div class="col-md-4"><%= f.input :tester_estimate_hours, label: "QA Estimate (h)", input_html: { class: "form-control", min: 0, step: 0.5 } %></div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Test Plan</label>
+        <%= f.hidden_field :test_plan, id: "ticket_test_plan_input" %>
+        <trix-editor input="ticket_test_plan_input" class="trix-content" style="min-height:120px;"></trix-editor>
+      </div>
+
+      <%= f.input :tag_list, label: "Tags (comma separated)", value: ticket.tag_list.to_s,
+            input_html: { class: "form-control", placeholder: "performance, auth, frontend" },
+            wrapper_html: { class: "mb-3" } %>
+
+      <%= f.input :attachments, as: :file,
+            input_html: { multiple: true, class: "form-control" },
+            hint: "Spec documents, screenshots, design files." %>
+    </fieldset>
+  <% end %>
+
+  <div class="d-flex gap-2 align-items-center">
+    <%= f.button :submit, ticket.new_record? ? "Create Ticket" : "Save", class: "btn btn-primary" %>
+    <%= link_to "Cancel", ticket.new_record? ? project_path(@project) : ticket_path(ticket), class: "btn btn-secondary" %>
+  </div>
+<% end %>
+
+<script nonce="<%= request.content_security_policy_nonce %>">
+  (function () {
+    document.addEventListener("trix-initialize", function(event) {
+      var editor  = event.target;
+      var inputId = editor.getAttribute("input");
+      var hidden  = document.getElementById(inputId);
+      if (hidden && hidden.value) { editor.editor.loadHTML(hidden.value); }
+    });
+  })();
+</script>

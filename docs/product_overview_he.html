@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTeam Hub — סקירת מוצר</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f3f0e8;--panel:#fffdf7;--ink:#12252b;--muted:#5c6f76;--line:#d7d0c2;
+      --teal:#0b7a75;--navy:#17324a;--orange:#d26d18;--red:#b63a34;--green:#1a7a3a;--purple:#6d28d9;--blue:#2563eb;
+      --shadow:0 18px 44px rgba(18,37,43,.09);--radius:18px;--mono:"JetBrains Mono",monospace;--sans:"Heebo","Segoe UI",sans-serif;}
+    *{box-sizing:border-box;}
+    html{scroll-behavior:smooth;background:var(--bg);}
+    body{margin:0;color:var(--ink);font-family:var(--sans);line-height:1.7;direction:rtl;text-align:right;
+      background:radial-gradient(900px 420px at 100% 0%,rgba(11,122,117,.14),transparent),
+                 radial-gradient(760px 340px at 0% 0%,rgba(109,40,217,.10),transparent),var(--bg);}
+    .shell{max-width:1080px;margin:0 auto;padding:24px 18px 64px;}
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(255,253,247,.92);border:1px solid var(--line);
+      border-radius:16px;backdrop-filter:blur(8px);box-shadow:var(--shadow);margin-bottom:16px;display:flex;
+      align-items:center;justify-content:space-between;padding:10px 22px;flex-wrap:wrap;gap:8px;}
+    .topbar-logo{font-weight:800;font-size:1.1rem;color:var(--teal);display:flex;align-items:center;gap:8px;}
+    .topbar-nav{display:flex;gap:4px;flex-wrap:wrap;}
+    .topbar-nav a{color:var(--muted);font-size:.8rem;font-weight:700;text-decoration:none;padding:6px 10px;border-radius:8px;}
+    .topbar-nav a:hover{background:rgba(11,122,117,.08);color:var(--teal);}
+    .hero{text-align:center;padding:44px 18px 28px;}
+    .hero .kicker{font-weight:800;letter-spacing:.06em;color:var(--purple);font-size:.82rem;}
+    .hero h1{font-size:2.5rem;font-weight:900;color:var(--navy);margin:.4rem 0 .6rem;}
+    .hero p{font-size:1.08rem;color:var(--muted);max-width:800px;margin:0 auto;}
+    .pills{margin-top:18px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+    .pill{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:.82rem;font-weight:700;color:var(--teal);}
+    .section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:30px 34px;margin-bottom:20px;box-shadow:var(--shadow);}
+    .section h2{font-size:1.45rem;font-weight:800;color:var(--navy);margin:0 0 6px;display:flex;align-items:center;gap:10px;}
+    .section .sub{color:var(--muted);margin:0 0 16px;}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+    @media(max-width:820px){.grid-2,.grid-3{grid-template-columns:1fr;}.hero h1{font-size:2rem;}}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;}
+    .card .ic{font-size:1.5rem;}
+    .card h4{margin:.4rem 0 .3rem;font-size:1rem;color:var(--navy);}
+    .card p{margin:0;font-size:.9rem;color:var(--muted);}
+    code{font-family:var(--mono);font-size:.85em;background:rgba(11,122,117,.08);color:var(--teal);padding:2px 6px;border-radius:5px;direction:ltr;display:inline-block;}
+    .tip{background:rgba(11,122,117,.06);border-right:3px solid var(--teal);padding:14px 18px;border-radius:10px 0 0 10px;margin:14px 0;font-size:.95rem;}
+    .tip strong{color:var(--teal);}
+    .pipe{display:flex;align-items:stretch;flex-wrap:wrap;margin:18px 0;}
+    .step{flex:1;min-width:160px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin:6px;}
+    .step .n{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;font-weight:800;align-items:center;justify-content:center;font-size:.82rem;}
+    .step h4{margin:.5rem 0 .25rem;font-size:.95rem;color:var(--navy);}
+    .step p{margin:0;font-size:.84rem;color:var(--muted);}
+    .step .who{display:inline-block;margin-top:8px;font-size:.72rem;font-weight:700;border-radius:20px;padding:2px 9px;}
+    .who-pm{background:rgba(109,40,217,.12);color:var(--purple);}
+    .who-team{background:rgba(11,122,117,.13);color:var(--teal);}
+    .who-ai{background:rgba(210,109,24,.13);color:var(--orange);}
+    .who-ops{background:rgba(37,99,235,.12);color:var(--blue);}
+    .chat{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+    .chat-head{background:var(--navy);color:#fff;padding:10px 16px;font-weight:700;}
+    .chat-body{padding:16px;}
+    .msg{display:flex;margin-bottom:10px;}.msg.u{justify-content:flex-start;}
+    .bubble{max-width:80%;padding:9px 13px;border-radius:13px;font-size:.9rem;}
+    .u .bubble{background:var(--blue);color:#fff;}
+    .a .bubble{background:#f1f5f9;color:var(--ink);}
+    .footer{text-align:center;color:var(--muted);font-size:.84rem;padding:28px 0 6px;}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="topbar-logo"><span>🚀</span> DevTeam Hub · סקירת מוצר</div>
+    <nav class="topbar-nav">
+      <a href="#why">למה</a><a href="#platform">הפלטפורמה</a><a href="#lifecycle">ממפרט לייצור</a>
+      <a href="#iterations">איטרציות</a><a href="#ceremonies">פגישות</a><a href="#testing">בדיקות</a><a href="#ask">שאל את ה-AI</a>
+    </nav>
+  </div>
+
+  <div class="hero">
+    <div class="kicker">סקירת מוצר · 2026</div>
+    <h1>ממפרט ועד ייצור — על התשתית שלך.</h1>
+    <p>‏DevTeam Hub מנהל את כל תהליך הפיתוח האג'ילי שלך — כרטיסים, ספרינטים, פגישות אוטומטיות ובדיקות אוטומטיות —
+       ועוטף אותו ב<strong>מנוע AI מקומי שלא שולח אף בית לענן</strong>. פלטפורמה אחת בהתקנה עצמית (On-Prem),
+       מהסיפור הראשון של מנהל המוצר ועד שרת ייצור מנוטר.</p>
+    <div class="pills">
+      <span class="pill">🔒 100% On-Prem</span><span class="pill">🤖 מנוע AI מקומי</span>
+      <span class="pill">🏃 איטרציות אג'יליות</span><span class="pill">🎥 Jitsi לצוותים מרוחקים</span>
+      <span class="pill">🧪 בדיקות אוטומטיות</span>
+    </div>
+  </div>
+
+  <!-- WHY -->
+  <div class="section" id="why">
+    <h2>📋 למה אג'ייל, ניהול כרטיסים ובדיקות אוטומטיות</h2>
+    <p class="sub">צוותי תוכנה נכשלים בפערים — בין רעיון מעורפל לסיפור ברור, בין הערכה למציאות, ובין "סיימנו" ל"באמת נבדק".
+       ‏DevTeam Hub סוגר את הפערים האלה בעזרת שלושה עקרונות, במקום אחד:</p>
+    <div class="grid-3">
+      <div class="card"><div class="ic">🏃</div><h4>תהליך אג'ילי</h4><p>העבודה זורמת ב<strong>איטרציות (ספרינטים)</strong> קצרות וצפויות, עם ספרינט נוכחי יחיד, יעדים ברורים והתקדמות נראית — כך שהעדיפויות מפורשות וההתקדמות נמדדת.</p></div>
+      <div class="card"><div class="ic">🎫</div><h4>ניהול כרטיסים</h4><p>כל יחידת עבודה היא <strong>כרטיס</strong> עם מחזור חיים (טיוטה → מאושר → מוערך → בפיתוח → הושלם), בעלים, אחראי, ותיעוד מלא.</p></div>
+      <div class="card"><div class="ic">🧪</div><h4>בדיקות אוטומטיות</h4><p>בנייות CI, תוצאות בדיקה מנותחות, ו<strong>ביקורת בדיקות בעזרת AI</strong> שומרות על איכות רציפה — כרטיס אינו "הושלם" עד שהבדיקות שלו ירוקות.</p></div>
+    </div>
+    <div class="tip"><strong>התוצאה:</strong> שום דבר לא נופל בין הכיסאות. המפרטים נכתבים היטב, מוערכים בכנות, מסופקים באיטרציות, נבדקים אוטומטית, נפרסים לשרת מנוטר — וכל שלב מתועד.</div>
+  </div>
+
+  <!-- PLATFORM -->
+  <div class="section" id="platform">
+    <h2>🤖 פלטפורמה אחת, מונעת על-ידי מנוע AI מקומי</h2>
+    <p class="sub">‏DevTeam Hub מטמיע מודל שפה (LLM) הרץ על <strong>החומרה המקומית שלכם</strong> (Ollama על Mac mini),
+       בגישה דרך REST API פשוט ברשת הפנימית. <strong>שום קוד, טקסט כרטיס או נתוני לקוח לא יוצאים מהרשת שלכם</strong> —
+       בדיוק מה שצוותים מוסדרים, מחויבי-NDA ומבודדים (air-gapped) צריכים.</p>
+    <div class="grid-3">
+      <div class="card"><div class="ic">✍️</div><h4>מפרטים טובים יותר</h4><p>בדיקות מוכנות (Definition of Ready) ב-AI מאמתות את ניסוח הסיפור ומחזירות כרטיסים דלים לבעלים.</p></div>
+      <div class="card"><div class="ic">🧩</div><h4>הערכות חכמות</h4><p>ה-AI מפרק סיפורים למשימות ומכייל את ההערכות מול נתוני העבר (הערכה מול בפועל).</p></div>
+      <div class="card"><div class="ic">🔍</div><h4>ביקורת רציפה</h4><p>ה-AI סוקר diffs (Go/Ruby/C#/Node) ובדיקות Cucumber; "תקן את הבאג" מציע תיקון קונקרטי.</p></div>
+      <div class="card"><div class="ic">📄</div><h4>מסמכים ומצגות</h4><p>מפרטים, מסמכי ניהול סיכונים ומצגות סטטוס שנוצרים מנתוני הפרויקט החיים.</p></div>
+      <div class="card"><div class="ic">📈</div><h4>ניתוח חי</h4><p>בריאות ספרינט בזמן אמת, דיוק הערכות וביצועים לכל מפתח.</p></div>
+      <div class="card"><div class="ic">💬</div><h4>שאל כל דבר</h4><p>צ'אט ברמת הפרויקט שמכיר את ה-repo, הכרטיסים, הספרינט והצוות (ראו בהמשך).</p></div>
+    </div>
+  </div>
+
+  <!-- LIFECYCLE -->
+  <div class="section" id="lifecycle">
+    <h2>🔄 מחזור החיים — ממפרט ועד ייצור</h2>
+    <p class="sub">כל פרויקט מעביר עבודה דרך אותו צינור מתועד. כל שלב חי בתוך הכלי, וה-AI מסייע בכל שלב.</p>
+    <div class="pipe">
+      <div class="step"><span class="n">1</span><h4>כתיבת הסיפור</h4><p>מנהל המוצר ממלא את הסיפור — כותרת, תיאור, עדיפות, אופן שחזור ובעלים.</p><span class="who who-pm">מנהל מוצר</span></div>
+      <div class="step"><span class="n">2</span><h4>אישור</h4><p>הסיפור נסקר ומאושר (בדיקת מוכנות ב-AI) ויוצא ממצב טיוטה.</p><span class="who who-team">צוות / AI</span></div>
+      <div class="step"><span class="n">3</span><h4>ליטוש והערכה</h4><p>הצוות מוסיף נקודות סיפור והערכות שעות פיתוח/QA בליטוש (Refinement).</p><span class="who who-team">צוות הפיתוח</span></div>
+      <div class="step"><span class="n">4</span><h4>הקצאה ושיבוץ</h4><p>הכרטיס מוקצה ומשובץ לספרינט.</p><span class="who who-team">ראש צוות</span></div>
+      <div class="step"><span class="n">5</span><h4>פירוק למשימות</h4><p>ה-AI מייצר משימות ניתנות להערכה; ההתקדמות נמדדת משימה-משימה.</p><span class="who who-ai">AI</span></div>
+      <div class="step"><span class="n">6</span><h4>פיתוח ו-PR</h4><p>ענף נוצר אוטומטית עם ההקצאה; הקוד מגיע ב-Pull Request.</p><span class="who who-team">מפתח</span></div>
+      <div class="step"><span class="n">7</span><h4>בדיקות אוטומטיות</h4><p>‏CI מריץ את הבדיקות; ה-AI סוקר את ה-diff ואת בדיקות ה-Cucumber.</p><span class="who who-ai">CI + AI</span></div>
+      <div class="step"><span class="n">8</span><h4>הפצה וניטור</h4><p>פריסה לשרת; מעקב בריאות מערכת ההפעלה באמצעות heartbeat.</p><span class="who who-ops">תפעול</span></div>
+    </div>
+    <div class="tip"><strong>כרטיסים מודעי-שלב:</strong> מסך עריכת הכרטיס מציג רק את מה שרלוונטי כעת — היסודות בזמן הטיוטה,
+      שדות ההערכה לאחר האישור, ורשימת המשימות (עם יצירת משימות ב-AI) לאחר ההערכה. הסיפור עצמו מנחה את הצוות בתהליך.</div>
+  </div>
+
+  <!-- ITERATIONS -->
+  <div class="section" id="iterations">
+    <h2>🏃 איטרציות וספרינטים</h2>
+    <p class="sub">העבודה מסופקת ב<strong>ספרינטים</strong> תחומי-זמן השייכים לפרויקט.</p>
+    <div class="grid-2">
+      <div class="card"><div class="ic">⭐</div><h4>ספרינט נוכחי יחיד</h4><p>לכל פרויקט יש ספרינט פעיל אחד בדיוק. הגדרת ספרינט חדש כנוכחי סוגרת אוטומטית את הקודם — אין אי-בהירות לגבי "על מה אנחנו עובדים עכשיו".</p></div>
+      <div class="card"><div class="ic">📊</div><h4>מוערך מול בפועל</h4><p>כל פרויקט מציג את הספרינטים שלו עם סך <strong>שעות מוערכות</strong> ו<strong>שעות בפועל</strong>, ופס התקדמות מבוסס-משימות.</p></div>
+      <div class="card"><div class="ic">🧩</div><h4>משימות מניעות התקדמות</h4><p>סיפורים מתפרקים למשימות קטנות וניתנות להערכה; ההשלמה מצטברת לתג <code>🧩 %</code> ו-<code>⏱ הושלם/סהכ ש'</code> בכל מקום שבו הכרטיס מופיע.</p></div>
+      <div class="card"><div class="ic">👥</div><h4>צוות הספרינט</h4><p>חברי הספרינט נגזרים מהאנשים שעל הכרטיסים שלו, כך שהצוות תמיד מדויק.</p></div>
+    </div>
+  </div>
+
+  <!-- CEREMONIES -->
+  <div class="section" id="ceremonies">
+    <h2>📅 פגישות אג'יליות אוטומטיות — בנויות לצוותים מרוחקים</h2>
+    <p class="sub">לכל פגישה יש עמוד ייעודי עם <strong>שיחת הווידאו של הצוות בראש העמוד (Jitsi)</strong> והנתונים הרלוונטיים
+       מתחתיה — כך שצוות מבוזר מריץ את כל מקצב האג'ייל בלי לצאת מהכלי ובלי לחבר אפליקציות נפרדות.</p>
+    <div class="grid-3">
+      <div class="card"><div class="ic">🗣️</div><h4>Daily Standup</h4><p>"מה עשיתי אתמול / מה אעשה היום" לכל מפתח, ישירות מהמשימות והכרטיסים שלו.</p></div>
+      <div class="card"><div class="ic">📋</div><h4>תכנון ספרינט</h4><p>קיבולת הצוות, מה עדיין דורש הערכה, ומאגר (Backlog) שאפשר למשוך ממנו — בזמן אמת.</p></div>
+      <div class="card"><div class="ic">🔍</div><h4>ליטוש מאגר</h4><p>מציף כרטיסים חסרי הערכה או פירוט, כדי שהצוות ילטש אותם יחד.</p></div>
+      <div class="card"><div class="ic">🎬</div><h4>סקירת ספרינט / הדגמה</h4><p>בדיוק מה שסופק בספרינט, מוכן להדגמה, בתוספת מה שעבר לספרינט הבא.</p></div>
+      <div class="card"><div class="ic">🔁</div><h4>רטרוספקטיבה</h4><p>ביצועי הספרינט מול ספרינטים קודמים + כרטיס ביצועים לכל מפתח (איכות סיפור, הערכה, בדיקות).</p></div>
+      <div class="card"><div class="ic">🎥</div><h4>‏Jitsi כשרת הווידאו</h4><p>כל פגישה מטמיעה חדר <strong>Jitsi</strong> (בהתקנה עצמית או ציבורי) — ללא Zoom, ללא רישוי לפי מושב, הווידאו נשאר על התשתית שלכם.</p></div>
+    </div>
+    <div class="tip"><strong>מרוחק-תחילה:</strong> סטנדאפים, תכנון, סקירות ורטרו — כולם רצים עם סרגל המצלמה מעוגן בראש העמוד.
+      מאתר אנשי קשר בסרגל העליון מאפשר לכל אחד לשוחח בווידאו או לשלוח הודעה לחבר צוות מכל מסך.</div>
+  </div>
+
+  <!-- TESTING -->
+  <div class="section" id="testing">
+    <h2>🧪 בדיקות אוטומטיות, מקצה לקצה</h2>
+    <div class="grid-3">
+      <div class="card"><div class="ic">⚙️</div><h4>‏CI ותוצאות בדיקה</h4><p>בנייות Jenkins/Gitea מזינות תוצאות עבר/נכשל מנותחות אל הכרטיס ולוח ה-CI.</p></div>
+      <div class="card"><div class="ic">🔍</div><h4>ביקורת קוד ובדיקות ב-AI</h4><p>ה-AI סוקר diffs וקבצי Cucumber, ומסמן באגים ו<strong>תרחישים חסרים</strong>.</p></div>
+      <div class="card"><div class="ic">📝</div><h4>עורך בדיקות מובנה</h4><p>עריכת קבצי <code>.feature</code> של הכרטיס בעורך כהה עם הדגשת תחביר Gherkin, וביקורת AI עליהם — ישירות מפאנל "קבצים ששונו" של הכרטיס.</p></div>
+    </div>
+  </div>
+
+  <!-- ASK -->
+  <div class="section" id="ask">
+    <h2>💬 שאל את הפרויקט שלך כל דבר</h2>
+    <p class="sub">פתחו <strong>צ'אט עם AI</strong> מכל פרויקט. הוא טוען את ה-repo של הפרויקט, הכרטיסים, הספרינט, ההודעות
+       וסיכום ביצועים לכל מפתח — כך שהתשובות מבוססות על הנתונים האמיתיים שלכם.</p>
+    <div class="chat">
+      <div class="chat-head">🤖 צ'אט עם AI · Print Server / TDI · ספרינט 4</div>
+      <div class="chat-body">
+        <div class="msg u"><div class="bubble">מי המפתח שמספק הכי מהר?</div></div>
+        <div class="msg a"><div class="bubble">אבי פרץ — 12 כרטיסים סופקו בכ-6.1 שעות לכרטיס, מעל ממוצע הצוות.</div></div>
+        <div class="msg u"><div class="bubble">למי ההערכות הכי טובות?</div></div>
+        <div class="msg a"><div class="bubble">דנה מזרחי — 92% דיוק הערכה מול בפועל; ממוצע הצוות הוא 78%.</div></div>
+        <div class="msg u"><div class="bubble">מה סטטוס הספרינט הנוכחי?</div></div>
+        <div class="msg a"><div class="bubble">ספרינט 4 הושלם ב-46% עם 6 ימים שנותרו; סיכון: 2 כרטיסים בעדיפות גבוהה עדיין בסקירה.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    DevTeam Hub · סקירת מוצר (עברית) · 2026. בהתקנה עצמית מלאה — ה-AI רץ על החומרה שלכם; הקוד, הכרטיסים ונתוני הלקוח
+    לעולם אינם יוצאים מהרשת הפנימית. מהדורה אנגלית: <code>docs/product_overview_en.html</code>.
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTeam Hub — The On-Premises Dev Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f0e8;
+      --panel: #fffdf7;
+      --ink: #12252b;
+      --muted: #5c6f76;
+      --line: #d7d0c2;
+      --teal: #0b7a75;
+      --teal-light: rgba(11,122,117,.10);
+      --navy: #17324a;
+      --orange: #d26d18;
+      --red: #b63a34;
+      --green: #1a7a3a;
+      --purple: #6d28d9;
+      --blue: #2563eb;
+      --shadow: 0 18px 44px rgba(18,37,43,.09);
+      --shadow-sm: 0 4px 18px rgba(18,37,43,.07);
+      --radius: 20px;
+      --mono: "JetBrains Mono", monospace;
+      --sans: "Manrope", "Segoe UI", sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      color: var(--ink); font-family: var(--sans); line-height: 1.65;
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(11,122,117,.13), transparent),
+        radial-gradient(760px 340px at 100% 0%, rgba(109,40,217,.09), transparent),
+        var(--bg);
+    }
+
+    /* ── layout ── */
+    .shell { max-width: 1100px; margin: 0 auto; padding: 0 18px 80px; }
+
+    /* ── nav ── */
+    nav {
+      position: sticky; top: 12px; z-index: 50;
+      background: rgba(255,253,247,.93); border: 1px solid var(--line);
+      border-radius: 18px; backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-sm);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 22px; gap: 10px; flex-wrap: wrap; margin: 12px 0 0;
+    }
+    .nav-logo { font-weight: 800; font-size: 1.05rem; color: var(--teal); display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .nav-logo img { width: 28px; height: 28px; }
+    .nav-links { display: flex; gap: 2px; flex-wrap: wrap; }
+    .nav-links a { color: var(--muted); font-size: .8rem; font-weight: 700; text-decoration: none; padding: 6px 11px; border-radius: 8px; transition: all .15s; }
+    .nav-links a:hover { background: var(--teal-light); color: var(--teal); }
+    .nav-cta { background: var(--teal); color: #fff; font-weight: 800; font-size: .82rem; padding: 8px 18px; border-radius: 10px; text-decoration: none; transition: opacity .15s; }
+    .nav-cta:hover { opacity: .88; }
+    .lang-switch { font-size: .78rem; font-weight: 700; color: var(--muted); text-decoration: none; border: 1px solid var(--line); padding: 5px 10px; border-radius: 8px; }
+    .lang-switch:hover { color: var(--teal); border-color: var(--teal); }
+
+    /* ── hero ── */
+    .hero { text-align: center; padding: 56px 18px 36px; }
+    .kicker { font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--purple); font-size: .74rem; margin-bottom: 12px; }
+    .hero h1 { font-size: clamp(2.1rem, 5vw, 3.2rem); font-weight: 900; color: var(--navy); line-height: 1.15; margin-bottom: 18px; }
+    .hero h1 em { font-style: normal; color: var(--teal); }
+    .hero p { font-size: 1.08rem; color: var(--muted); max-width: 740px; margin: 0 auto 24px; }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+    .btn-primary { background: var(--teal); color: #fff; font-weight: 800; font-size: .95rem; padding: 13px 28px; border-radius: 12px; text-decoration: none; transition: opacity .15s; }
+    .btn-primary:hover { opacity: .88; }
+    .btn-outline { background: transparent; color: var(--teal); font-weight: 800; font-size: .95rem; padding: 12px 24px; border-radius: 12px; text-decoration: none; border: 2px solid var(--teal); transition: all .15s; }
+    .btn-outline:hover { background: var(--teal-light); }
+    .badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 42px; }
+    .badge { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 5px 14px; font-size: .78rem; font-weight: 700; color: var(--teal); }
+
+    /* ── hero screenshot ── */
+    .hero-shot { position: relative; margin: 0 auto; max-width: 960px; }
+    .hero-shot img { width: 100%; border-radius: 16px; box-shadow: 0 32px 80px rgba(18,37,43,.18); border: 1px solid var(--line); }
+    .shot-label { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; font-size: .72rem; font-weight: 700; padding: 5px 14px; border-radius: 20px; white-space: nowrap; }
+
+    /* ── sections ── */
+    section { margin-top: 70px; }
+    .sec-head { text-align: center; margin-bottom: 36px; }
+    .sec-kicker { font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: .72rem; color: var(--purple); margin-bottom: 8px; }
+    .sec-head h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 900; color: var(--navy); margin-bottom: 10px; }
+    .sec-head p { color: var(--muted); font-size: 1rem; max-width: 680px; margin: 0 auto; }
+
+    /* ── cards ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    @media (max-width: 900px) { .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } nav { top: 0; border-radius: 0; margin: 0; } }
+
+    .card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+      padding: 22px; box-shadow: var(--shadow-sm);
+    }
+    .card-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .card h3 { font-size: 1rem; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .card p { font-size: .875rem; color: var(--muted); line-height: 1.65; }
+    .card-teal { border-top: 3px solid var(--teal); }
+    .card-purple { border-top: 3px solid var(--purple); }
+    .card-orange { border-top: 3px solid var(--orange); }
+    .card-blue { border-top: 3px solid var(--blue); }
+    .card-green { border-top: 3px solid var(--green); }
+    .card-red { border-top: 3px solid var(--red); }
+
+    /* ── feature split ── */
+    .feature-split { display: grid; grid-template-columns: 1fr 1fr; gap: 42px; align-items: center; }
+    .feature-split.flip { direction: rtl; }
+    .feature-split.flip > * { direction: ltr; }
+    @media (max-width: 750px) { .feature-split, .feature-split.flip { grid-template-columns: 1fr; direction: ltr; } }
+    .feature-text .tag { display: inline-block; background: var(--teal-light); color: var(--teal); font-weight: 800; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px; border-radius: 8px; margin-bottom: 12px; }
+    .feature-text h2 { font-size: 1.75rem; font-weight: 900; color: var(--navy); line-height: 1.25; margin-bottom: 12px; }
+    .feature-text p { color: var(--muted); font-size: .95rem; margin-bottom: 14px; }
+    .feature-text ul { list-style: none; }
+    .feature-text ul li { display: flex; gap: 8px; font-size: .9rem; color: var(--ink); margin-bottom: 8px; align-items: flex-start; }
+    .feature-text ul li::before { content: "✓"; color: var(--teal); font-weight: 800; flex-shrink: 0; margin-top: 1px; }
+    .shot-wrap img { width: 100%; border-radius: 14px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+    .shot-wrap.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ── screenshot gallery ── */
+    .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 700px) { .gallery { grid-template-columns: 1fr 1fr; } }
+    .gallery-item { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm); cursor: pointer; }
+    .gallery-item img { width: 100%; display: block; transition: transform .3s; }
+    .gallery-item:hover img { transform: scale(1.03); }
+    .gallery-caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(18,37,43,.78)); color: #fff; font-size: .72rem; font-weight: 700; padding: 18px 10px 8px; }
+
+    /* ── AI services ── */
+    .ai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 900px) { .ai-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .ai-grid { grid-template-columns: 1fr; } }
+    .ai-card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+      padding: 18px; box-shadow: var(--shadow-sm);
+      border-left: 4px solid transparent;
+    }
+    .ai-card.kind-review { border-left-color: var(--teal); }
+    .ai-card.kind-plan { border-left-color: var(--purple); }
+    .ai-card.kind-doc { border-left-color: var(--orange); }
+    .ai-card .ai-icon { font-size: 1.5rem; margin-bottom: 8px; }
+    .ai-card h4 { font-size: .93rem; font-weight: 800; color: var(--navy); margin-bottom: 5px; }
+    .ai-card p { font-size: .82rem; color: var(--muted); }
+    .ai-card code { font-family: var(--mono); font-size: .75em; background: var(--teal-light); color: var(--teal); padding: 2px 6px; border-radius: 5px; }
+    .ai-arch {
+      background: var(--navy); color: #fff; border-radius: 14px; padding: 22px 26px;
+      font-family: var(--mono); font-size: .82rem; line-height: 1.7; margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .ai-arch .c { color: #64d2c9; }
+    .ai-arch .a { color: #fca96b; }
+
+    /* ── API section ── */
+    .api-panel {
+      background: var(--navy); color: #e8f0f2; border-radius: var(--radius);
+      padding: 32px 36px; box-shadow: var(--shadow);
+    }
+    .api-panel h2 { color: #fff; font-size: 1.6rem; font-weight: 900; margin-bottom: 8px; }
+    .api-panel .sub { color: #8ba6b5; font-size: .93rem; margin-bottom: 24px; }
+    .api-endpoints { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px) { .api-endpoints { grid-template-columns: 1fr; } }
+    .ep { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 14px; }
+    .ep .method { font-family: var(--mono); font-size: .7rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; margin-right: 6px; }
+    .get { background: rgba(100,210,201,.15); color: #64d2c9; }
+    .post { background: rgba(252,169,107,.15); color: #fca96b; }
+    .patch { background: rgba(130,195,255,.15); color: #82c3ff; }
+    .ep .path { font-family: var(--mono); font-size: .8rem; color: #e8f0f2; }
+    .ep p { font-size: .78rem; color: #8ba6b5; margin-top: 5px; }
+    .code-block {
+      background: rgba(0,0,0,.35); border-radius: 10px; padding: 16px 18px;
+      font-family: var(--mono); font-size: .8rem; line-height: 1.65;
+      color: #d4efec; margin-top: 18px; overflow-x: auto;
+    }
+    .code-block .cm { color: #5c8a88; }
+    .code-block .ck { color: #82c3ff; }
+    .code-block .cv { color: #fca96b; }
+
+    /* ── CLI section ── */
+    .cli-panel {
+      background: #111b21; color: #c5dbd2; border-radius: var(--radius);
+      padding: 28px 32px; font-family: var(--mono); font-size: .85rem;
+      line-height: 1.75; box-shadow: var(--shadow); overflow-x: auto;
+    }
+    .cli-panel .prompt { color: #64d2c9; user-select: none; }
+    .cli-panel .cmd { color: #e8f0f2; }
+    .cli-panel .out { color: #7ea89e; }
+    .cli-panel .ok { color: #6ede8a; }
+    .cli-panel .info { color: #82c3ff; }
+
+    /* ── testing section ── */
+    .test-split { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    @media (max-width: 700px) { .test-split { grid-template-columns: 1fr; } }
+    .feature-code {
+      background: #1b2b35; color: #c5dbd2; border-radius: 14px;
+      padding: 20px 22px; font-family: var(--mono); font-size: .8rem;
+      line-height: 1.7; overflow-x: auto; box-shadow: var(--shadow-sm);
+    }
+    .feature-code .kw { color: #82c3ff; }
+    .feature-code .str { color: #a8e6a3; }
+    .feature-code .cm { color: #5c7a6e; }
+    .feature-code .step { color: #fca96b; }
+
+    /* ── agile ceremonies ── */
+    .ceremony-row { display: flex; gap: 14px; flex-wrap: wrap; }
+    .ceremony-card {
+      flex: 1; min-width: 200px; background: var(--panel); border: 1px solid var(--line);
+      border-radius: 14px; padding: 20px; box-shadow: var(--shadow-sm);
+      position: relative; overflow: hidden;
+    }
+    .ceremony-card::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .ceremony-card.c1::before { background: var(--teal); }
+    .ceremony-card.c2::before { background: var(--purple); }
+    .ceremony-card.c3::before { background: var(--orange); }
+    .ceremony-card.c4::before { background: var(--blue); }
+    .ceremony-card .ic { font-size: 2rem; margin-bottom: 10px; }
+    .ceremony-card h3 { font-size: .97rem; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .ceremony-card p { font-size: .84rem; color: var(--muted); }
+    .ceremony-card .freq { display: inline-block; margin-top: 10px; font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; background: var(--teal-light); color: var(--teal); }
+
+    /* ── testimonials / team ── */
+    .team-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+    .team-card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+      padding: 20px; max-width: 240px; box-shadow: var(--shadow-sm); text-align: center;
+    }
+    .team-card img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 3px solid var(--line); margin-bottom: 10px; }
+    .team-card p { font-size: .83rem; color: var(--muted); font-style: italic; margin-bottom: 10px; }
+    .team-card .name { font-size: .8rem; font-weight: 800; color: var(--navy); }
+    .team-card .role { font-size: .73rem; color: var(--muted); }
+
+    /* ── on-prem banner ── */
+    .onprem-banner {
+      background: var(--teal); color: #fff; border-radius: var(--radius);
+      padding: 36px 40px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap;
+    }
+    .onprem-banner .ob-text { flex: 1; min-width: 260px; }
+    .onprem-banner h2 { font-size: 1.7rem; font-weight: 900; margin-bottom: 8px; }
+    .onprem-banner p { font-size: .95rem; opacity: .88; }
+    .onprem-banner .ob-list { list-style: none; margin-top: 14px; }
+    .onprem-banner .ob-list li { display: flex; gap: 8px; font-size: .88rem; opacity: .9; margin-bottom: 6px; }
+    .onprem-banner .ob-list li::before { content: "🔒"; flex-shrink: 0; }
+    .onprem-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-width: 220px; }
+    .stat { background: rgba(255,255,255,.14); border-radius: 12px; padding: 16px; text-align: center; }
+    .stat .num { font-size: 2rem; font-weight: 900; }
+    .stat .lbl { font-size: .72rem; opacity: .8; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+
+    /* ── footer ── */
+    footer { text-align: center; color: var(--muted); font-size: .83rem; padding: 40px 0 20px; border-top: 1px solid var(--line); margin-top: 60px; }
+    footer a { color: var(--teal); text-decoration: none; }
+
+    /* ── misc ── */
+    code { font-family: var(--mono); font-size: .85em; background: var(--teal-light); color: var(--teal); padding: 2px 7px; border-radius: 5px; }
+    .tip { background: var(--teal-light); border-left: 3px solid var(--teal); padding: 12px 16px; border-radius: 0 10px 10px 0; font-size: .9rem; margin: 12px 0; }
+    .divider { height: 1px; background: var(--line); margin: 60px 0; }
+    .text-teal { color: var(--teal); }
+    .text-purple { color: var(--purple); }
+    .mt-24 { margin-top: 24px; }
+    .section-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 36px 40px; box-shadow: var(--shadow); }
+    @media (max-width: 600px) { .section-panel { padding: 24px 20px; } .api-panel { padding: 24px 20px; } }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── NAV ── -->
+  <nav>
+    <a class="nav-logo" href="#">
+      <img src="/icon.png" alt="DevTeam Hub logo"> DevTeam Hub
+    </a>
+    <div class="nav-links">
+      <a href="#agile">Agile</a>
+      <a href="#tickets">Tickets</a>
+      <a href="#testing">Testing</a>
+      <a href="#ai">AI Services</a>
+      <a href="#api">API</a>
+      <a href="#cli">CLI</a>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <a class="lang-switch" href="landing_he.html">עברית 🇮🇱</a>
+      <a class="nav-cta" href="#contact">Request Demo</a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <div class="kicker">On-Premises · Agile · AI-Powered</div>
+    <h1>Your entire dev process,<br><em>running on your own servers.</em></h1>
+    <p>DevTeam Hub brings ticket management, sprint ceremonies, BDD testing with Cucumber,
+       CI pipelines, and a local AI engine into one self-hosted platform — no data ever
+       leaves your network.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#agile">Explore Features</a>
+      <a class="btn-outline" href="#api">View the API</a>
+    </div>
+    <div class="badges">
+      <span class="badge">🔒 100% On-Premises</span>
+      <span class="badge">🤖 Local AI — No Cloud</span>
+      <span class="badge">🧪 Cucumber / BDD Built-in</span>
+      <span class="badge">🏃 Full Agile Ceremonies</span>
+      <span class="badge">🖥️ CLI + VS Code Extension</span>
+      <span class="badge">🔌 REST API</span>
+    </div>
+    <div class="hero-shot">
+      <img src="../docs/screenshots/en/01_today.png" alt="DevTeam Hub – Today view">
+      <div class="shot-label">Today View — your team's pulse at a glance</div>
+    </div>
+  </div>
+
+  <!-- ── ON-PREM BANNER ── -->
+  <section style="margin-top:80px;">
+    <div class="onprem-banner">
+      <div class="ob-text">
+        <h2>Built for on-premises teams</h2>
+        <p>Designed specifically for organizations that can't — or won't — push code,
+           tickets, and business data to third-party SaaS platforms.</p>
+        <ul class="ob-list">
+          <li>All data stays on infrastructure you control</li>
+          <li>Local AI engine — no OpenAI or Anthropic API calls in production</li>
+          <li>Air-gapped environments supported</li>
+          <li>One-command Docker deployment, no cloud dependencies</li>
+        </ul>
+      </div>
+      <div class="onprem-stats">
+        <div class="stat"><div class="num">39</div><div class="lbl">Screens & Views</div></div>
+        <div class="stat"><div class="num">11</div><div class="lbl">AI Services</div></div>
+        <div class="stat"><div class="num">100%</div><div class="lbl">On-Prem</div></div>
+        <div class="stat"><div class="num">0</div><div class="lbl">Data Leaks</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── AGILE CEREMONIES ── -->
+  <section id="agile">
+    <div class="sec-head">
+      <div class="sec-kicker">Agile Process</div>
+      <h2>The full agile lifecycle, out of the box</h2>
+      <p>From sprint planning to retrospectives, DevTeam Hub runs every ceremony
+         automatically — scheduled, recorded, and linked to your tickets and velocity data.</p>
+    </div>
+
+    <div class="ceremony-row">
+      <div class="ceremony-card c1">
+        <div class="ic">🌅</div>
+        <h3>Daily Stand-up</h3>
+        <p>Structured daily meeting with yesterday / today / blockers — linked to active tickets and sprint progress. Jitsi video integrated.</p>
+        <span class="freq">Daily</span>
+      </div>
+      <div class="ceremony-card c2">
+        <div class="ic">📅</div>
+        <h3>Sprint Planning</h3>
+        <p>Pull tickets from the backlog into a time-boxed sprint. AI estimation calibration surfaces under/over-estimate patterns before you commit.</p>
+        <span class="freq">Per Sprint</span>
+      </div>
+      <div class="ceremony-card c3">
+        <div class="ic">🔍</div>
+        <h3>Sprint Review</h3>
+        <p>Review completed tickets against sprint goals. CI pass rates, deployment status, and velocity charts are right there on the sprint page.</p>
+        <span class="freq">End of Sprint</span>
+      </div>
+      <div class="ceremony-card c4">
+        <div class="ic">🪞</div>
+        <h3>Retrospective</h3>
+        <p>Structured retro with went-well / improve / actions. AI retro assistant clusters team comments into themes and proposes action items.</p>
+        <span class="freq">End of Sprint</span>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;" class="grid-2">
+      <div class="shot-wrap">
+        <img src="../docs/screenshots/en/18_meetings.png" alt="Meetings view">
+      </div>
+      <div class="shot-wrap">
+        <img src="../docs/screenshots/en/19_meeting_detail.png" alt="Meeting detail">
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TICKET MANAGEMENT ── -->
+  <section id="tickets" style="margin-top:70px;">
+    <div class="feature-split">
+      <div class="feature-text">
+        <div class="tag">Ticket Management</div>
+        <h2>Every unit of work, fully tracked</h2>
+        <p>Tickets move through a clear lifecycle — from draft through approval, estimation, development, and testing — all the way to done. Nothing falls through the cracks.</p>
+        <ul>
+          <li>Full lifecycle: draft → approved → estimated → in progress → done</li>
+          <li>Priority, kind, complexity, assignee, and owner on every ticket</li>
+          <li>Git branch auto-created from the ticket title</li>
+          <li>Linked CI runs, PRs, deployments, and tasks</li>
+          <li>AI readiness check — pushes vague tickets back to the owner</li>
+          <li>Task breakdown with calibrated time estimates</li>
+        </ul>
+      </div>
+      <div class="shot-wrap">
+        <img src="../docs/screenshots/en/08_ticket_detail.png" alt="Ticket detail">
+      </div>
+    </div>
+
+    <div style="margin-top:28px;" class="grid-3">
+      <div class="shot-wrap"><img src="../docs/screenshots/en/03_all_tickets.png" alt="All tickets"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/en/04_my_tickets.png" alt="My tickets"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/en/06_backlog.png" alt="Backlog"></div>
+    </div>
+  </section>
+
+  <!-- ── SPRINTS ── -->
+  <section style="margin-top:70px;">
+    <div class="feature-split flip">
+      <div class="feature-text">
+        <div class="tag">Sprint Management</div>
+        <h2>Predictable iterations, visible progress</h2>
+        <p>One active sprint at a time. Burn-down charts, velocity tracking, and an AI health score tell you whether the sprint is on track — before it's too late to act.</p>
+        <ul>
+          <li>Single current sprint with clear goals and burn-down</li>
+          <li>Velocity reports across sprints — spot trends early</li>
+          <li>AI sprint analysis loads live on the sprint page</li>
+          <li>Estimation accuracy scoring per developer and per complexity level</li>
+          <li>Sprint calendar with automatic ceremony scheduling</li>
+        </ul>
+      </div>
+      <div class="shot-wrap">
+        <img src="../docs/screenshots/en/30_sprint_detail.png" alt="Sprint detail">
+      </div>
+    </div>
+
+    <div style="margin-top:28px;" class="grid-2">
+      <div class="shot-wrap"><img src="../docs/screenshots/en/35_report_velocity.png" alt="Velocity report"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/en/36_report_estimation.png" alt="Estimation report"></div>
+    </div>
+  </section>
+
+  <!-- ── TESTING / CUCUMBER ── -->
+  <section id="testing" style="margin-top:70px;">
+    <div class="sec-head">
+      <div class="sec-kicker">Testing Integration</div>
+      <h2>BDD with Cucumber — baked in, not bolted on</h2>
+      <p>Cucumber feature files live alongside your code. CI parses results directly into DevTeam Hub.
+         The AI reviews your Gherkin and suggests missing scenarios before you push.</p>
+    </div>
+
+    <div class="test-split">
+      <div>
+        <h3 class="text-teal" style="font-size:1rem;font-weight:800;margin-bottom:12px;">Your .feature files drive the board</h3>
+        <div class="feature-code">
+<span class="kw">Feature:</span> <span class="str">Ticket commands</span>
+  <span class="cm"># As a developer</span>
+  <span class="cm"># I want to manage tickets from the CLI</span>
+
+  <span class="kw">Background:</span>
+    <span class="step">Given</span> <span class="str">the API server is running</span>
+    <span class="step">And</span> <span class="str">I am authenticated</span>
+
+  <span class="kw">Scenario:</span> <span class="str">Start work on a ticket</span>
+    <span class="step">Given</span> <span class="str">a ticket with id 42, title "Fix login bug", status "open"</span>
+    <span class="step">When</span> <span class="str">I run "devteam ticket 42 start"</span>
+    <span class="step">Then</span> <span class="str">the output contains "in_progress"</span>
+    <span class="step">And</span> <span class="str">the exit code is 0</span>
+
+  <span class="kw">Scenario:</span> <span class="str">Mark a ticket as done</span>
+    <span class="step">Given</span> <span class="str">a ticket with id 42, title "Fix login bug", status "in_progress"</span>
+    <span class="step">When</span> <span class="str">I run "devteam ticket 42 done"</span>
+    <span class="step">Then</span> <span class="str">the output contains "done"</span>
+    <span class="step">And</span> <span class="str">the exit code is 0</span>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-teal" style="font-size:1rem;font-weight:800;margin-bottom:12px;">Multi-framework, multi-language support</h3>
+        <div class="grid-2" style="gap:10px;">
+          <div class="card card-teal">
+            <div class="card-icon">💎</div>
+            <h3>Ruby / Rails</h3>
+            <p>cucumber-rails with full Capybara browser testing and RSpec integration.</p>
+          </div>
+          <div class="card card-blue">
+            <div class="card-icon">🔷</div>
+            <h3>Go (godog)</h3>
+            <p>godog v0.14 runs Gherkin scenarios against the Go CLI — httptest mocks included.</p>
+          </div>
+          <div class="card card-orange">
+            <div class="card-icon">🌐</div>
+            <h3>.NET / C#</h3>
+            <p>SpecFlow feature files for C# services with xUnit step definitions.</p>
+          </div>
+          <div class="card card-purple">
+            <div class="card-icon">⚡</div>
+            <h3>Playwright / UI</h3>
+            <p>End-to-end browser tests for web portals — recorded in CI and linked to tickets.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-top:10px;">
+          <div class="card-icon">📊</div>
+          <h3>CI test results parsed into the platform</h3>
+          <p>Every CI run posts results back to DevTeam Hub. Test coverage trends, failure rates, and flaky test detection are visible on the CI dashboard — linked to the ticket that broke them.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;" class="grid-2">
+      <div class="shot-wrap"><img src="../docs/screenshots/en/17_ci_dashboard.png" alt="CI Dashboard"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/en/34_report_test_coverage.png" alt="Test coverage report"></div>
+    </div>
+  </section>
+
+  <!-- ── AI SERVICES ── -->
+  <section id="ai" style="margin-top:70px;">
+    <div class="sec-head">
+      <div class="sec-kicker">AI Add-on</div>
+      <h2>11 AI services — all running locally on your Mac mini</h2>
+      <p>Powered by Ollama and a locally-running LLM (llama3.1, qwen2.5-coder, or any open model).
+         No API keys. No SaaS. No data leaving your network. Ever.</p>
+    </div>
+
+    <div class="ai-arch">
+      <span class="c">DevTeam Hub (Rails)</span>  ──[HTTP · LAN only]──▶  <span class="a">Mac mini · ollama serve</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;POST /api/chat { model, messages }<br>
+      <span class="c">Ai::OllamaClient</span>     ◀──────────────────────  <span class="a">llama3.1 / qwen2.5-coder</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ message: { content } }<br>
+      <br>
+      ✅ Source code, diffs, ticket text — none of it reaches the internet.
+    </div>
+
+    <div class="ai-grid">
+      <div class="ai-card kind-review">
+        <div class="ai-icon">✅</div>
+        <h4>Ticket Readiness Check</h4>
+        <p>Judges the ticket against a Definition of Ready — clear story, testable criteria, bug reproduction steps. Auto-pushes vague tickets back to the owner.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/ticket_quality</code></p>
+      </div>
+      <div class="ai-card kind-review">
+        <div class="ai-icon">🔍</div>
+        <h4>Code Review (Go / Ruby / C# / Node)</h4>
+        <p>Reviews a git diff for correctness bugs, security, performance, and language idioms. Groups findings into Blocking, Suggestions, and Lint.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/code_review</code></p>
+      </div>
+      <div class="ai-card kind-review">
+        <div class="ai-icon">🧪</div>
+        <h4>Cucumber Test Review</h4>
+        <p>Reviews Gherkin for clarity, determinism, and structure. Suggests missing edge-case scenarios — written as ready-to-paste Gherkin.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/test_review</code></p>
+      </div>
+      <div class="ai-card kind-plan">
+        <div class="ai-icon">💡</div>
+        <h4>Solution Suggestion</h4>
+        <p>Reads a ticket and proposes an implementation approach — steps, likely files, edge cases, risks, and which tests to add.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/solution_suggestion</code></p>
+      </div>
+      <div class="ai-card kind-plan">
+        <div class="ai-icon">🐛</div>
+        <h4>Fix That Bug</h4>
+        <p>Reads a bug ticket, reasons about the likely root cause, and proposes a minimal concrete fix with tests. Confidence score 0–100.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/fix_bug</code></p>
+      </div>
+      <div class="ai-card kind-plan">
+        <div class="ai-icon">🧩</div>
+        <h4>Generate Tasks & Estimates</h4>
+        <p>Breaks a story into independently estimable Task records. Calibrates estimates against the team's historical accuracy data.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/generate_tasks</code></p>
+      </div>
+      <div class="ai-card kind-plan">
+        <div class="ai-icon">📊</div>
+        <h4>Estimation Analysis</h4>
+        <p>Compares dev_estimate vs actual hours per ticket. Surfaces systematic bias, per-developer patterns, and gives concrete coaching.</p>
+        <p style="margin-top:6px;"><code>POST /tools/ai/estimation_analysis</code></p>
+      </div>
+      <div class="ai-card kind-plan">
+        <div class="ai-icon">🚦</div>
+        <h4>Sprint Health Analysis</h4>
+        <p>Live sprint assessment — on-track vs at-risk, WIP levels, workload balance, and the single most important next step. Score 0–100.</p>
+        <p style="margin-top:6px;"><code>GET /tools/ai/sprint_analysis</code></p>
+      </div>
+      <div class="ai-card kind-doc">
+        <div class="ai-icon">📋</div>
+        <h4>Generate Specification</h4>
+        <p>Derives a structured spec document from the project's user stories — goals, functional requirements, AC, non-functional, open questions.</p>
+        <p style="margin-top:6px;"><code>POST /projects/:id/documents/generate</code></p>
+      </div>
+      <div class="ai-card kind-doc">
+        <div class="ai-icon">🎯</div>
+        <h4>Status Presentation</h4>
+        <p>Generates a slide-style Markdown status report from live metrics — tickets, tasks, CI pass rate, deployments, and milestones.</p>
+        <p style="margin-top:6px;"><code>POST /projects/:id/documents/generate</code></p>
+      </div>
+      <div class="ai-card kind-doc">
+        <div class="ai-icon">💬</div>
+        <h4>Project-Scoped Chat</h4>
+        <p>OpenAI-style chat with context from tickets, sprints, PRs, team performance metrics, and repository code. Ask anything about your project.</p>
+        <p style="margin-top:6px;"><code>/projects/:id/ai_chats</code></p>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;" class="grid-2">
+      <div class="shot-wrap"><img src="../docs/screenshots/en/22_documents.png" alt="Documents"></div>
+      <div class="shot-wrap"><img src="../docs/screenshots/en/23_document_detail.png" alt="Document detail"></div>
+    </div>
+  </section>
+
+  <!-- ── API ── -->
+  <section id="api" style="margin-top:70px;">
+    <div class="api-panel">
+      <h2>🔌 Full REST API</h2>
+      <p class="sub">Every feature is reachable from CI, scripts, the CLI, or your own integrations. Bearer token auth — one endpoint for everything.</p>
+
+      <div class="api-endpoints">
+        <div class="ep">
+          <span class="method get">GET</span><span class="path">/api/v1/tickets</span>
+          <p>List tickets. Filter by assignee, status, project, sprint.</p>
+        </div>
+        <div class="ep">
+          <span class="method post">POST</span><span class="path">/api/v1/tickets</span>
+          <p>Create a ticket with full metadata — project, priority, kind, assignee.</p>
+        </div>
+        <div class="ep">
+          <span class="method patch">PATCH</span><span class="path">/api/v1/tickets/:id</span>
+          <p>Update status, assignee, branch name, or any ticket field.</p>
+        </div>
+        <div class="ep">
+          <span class="method get">GET</span><span class="path">/api/v1/projects</span>
+          <p>List projects with repo URL, default branch, and sprint info.</p>
+        </div>
+        <div class="ep">
+          <span class="method get">GET</span><span class="path">/api/v1/sprints/:id</span>
+          <p>Sprint data — tickets, points, burn-down, velocity, CI pass rate.</p>
+        </div>
+        <div class="ep">
+          <span class="method post">POST</span><span class="path">/tools/ai/code_review</span>
+          <p>Submit a diff for AI code review. Returns verdict, score, Markdown findings.</p>
+        </div>
+        <div class="ep">
+          <span class="method post">POST</span><span class="path">/tools/ai/test_review</span>
+          <p>Submit a .feature file for AI Cucumber review and missing-scenario suggestions.</p>
+        </div>
+        <div class="ep">
+          <span class="method get">GET</span><span class="path">/api/v1/token</span>
+          <p>Get or regenerate the current user's API token.</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+<span class="cm"># Create a ticket from CI or an incident script</span>
+curl -s -X <span class="ck">POST</span> <span class="cv">"$DEVTEAM_URL/api/v1/tickets"</span> \
+  -H <span class="cv">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="cv">"Content-Type: application/json"</span> \
+  -d <span class="cv">'{ "ticket": { "project_id": 3, "title": "DB timeout on checkout", "status": "open", "priority": "high", "kind": "bug_fix" } }'</span>
+
+<span class="cm"># AI code review from a CI pipeline step</span>
+curl -s -X <span class="ck">POST</span> <span class="cv">"$DEVTEAM_URL/tools/ai/code_review"</span> \
+  -H <span class="cv">"Authorization: Bearer $TOKEN"</span> \
+  --data-urlencode <span class="cv">"language=go"</span> \
+  --data-urlencode <span class="cv">"diff@-"</span> &lt; my.diff
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CLI ── -->
+  <section id="cli" style="margin-top:70px;">
+    <div class="sec-head">
+      <div class="sec-kicker">Developer CLI</div>
+      <h2>devteam — the whole platform from your terminal</h2>
+      <p>A single Go binary. No runtime, no Node, no Python. Works on Mac, Linux, and Windows.
+         Now with Cucumber tests via <code>godog</code>.</p>
+    </div>
+
+    <div class="cli-panel">
+<span class="prompt">$</span> <span class="cmd">devteam ticket 42 open</span>
+<span class="ok">✓ T-42 "Fix login bug"</span>
+<span class="ok">✓ branch feature/t-42-fix-login-bug created from main and checked out</span>
+<span class="info">↳ `devteam ticket 42 start` to begin a work session</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam ticket 42 start</span>
+<span class="ok">✓ work session started — T-42 is now in_progress</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam ticket 42 commit -m "handle nil user on checkout"</span>
+<span class="ok">✓ committed: T-42: handle nil user on checkout</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam ticket 42 push</span>
+<span class="ok">✓ pushed → origin/feature/t-42-fix-login-bug</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam ticket 42 done</span>
+<span class="ok">✓ marked done — T-42 is now done</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam status</span>
+<span class="out">folder  /home/dev/projects/api-core</span>
+<span class="out">branch  feature/t-42-fix-login-bug  ↑1 ↓0  clean</span>
+
+<span class="prompt">$</span> <span class="cmd">devteam test ./app/models</span>
+<span class="info">• running: bundle exec rspec app/models</span>
+<span class="ok">✓ tests passed</span>
+    </div>
+
+    <div class="grid-3" style="margin-top:20px;">
+      <div class="card card-teal">
+        <div class="card-icon">🎫</div>
+        <h3>ticket</h3>
+        <p>Open, start, stop, commit, push, done — full ticket lifecycle from the shell.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-icon">🧪</div>
+        <h3>test</h3>
+        <p>Run tests for a file or folder. Configured per repo via <code>.devteam.yml</code>.</p>
+      </div>
+      <div class="card card-purple">
+        <div class="card-icon">📦</div>
+        <h3>commit / push</h3>
+        <p>Stage, commit with a ticket-prefixed message, and push — in three short commands.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── GALLERY ── -->
+  <section style="margin-top:70px;">
+    <div class="sec-head">
+      <div class="sec-kicker">Platform Screenshots</div>
+      <h2>See everything the platform includes</h2>
+      <p>Every view — ticket boards, CI dashboards, reports, admin, and more.</p>
+    </div>
+
+    <div class="gallery">
+      <div class="gallery-item"><img src="../docs/screenshots/en/02_dashboard.png" alt="Dashboard"><div class="gallery-caption">Dashboard</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/07_current_sprint.png" alt="Current Sprint"><div class="gallery-caption">Current Sprint</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/09_projects.png" alt="Projects"><div class="gallery-caption">Projects</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/12_project_ci_runs.png" alt="CI Runs"><div class="gallery-caption">CI Runs</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/13_project_deployments.png" alt="Deployments"><div class="gallery-caption">Deployments</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/15_project_pull_requests.png" alt="Pull Requests"><div class="gallery-caption">Pull Requests</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/20_calendar.png" alt="Calendar"><div class="gallery-caption">Team Calendar</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/21_notifications.png" alt="Notifications"><div class="gallery-caption">Notifications</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/28_ci_run_detail.png" alt="CI Run Detail"><div class="gallery-caption">CI Run Detail</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/31_pull_request_detail.png" alt="PR Detail"><div class="gallery-caption">Pull Request Detail</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/32_report_ci_summary.png" alt="CI Summary"><div class="gallery-caption">CI Summary Report</div></div>
+      <div class="gallery-item"><img src="../docs/screenshots/en/33_report_deployments.png" alt="Deployment Report"><div class="gallery-caption">Deployment Report</div></div>
+    </div>
+  </section>
+
+  <!-- ── TEAM VOICES ── -->
+  <section style="margin-top:70px;">
+    <div class="sec-head">
+      <div class="sec-kicker">Built for real dev teams</div>
+      <h2>One platform, every role</h2>
+    </div>
+    <div class="team-row">
+      <div class="team-card">
+        <img src="../docs/users-icons/face1.jpg" alt="">
+        <p>"The AI readiness check alone saves us an entire planning meeting. Vague stories never reach the board anymore."</p>
+        <div class="name">Yaron K.</div>
+        <div class="role">Engineering Manager</div>
+      </div>
+      <div class="team-card">
+        <img src="../docs/users-icons/face4.jpg" alt="">
+        <p>"I open the branch, commit, and push the PR without leaving the terminal. The CLI pays for itself every day."</p>
+        <div class="name">Dana R.</div>
+        <div class="role">Senior Developer</div>
+      </div>
+      <div class="team-card">
+        <img src="../docs/users-icons/face7.jpg" alt="">
+        <p>"The Cucumber test review catches missing edge cases I always forgot. It's like a QA engineer in the CI pipeline."</p>
+        <div class="name">Ilan M.</div>
+        <div class="role">QA Lead</div>
+      </div>
+      <div class="team-card">
+        <img src="../docs/users-icons/face10.jpg" alt="">
+        <p>"Velocity reports finally let me show stakeholders why we're slowing down — with data, not gut feeling."</p>
+        <div class="name">Shira B.</div>
+        <div class="role">Product Manager</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section id="contact" style="margin-top:70px;">
+    <div class="section-panel" style="text-align:center;padding:56px 40px;">
+      <div class="sec-kicker">Get Started</div>
+      <h2 style="font-size:2rem;font-weight:900;color:var(--navy);margin-bottom:12px;">Ready to run DevTeam Hub on your servers?</h2>
+      <p style="color:var(--muted);font-size:1rem;max-width:600px;margin:0 auto 28px;">
+        One Docker command. No cloud accounts. No data leaving your network.
+        Contact us for a demo, a trial license, or on-site installation support.
+      </p>
+      <div class="hero-actions" style="justify-content:center;">
+        <a class="btn-primary" href="mailto:assaf.goldstein@cenevo.com">Request a Demo</a>
+        <a class="btn-outline" href="/devteam-cli.html">Read the CLI Docs</a>
+      </div>
+      <div style="margin-top:28px;color:var(--muted);font-size:.83rem;">
+        🔒 Runs on-premises · 🤖 Local AI (Ollama) · 🧪 Cucumber built-in · 🖥️ Go CLI · 🔌 REST API
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p><strong>DevTeam Hub</strong> — On-premises agile platform for development teams</p>
+    <p style="margin-top:6px;"><a href="landing_he.html">עברית</a> · <a href="/devteam-cli.html">CLI Docs</a> · <a href="/ai-for-devteam.html">AI Guide</a> · <a href="mailto:assaf.goldstein@cenevo.com">Contact</a></p>
+    <p style="margin-top:10px;color:var(--muted);">© 2026 Cenevo. All rights reserved.</p>
+  </footer>
+
+</div>
+</body>
+</html>

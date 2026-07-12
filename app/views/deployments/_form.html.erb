@@ -1,0 +1,111 @@
+<%= form_with model: deployment.persisted? ? deployment : [@project, deployment], class: "needs-validation", novalidate: true do |f| %>
+  <% if deployment.errors.any? %>
+    <div class="alert alert-danger">
+      <ul class="mb-0">
+        <% deployment.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <%= f.label :version, class: "form-label fw-semibold" %>
+      <%= f.text_field :version, class: "form-control", placeholder: "e.g. 1.2.3", required: true %>
+    </div>
+    <div class="col-md-4">
+      <%= f.label :environment, class: "form-label fw-semibold" %>
+      <%= f.select :environment,
+            options_for_select(%w[production staging qa development], deployment.environment),
+            { include_blank: "— select —" },
+            class: "form-select", required: true %>
+    </div>
+    <div class="col-md-4">
+      <%= f.label :deploy_type, "Deploy Type", class: "form-label fw-semibold" %>
+      <%= f.select :deploy_type,
+            Deployment.deploy_types.keys.map { |k| [k.humanize, k] },
+            { include_blank: "— select —" },
+            class: "form-select" %>
+    </div>
+    <div class="col-md-4">
+      <%= f.label :status, class: "form-label fw-semibold" %>
+      <%= f.select :status,
+            Deployment.statuses.keys.map { |k| [k.humanize, k] },
+            {},
+            class: "form-select" %>
+    </div>
+    <div class="col-md-4">
+      <%= f.label :machine_name, "Machine / Host", class: "form-label fw-semibold" %>
+      <%= f.text_field :machine_name, class: "form-control", placeholder: "e.g. srv-prod-01" %>
+    </div>
+    <div class="col-md-4">
+      <%= f.label :client_account_id, "Client Account", class: "form-label fw-semibold" %>
+      <%= f.collection_select :client_account_id, @client_accounts, :id, :name,
+            { include_blank: "— none —" }, class: "form-select" %>
+    </div>
+    <div class="col-12">
+      <%= f.label :notes, class: "form-label fw-semibold" %>
+      <%= f.text_area :notes, class: "form-control", rows: 3, placeholder: "Deployment notes, release summary…" %>
+    </div>
+  </div>
+
+  <%# ── Environment Variables ──────────────────────────────── %>
+  <div class="card mb-4" data-controller="env-vars">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="fw-semibold"><i class="bi bi-sliders me-1"></i> Environment Variables</span>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-action="click->env-vars#addRow">
+        <i class="bi bi-plus-lg"></i> Add Variable
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0" id="env-vars-table">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">Key</th>
+            <th>Value</th>
+            <th style="width:44px"></th>
+          </tr>
+        </thead>
+        <tbody data-env-vars-target="tbody">
+          <% existing = Array(deployment.env_vars) %>
+          <% rows = existing.any? ? existing : [{ "key" => "", "value" => "" }] %>
+          <% rows.each_with_index do |row, i| %>
+            <tr data-env-vars-target="row">
+              <td class="ps-3 py-2">
+                <%= f.text_field "env_vars[#{i}][key]",
+                      value: row["key"],
+                      class: "form-control form-control-sm font-monospace",
+                      placeholder: "VARIABLE_NAME",
+                      "data-env-vars-target": "key" %>
+              </td>
+              <td class="py-2">
+                <%= f.text_field "env_vars[#{i}][value]",
+                      value: row["value"],
+                      class: "form-control form-control-sm font-monospace",
+                      placeholder: "value",
+                      "data-env-vars-target": "val" %>
+              </td>
+              <td class="py-2 pe-2 text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger px-2"
+                        data-action="click->env-vars#removeRow"
+                        title="Remove">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer text-muted small">
+      Values are stored securely in the deployment record and not exposed via API.
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit deployment.new_record? ? "Create Deployment" : "Update Deployment",
+          class: "btn btn-primary" %>
+    <%= link_to "Cancel", project_deployments_path(@project), class: "btn btn-outline-secondary" %>
+  </div>
+<% end %>

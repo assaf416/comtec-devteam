@@ -1,0 +1,69 @@
+<% content_for(:title) { "Milestones" } %>
+
+<h1 class="fw-bold mb-5">🏁 Project Milestones</h1>
+
+<% if @active_milestones.empty? && @completed_milestones.empty? %>
+  <div class="card p-3 mb-3 text-center py-6">
+    <p class="text-muted">No milestone information is available yet.</p>
+  </div>
+<% end %>
+
+<%# ── Active / upcoming milestones ──────────────────────────────────────────── %>
+<% if @active_milestones.any? %>
+  <h2 class="subfw-bold fs-5 mb-3">Active & Upcoming</h2>
+  <div class="timeline mb-6">
+    <% @active_milestones.each do |ms| %>
+      <% overdue = ms.due_date.present? && ms.due_date < Date.today
+         due_today = ms.due_date == Date.today
+         color = overdue ? "is-danger" : (due_today ? "is-warning" : "is-primary")
+      %>
+      <div class="card p-3 mb-3 p-4" style="border-left: 4px solid <%= overdue ? '#f14668' : (due_today ? '#ffdd57' : '#3273dc') %>;">
+        <div class="d-flex justify-content-between is-align-items-start">
+          <div>
+            <p class="fw-semibold fs-5 mb-1"><%= ms.name %></p>
+            <p class="fs-7 text-muted mb-2">
+              📁 <%= ms.project.name %>
+              <% if ms.description.present? %>· <%= truncate(ms.description, length: 120) %><% end %>
+            </p>
+          </div>
+          <div class="text-end" style="min-width:110px;">
+            <span class="badge bg-secondary <%= color %> mb-1">
+              <%= ms.status.to_s.humanize %>
+            </span>
+            <% if ms.due_date.present? %>
+              <p class="fs-7 <%= overdue ? 'text-danger fw-bold' : 'text-muted' %> mt-1">
+                <%= overdue ? "⚠ Overdue · " : (due_today ? "📅 Due today · " : "Due ") %>
+                <%= ms.due_date.strftime("%b %-d, %Y") %>
+              </p>
+            <% end %>
+          </div>
+        </div>
+
+        <%# Ticket progress bar -%>
+        <% total  = ms.tickets.count
+           done   = ms.tickets.where(status: %i[done closed]).count
+           pct    = total > 0 ? (done.to_f / total * 100).round : 0 %>
+        <% if total > 0 %>
+          <div class="mt-2">
+            <p class="fs-7 text-muted mb-1"><%= done %> / <%= total %> items complete (<%= pct %>%)</p>
+            <progress class="progress <%= color %> is-small mb-0" value="<%= pct %>" max="100"><%= pct %>%</progress>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<%# ── Completed milestones ───────────────────────────────────────────────────── %>
+<% if @completed_milestones.any? %>
+  <h2 class="subfw-bold fs-5 mb-3 text-muted">✅ Recently Completed</h2>
+  <% @completed_milestones.each do |ms| %>
+    <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid #f5f5f5; opacity:0.7;">
+      <div>
+        <span class="fw-medium"><%= ms.name %></span>
+        <span class="badge bg-light text-dark is-small ms-1"><%= ms.project.name %></span>
+      </div>
+      <span class="badge bg-success-subtle text-success is-small">Completed</span>
+    </div>
+  <% end %>
+<% end %>

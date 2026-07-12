@@ -1,0 +1,73 @@
+<% content_for :title, (@latest.server_name.presence || @ip) %>
+
+<div class="level mb-3">
+  <div class="level-left">
+    <div>
+      <nav class="breadcrumb is-small"><ul>
+        <li><%= link_to "Servers", servers_path %></li>
+        <li class="is-active"><a><%= @latest.server_name.presence || @ip %></a></li>
+      </ul></nav>
+      <h1 class="fw-bold mb-1">🖥️ <%= @latest.server_name.presence || @ip %></h1>
+      <p class="text-muted fs-7 mb-0">
+        <code><%= @ip %></code> · <%= @latest.server_os %> ·
+        <span class="badge <%= @latest.health_badge_class %>"><%= @latest.health.humanize %></span>
+        · last seen <%= time_ago_in_words(@latest.recorded_at) %> ago
+      </p>
+    </div>
+  </div>
+  <div class="level-right d-flex align-items-center gap-2">
+    <%= link_to "🐳 Docker console", server_console_path(ip: @ip), class: "btn btn-dark btn-sm" %>
+    <%= form_with url: server_path, method: :get, class: "d-flex align-items-center gap-2" do %>
+      <%= hidden_field_tag :ip, @ip %>
+      <label class="fs-7 text-muted mb-0">Window</label>
+      <select name="hours" class="form-select form-select-sm" style="width:auto;" onchange="this.form.requestSubmit()">
+        <% { "6h" => 6, "24h" => 24, "3d" => 72, "7d" => 168 }.each do |label, h| %>
+          <option value="<%= h %>" <%= "selected" if @window == h %>><%= label %></option>
+        <% end %>
+      </select>
+    <% end %>
+  </div>
+</div>
+
+<%# Current status %>
+<div class="row g-2 mb-4">
+  <div class="col-6 col-md-3"><div class="card p-3 text-center"><div class="fw-bold fs-3"><%= @latest.cpu %>%</div><div class="text-muted fs-7">CPU</div><%= render "servers/meter", value: @latest.cpu %></div></div>
+  <div class="col-6 col-md-3"><div class="card p-3 text-center"><div class="fw-bold fs-3"><%= @latest.mem %>%</div><div class="text-muted fs-7">Memory</div><%= render "servers/meter", value: @latest.mem %></div></div>
+  <div class="col-6 col-md-3"><div class="card p-3 text-center"><div class="fw-bold fs-3"><%= @latest.disk %>%</div><div class="text-muted fs-7">Disk</div><%= render "servers/meter", value: @latest.disk %></div></div>
+  <div class="col-6 col-md-3"><div class="card p-3 text-center"><div class="fw-bold fs-3 <%= 'text-danger' if @latest.error_count.to_i.positive? %>"><%= @latest.error_count %></div><div class="text-muted fs-7">Errors (last beat)</div></div></div>
+</div>
+
+<% if @latest.log_file_url.present? %>
+  <p class="fs-7 mb-3">📄 Log file: <a href="<%= @latest.log_file_url %>" target="_blank" rel="noopener"><code><%= @latest.log_file_url %></code></a></p>
+<% end %>
+
+<%# Historical telemetry %>
+<h2 class="fs-5 fw-bold mb-2">📈 History (last <%= @window %>h)</h2>
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="card p-3"><div class="fw-semibold fs-7 mb-2">CPU %</div><%= line_chart @cpu_series, max: 100, height: "220px", colors: ["#0b7a75"] %></div></div>
+  <div class="col-md-4"><div class="card p-3"><div class="fw-semibold fs-7 mb-2">Memory %</div><%= line_chart @mem_series, max: 100, height: "220px", colors: ["#4a90d9"] %></div></div>
+  <div class="col-md-4"><div class="card p-3"><div class="fw-semibold fs-7 mb-2">Disk %</div><%= line_chart @disk_series, max: 100, height: "220px", colors: ["#d26d18"] %></div></div>
+</div>
+
+<%# Deployments to this server %>
+<h2 class="fs-5 fw-bold mb-2">🚀 Deployments to this server</h2>
+<% if @deployments.any? %>
+  <div class="card">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Project</th><th>Version</th><th>Environment</th><th>Status</th><th>When</th></tr></thead>
+      <tbody>
+        <% @deployments.each do |d| %>
+          <tr style="cursor:pointer;" onclick="window.location='<%= deployment_path(d) %>'">
+            <td><%= d.project.name %></td>
+            <td class="fs-7"><code><%= d.version %></code></td>
+            <td class="fs-7"><%= d.environment %></td>
+            <td><span class="badge bg-secondary"><%= d.status.humanize %></span></td>
+            <td class="fs-7 text-muted"><%= (d.deployed_at || d.created_at).strftime("%d %b %Y") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="text-muted fs-7">No deployments recorded to this server.</p>
+<% end %>

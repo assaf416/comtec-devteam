@@ -1,0 +1,32 @@
+<%# locals: tickets, empty (message), with_pull (show "pull into sprint") %>
+<% if tickets.any? %>
+  <div class="card">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>#</th><th>Title</th><th>Status</th><th>People</th><th>Progress</th>
+          <% if with_pull %><th></th><% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% tickets.each do |ticket| %>
+          <tr>
+            <td><%= link_to "T-#{ticket.id}", ticket_path(ticket), class: "fw-bold text-decoration-none" %></td>
+            <td><%= link_to ticket.title.truncate(60), ticket_path(ticket), class: "text-decoration-none" %></td>
+            <td><%= status_tag(ticket.status) %></td>
+            <td><%= render "tickets/people", ticket: ticket, size: 22 %></td>
+            <td><%= render "tickets/progress_cell", ticket: ticket %></td>
+            <% if with_pull %>
+              <td class="text-end">
+                <%= button_to "Pull into sprint", move_to_sprint_ticket_path(ticket, target: "current"),
+                      method: :patch, class: "btn btn-sm btn-outline-success" %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% elsif empty.present? %>
+  <div class="alert alert-light"><%= empty %></div>
+<% end %>

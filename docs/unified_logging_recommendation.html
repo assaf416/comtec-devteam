@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unified Logging — Recommendation &amp; Implementation Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+:root{--bg:#f8fafb;--fg:#12252b;--teal:#0b7a75;--teal2:#0d9488;--navy:#12252b;--navy2:#1a3740;--orange:#e67e22;--red:#e84545;--green:#38c96d;--blue:#4a90d9;--purple:#7b68ee;--card:#fff;--border:#e2e8f0;--radius:14px;--shadow:0 2px 12px rgba(18,37,43,.06);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--fg);line-height:1.7;-webkit-font-smoothing:antialiased;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+/* ── Layout ─────────────────────────────────────────────────────────── */
+.page{display:flex;min-height:100vh;}
+.sidebar{width:260px;background:var(--navy);color:#fff;padding:2rem 1.25rem;position:fixed;top:0;bottom:0;overflow-y:auto;}
+.sidebar h2{font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);margin:1.5rem 0 .5rem;font-weight:600;}
+.sidebar a{display:block;color:rgba(255,255,255,.75);text-decoration:none;font-size:.82rem;padding:.35rem .6rem;border-radius:6px;margin-bottom:2px;transition:.15s;}
+.sidebar a:hover,.sidebar a.active{background:rgba(255,255,255,.08);color:#fff;}
+.sidebar .logo{font-size:1rem;font-weight:800;color:#fff;margin-bottom:1.5rem;display:flex;align-items:center;gap:.5rem;}
+.sidebar .logo span{color:var(--teal2);}
+.main{margin-left:260px;flex:1;padding:2.5rem 3rem 4rem;}
+
+/* ── Hero ───────────────────────────────────────────────────────────── */
+.hero{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-radius:var(--radius);padding:3rem;margin-bottom:2.5rem;position:relative;overflow:hidden;}
+.hero::after{content:'';position:absolute;top:-60px;right:-60px;width:260px;height:260px;background:radial-gradient(circle,rgba(11,122,117,.25),transparent 70%);border-radius:50%;}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.25;margin-bottom:.75rem;}
+.hero h1 span{color:var(--teal2);}
+.hero p{color:rgba(255,255,255,.7);font-size:1rem;max-width:640px;}
+.hero-tags{display:flex;gap:.5rem;margin-top:1.25rem;flex-wrap:wrap;}
+.hero-tag{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:.25rem .85rem;font-size:.75rem;font-weight:600;color:rgba(255,255,255,.8);}
+
+/* ── Sections ───────────────────────────────────────────────────────── */
+.section{margin-bottom:2.5rem;}
+.section-title{font-size:1.5rem;font-weight:800;margin-bottom:.25rem;}
+.section-sub{color:#64748b;font-size:.9rem;margin-bottom:1.5rem;}
+
+/* ── Cards / Tables / Code ──────────────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);}
+.card+.card{margin-top:1rem;}
+.card h3{font-size:1rem;font-weight:700;margin-bottom:.5rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+
+table.styled{width:100%;border-collapse:collapse;font-size:.82rem;}
+table.styled th{background:var(--navy);color:#fff;text-align:left;padding:.6rem .75rem;font-weight:600;}
+table.styled td{padding:.55rem .75rem;border-bottom:1px solid var(--border);}
+table.styled tr:hover td{background:rgba(11,122,117,.03);}
+
+pre.code{background:var(--navy);color:#e6edf3;padding:1.25rem;border-radius:10px;font-size:.78rem;overflow-x:auto;line-height:1.6;}
+.badge{display:inline-block;padding:.2rem .65rem;border-radius:10px;font-size:.72rem;font-weight:600;}
+.badge-green{background:rgba(56,201,109,.12);color:#16a34a;}
+.badge-red{background:rgba(232,69,69,.1);color:#dc2626;}
+.badge-blue{background:rgba(74,144,217,.1);color:#2563eb;}
+.badge-orange{background:rgba(230,126,34,.1);color:#c2410c;}
+.badge-purple{background:rgba(123,104,238,.1);color:#7c3aed;}
+.badge-teal{background:rgba(11,122,117,.1);color:#0b7a75;}
+
+.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);}
+.chart-title{font-size:.85rem;font-weight:700;margin-bottom:.75rem;text-align:center;}
+
+.highlight{background:rgba(11,122,117,.06);border:1px solid rgba(11,122,117,.15);border-radius:var(--radius);padding:1.25rem;margin:1rem 0;}
+.highlight h4{color:var(--teal);font-weight:700;font-size:.9rem;margin-bottom:.5rem;}
+
+.cost-box{display:flex;align-items:center;gap:1rem;background:rgba(56,201,109,.06);border:1px solid rgba(56,201,109,.15);border-radius:var(--radius);padding:1.25rem;margin:1.5rem 0;}
+.cost-amount{font-size:2rem;font-weight:800;color:var(--green);}
+.cost-label{font-size:.85rem;color:#64748b;}
+
+@media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;padding:1.5rem;}.two-col,.three-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SIDEBAR                                                               -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="logo">🏗️ <span>DevTeam Hub</span></div>
+
+  <h2>Problem</h2>
+  <a href="#problem">Current Issues</a>
+  <a href="#requirements">Requirements</a>
+
+  <h2>Solution</h2>
+  <a href="#format">Unified Log Format</a>
+  <a href="#tools">Tool Landscape</a>
+  <a href="#comparison">Comparison</a>
+  <a href="#recommendation">Recommendation</a>
+  <a href="#pricing">Pricing</a>
+
+  <h2>Implementation</h2>
+  <a href="#architecture">Architecture</a>
+  <a href="#rails-config">Rails Configuration</a>
+  <a href="#api">API Endpoints</a>
+  <a href="#cli">CLI Commands</a>
+  <a href="#ci-integration">CI Integration</a>
+  <a href="#other-apps">Other Applications</a>
+  <a href="#docker">Docker Setup</a>
+  <a href="#dashboards">Dashboards</a>
+  <a href="#rollout">Rollout Plan</a>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- MAIN CONTENT                                                          -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="main">
+
+<!-- ── HERO ──────────────────────────────────────────────────────────── -->
+<div class="hero">
+  <h1>Unified <span>Application Logging</span><br>Recommendation &amp; Implementation</h1>
+  <p>Centralised, structured log management across all 5 managed projects — fully on-premises, integrated with Jenkins CI, Gitea, and DevTeam Hub.</p>
+  <div class="hero-tags">
+    <span class="hero-tag">Grafana Loki</span>
+    <span class="hero-tag">Promtail</span>
+    <span class="hero-tag">Grafana</span>
+    <span class="hero-tag">Structured JSON Logs</span>
+    <span class="hero-tag">On-Premises</span>
+    <span class="hero-tag">Zero Cost</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 1. PROBLEM STATEMENT                                                -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="problem" class="section">
+  <div class="section-title">1. Current Logging Issues</div>
+  <div class="section-sub">Each application logs differently — no unified format, no central storage, no cross-app correlation.</div>
+
+  <div class="three-col">
+    <div class="card">
+      <h3>🔴 Fragmented Formats</h3>
+      <p style="font-size:.85rem;color:#64748b;">Rails logs plain text, .NET uses structured EventLog, NestJS uses Winston JSON, Next.js uses console.log. No common schema — impossible to search across apps.</p>
+    </div>
+    <div class="card">
+      <h3>🔴 No Central Storage</h3>
+      <p style="font-size:.85rem;color:#64748b;">Logs live on each server's filesystem. SSH required to read them. Log rotation deletes old entries. No searchable archive.</p>
+    </div>
+    <div class="card">
+      <h3>🔴 No Correlation</h3>
+      <p style="font-size:.85rem;color:#64748b;">No request IDs, trace IDs, or correlation tokens flow between services. Debugging cross-app issues requires manual timestamp matching.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem;">
+    <h3>Current Logging Per Application</h3>
+    <table class="styled">
+      <thead><tr><th>Application</th><th>Language</th><th>Current Logging</th><th>Format</th><th>Storage</th></tr></thead>
+      <tbody>
+        <tr><td>DevTeam Hub</td><td>Ruby (Rails 8.1)</td><td>ActiveSupport::TaggedLogging → STDOUT</td><td>Plain text</td><td>Docker stdout / log/development.log</td></tr>
+        <tr><td>Print Server / TDI</td><td>C# / VB.NET (.NET 4.8.1)</td><td>NLog / EventLog</td><td>Mixed text</td><td>Windows Event Log / file</td></tr>
+        <tr><td>TDI2</td><td>C# (ASP.NET Core 10)</td><td>Microsoft.Extensions.Logging</td><td>Structured (partial)</td><td>Console / file</td></tr>
+        <tr><td>Digital Internet Services</td><td>TypeScript (NestJS)</td><td>Winston / console</td><td>JSON (partial)</td><td>File / console</td></tr>
+        <tr><td>Work Management System</td><td>TypeScript (Next.js 16)</td><td>console.log / pino</td><td>Unstructured</td><td>Console</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 2. REQUIREMENTS                                                     -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="requirements" class="section">
+  <div class="section-title">2. Requirements</div>
+  <div class="section-sub">What the unified logging solution must provide.</div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>Must Have</h3>
+      <ul style="font-size:.85rem;color:#64748b;padding-left:1.2rem;">
+        <li><strong>On-Premises</strong> — no log data leaves the network</li>
+        <li><strong>Unified JSON format</strong> — same schema for all 5 apps</li>
+        <li><strong>Central search &amp; query</strong> — search all logs from one UI</li>
+        <li><strong>Correlation IDs</strong> — trace requests across services</li>
+        <li><strong>CI integration</strong> — Jenkins build logs collected too</li>
+        <li><strong>Retention policy</strong> — configurable per environment</li>
+        <li><strong>Alerting</strong> — notify on error spikes</li>
+        <li><strong>Zero / low cost</strong> — open-source preferred</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Nice to Have</h3>
+      <ul style="font-size:.85rem;color:#64748b;padding-left:1.2rem;">
+        <li>Dashboard with charts &amp; metrics</li>
+        <li>Log-based metrics (error rates, latency percentiles)</li>
+        <li>Live tail (real-time streaming)</li>
+        <li>API for DevTeam Hub integration</li>
+        <li>Windows agent for .NET 4.8.1 apps</li>
+        <li>Multi-tenant label isolation per project</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 3. UNIFIED LOG FORMAT                                               -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="format" class="section">
+  <div class="section-title">3. Unified Log Format — JSON</div>
+  <div class="section-sub">All applications must emit structured JSON logs with these mandatory fields.</div>
+
+  <div class="card">
+    <h3>Standard Log Schema</h3>
+    <pre class="code">{
+  "timestamp":      "2026-05-24T14:32:01.456Z",   // ISO 8601 UTC
+  "level":          "error",                        // debug | info | warn | error | fatal
+  "service":        "devteam-hub",                  // app identifier
+  "environment":    "production",                   // production | staging | development
+  "host":           "srv-web-01",                   // hostname
+  "version":        "2.4.1",                        // app version / git SHA
+  "correlation_id": "req-a1b2c3d4-e5f6",            // request/trace ID (flows across services)
+  "request_id":     "abc-123-def",                  // per-request unique ID
+  "user_id":        42,                             // authenticated user (null if anonymous)
+  "message":        "Failed to connect to Gitea",   // human-readable message
+  "logger":         "GiteaService",                 // class / module / component
+  "context": {                                      // arbitrary structured data
+    "method":    "POST",
+    "path":      "/api/v1/webhooks",
+    "status":    502,
+    "duration_ms": 3042,
+    "error_class": "Faraday::ConnectionFailed",
+    "backtrace":   ["app/services/gitea_service.rb:45", "..."]
+  }
+}</pre>
+  </div>
+
+  <div class="two-col" style="margin-top:1rem;">
+    <div class="card">
+      <h3>Mandatory Fields</h3>
+      <table class="styled">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>timestamp</code></td><td>string</td><td>ISO 8601 UTC</td></tr>
+          <tr><td><code>level</code></td><td>string</td><td>Log severity</td></tr>
+          <tr><td><code>service</code></td><td>string</td><td>Application name</td></tr>
+          <tr><td><code>environment</code></td><td>string</td><td>Deployment environment</td></tr>
+          <tr><td><code>message</code></td><td>string</td><td>Log message</td></tr>
+          <tr><td><code>correlation_id</code></td><td>string</td><td>Cross-service trace ID</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Service Identifiers</h3>
+      <table class="styled">
+        <thead><tr><th>Application</th><th>service value</th></tr></thead>
+        <tbody>
+          <tr><td>DevTeam Hub</td><td><code>devteam-hub</code></td></tr>
+          <tr><td>Print Server</td><td><code>print-server</code></td></tr>
+          <tr><td>TDI</td><td><code>tdi-legacy</code></td></tr>
+          <tr><td>TDI2</td><td><code>tdi2</code></td></tr>
+          <tr><td>Digital Internet Services</td><td><code>digital-internet</code></td></tr>
+          <tr><td>Work Management System</td><td><code>work-mgmt</code></td></tr>
+          <tr><td>Jenkins CI</td><td><code>jenkins</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 4. TOOL LANDSCAPE                                                   -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="tools" class="section">
+  <div class="section-title">4. Log Management Tool Landscape</div>
+  <div class="section-sub">Evaluated tools for centralized log aggregation, search, and visualization.</div>
+
+  <div class="three-col">
+    <div class="card" style="border-left:3px solid var(--teal);">
+      <h3>Grafana Loki <span class="badge badge-green">Recommended</span></h3>
+      <p style="font-size:.82rem;color:#64748b;margin-top:.5rem;">Log aggregation system by Grafana Labs. Does NOT index log content — indexes only labels (service, env, level). Extremely storage-efficient. Native Grafana integration.</p>
+      <div style="margin-top:.5rem;font-size:.78rem;">
+        <span class="badge badge-teal">Free &amp; OSS</span>
+        <span class="badge badge-teal">On-Prem Docker</span>
+        <span class="badge badge-teal">LogQL</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Elasticsearch + Kibana (ELK)</h3>
+      <p style="font-size:.82rem;color:#64748b;margin-top:.5rem;">Full-text indexing of all log fields. Extremely powerful search but heavy on resources (RAM, disk). Elastic license changed — OSS fork is OpenSearch.</p>
+      <div style="margin-top:.5rem;font-size:.78rem;">
+        <span class="badge badge-orange">Heavy Resources</span>
+        <span class="badge badge-blue">Full-Text Search</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Graylog</h3>
+      <p style="font-size:.82rem;color:#64748b;margin-top:.5rem;">Centralized log management with GELF protocol, dashboards, and alerts. Requires Elasticsearch + MongoDB. More complex to deploy.</p>
+      <div style="margin-top:.5rem;font-size:.78rem;">
+        <span class="badge badge-orange">3 Services Required</span>
+        <span class="badge badge-blue">GELF Protocol</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="three-col" style="margin-top:1rem;">
+    <div class="card">
+      <h3>Fluentd / Fluent Bit</h3>
+      <p style="font-size:.82rem;color:#64748b;margin-top:.5rem;">Log collectors / forwarders. Not storage — they ship logs to a backend (Loki, Elasticsearch, etc.). Fluent Bit is lightweight C agent. Alternative to Promtail.</p>
+      <div style="margin-top:.5rem;font-size:.78rem;">
+        <span class="badge badge-teal">Collector Only</span>
+        <span class="badge badge-teal">CNCF Project</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Seq (Datalust)</h3>
+      <p style="font-size:.82rem;color:#64748b;margin-top:.5rem;">Structured log server optimized for .NET (Serilog). Single-user license free. Excellent for .NET-only shops but limited multi-language support.</p>
+      <div style="margin-top:.5rem;font-size:.78rem;">
+        <span class="badge badge-purple">.NET Focused</span>
+        <span class="badge badge-blue">Free Single User</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Datadog / Splunk (Cloud)</h3>
+      <p style="font-size:.82rem;color:#64748b;margin-top:.5rem;">Enterprise cloud log platforms. Powerful but expensive and send data off-premises. Not suitable for our on-prem requirement.</p>
+      <div style="margin-top:.5rem;font-size:.78rem;">
+        <span class="badge badge-red">Cloud Only</span>
+        <span class="badge badge-red">Expensive</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 5. COMPARISON TABLE                                                 -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="comparison" class="section">
+  <div class="section-title">5. Detailed Comparison</div>
+
+  <div class="card">
+    <table class="styled">
+      <thead>
+        <tr>
+          <th>Criteria</th>
+          <th>Grafana Loki</th>
+          <th>ELK / OpenSearch</th>
+          <th>Graylog</th>
+          <th>Seq</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>License</strong></td><td>AGPL-3.0 (free)</td><td>SSPL / Apache-2 (OpenSearch)</td><td>SSPL (free tier)</td><td>Free single-user</td></tr>
+        <tr><td><strong>On-Prem Docker</strong></td><td>✅ Yes</td><td>✅ Yes</td><td>✅ Yes</td><td>✅ Yes</td></tr>
+        <tr><td><strong>RAM Required</strong></td><td>256 MB – 1 GB</td><td>4 – 16 GB</td><td>4 – 8 GB</td><td>512 MB – 2 GB</td></tr>
+        <tr><td><strong>Storage Efficiency</strong></td><td>⭐ Excellent (no index)</td><td>Poor (full-text index)</td><td>Poor (ES backend)</td><td>Good</td></tr>
+        <tr><td><strong>Query Language</strong></td><td>LogQL</td><td>KQL / Lucene</td><td>Search syntax</td><td>SQL-like</td></tr>
+        <tr><td><strong>Dashboard</strong></td><td>Grafana (native)</td><td>Kibana / OpenSearch Dashboards</td><td>Built-in</td><td>Built-in</td></tr>
+        <tr><td><strong>Alerting</strong></td><td>Grafana Alerting</td><td>ElastAlert / Kibana</td><td>Built-in</td><td>Built-in</td></tr>
+        <tr><td><strong>Log Collector</strong></td><td>Promtail / Alloy</td><td>Filebeat / Logstash</td><td>Sidecar / GELF</td><td>Serilog sink</td></tr>
+        <tr><td><strong>Multi-Language</strong></td><td>✅ Any (JSON over HTTP)</td><td>✅ Any</td><td>✅ Any</td><td>⚠️ .NET best</td></tr>
+        <tr><td><strong>API</strong></td><td>✅ HTTP Push + LogQL Query</td><td>✅ REST</td><td>✅ REST</td><td>✅ REST</td></tr>
+        <tr><td><strong>Live Tail</strong></td><td>✅ WebSocket</td><td>⚠️ Kibana only</td><td>✅ Built-in</td><td>✅ Built-in</td></tr>
+        <tr><td><strong>Windows Agent</strong></td><td>✅ Promtail / Alloy</td><td>✅ Winlogbeat</td><td>✅ GELF / Sidecar</td><td>✅ Native</td></tr>
+        <tr><td><strong>Complexity</strong></td><td>⭐ Low (2 containers)</td><td>High (3+ containers)</td><td>High (3 containers)</td><td>Low (1 container)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="two-col" style="margin-top:1.5rem;">
+    <div class="chart-wrap">
+      <div class="chart-title">Tool Comparison Radar</div>
+      <canvas id="toolRadar" height="300"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Resource Requirements (RAM GB)</div>
+      <canvas id="ramChart" height="300"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 6. RECOMMENDATION                                                   -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="recommendation" class="section">
+  <div class="section-title">6. Recommendation — Grafana Loki + Promtail + Grafana</div>
+  <div class="section-sub">The Grafana stack (often called "PLG" — Promtail, Loki, Grafana) is the best fit for our requirements.</div>
+
+  <div class="highlight">
+    <h4>🏆 Why Grafana Loki?</h4>
+    <div class="two-col" style="margin-top:.75rem;">
+      <ul style="font-size:.85rem;color:#64748b;padding-left:1.2rem;">
+        <li><strong>Lightest resource footprint</strong> — doesn't index content, only labels</li>
+        <li><strong>100% on-premises</strong> — Docker Compose, no cloud dependency</li>
+        <li><strong>Free &amp; open-source</strong> — AGPL-3.0, no paid tiers needed</li>
+        <li><strong>Native Grafana integration</strong> — dashboards, alerts, live tail</li>
+      </ul>
+      <ul style="font-size:.85rem;color:#64748b;padding-left:1.2rem;">
+        <li><strong>HTTP Push API</strong> — any language can send logs via POST</li>
+        <li><strong>LogQL</strong> — powerful query language with label filtering</li>
+        <li><strong>Promtail agent</strong> — works on Linux &amp; Windows</li>
+        <li><strong>Already in our ecosystem</strong> — Grafana pairs with Prometheus metrics too</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="pricing" class="cost-box">
+    <div>
+      <div class="cost-amount">$0 / year</div>
+      <div class="cost-label">Grafana Loki + Promtail + Grafana — all free, open-source, self-hosted</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem;">
+    <h3>Stack Components</h3>
+    <table class="styled">
+      <thead><tr><th>Component</th><th>Role</th><th>Port</th><th>License</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Grafana Loki</strong></td><td>Log aggregation &amp; storage backend</td><td><code>3100</code></td><td>AGPL-3.0</td></tr>
+        <tr><td><strong>Promtail</strong></td><td>Log collector agent (file tailing + push)</td><td>—</td><td>Apache-2.0</td></tr>
+        <tr><td><strong>Grafana</strong></td><td>Dashboard, search, alerting UI</td><td><code>3200</code></td><td>AGPL-3.0</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 7. ARCHITECTURE                                                     -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="architecture" class="section">
+  <div class="section-title">7. Architecture</div>
+  <div class="section-sub">How logs flow from applications to Grafana dashboards.</div>
+
+  <div class="card">
+    <pre class="code">┌──────────────────────────────────────────────────────────────────────┐
+│                        APPLICATION LAYER                              │
+│                                                                       │
+│  ┌─────────────┐  ┌──────────────┐  ┌────────────┐  ┌─────────────┐ │
+│  │ DevTeam Hub │  │ TDI2         │  │ NestJS App │  │ Next.js App │ │
+│  │ Rails 8.1   │  │ ASP.NET Core │  │ TypeScript │  │ TypeScript  │ │
+│  │ Lograge JSON│  │ Serilog JSON │  │ Pino JSON  │  │ Pino JSON   │ │
+│  └──────┬──────┘  └──────┬───────┘  └─────┬──────┘  └──────┬──────┘ │
+│         │                │                 │                │        │
+│         ▼                ▼                 ▼                ▼        │
+│    ┌──────────────────────────────────────────────────────────┐       │
+│    │              JSON logs → STDOUT / file                   │       │
+│    └──────────────────────┬───────────────────────────────────┘       │
+└───────────────────────────┼───────────────────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                       COLLECTION LAYER                                │
+│                                                                       │
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │  Promtail Agent                                                 │  │
+│  │  • Tails log files / Docker stdout                              │  │
+│  │  • Adds labels: {service, env, level, host}                     │  │
+│  │  • Pushes to Loki via HTTP POST                                 │  │
+│  └──────────────────────────┬──────────────────────────────────────┘  │
+│                              │                                        │
+│  ┌──────────────────────┐   │   ┌─────────────────────────────────┐  │
+│  │ .NET 4.8.1 Apps      │   │   │ Jenkins CI                      │  │
+│  │ (Windows EventLog)   │───┘   │ Build logs via Loki plugin      │  │
+│  │ Promtail on Windows  │       │ or Promtail on Jenkins host     │  │
+│  └──────────────────────┘       └─────────────┬───────────────────┘  │
+└───────────────────────────────────────────────┼───────────────────────┘
+                                                │
+                            ┌───────────────────┘
+                            ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                       STORAGE LAYER                                   │
+│                                                                       │
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │  Grafana Loki (:3100)                                           │  │
+│  │  • Receives log streams via HTTP Push API                       │  │
+│  │  • Indexes labels only (not content) → low storage              │  │
+│  │  • Retention: 30d production, 7d staging, 3d development        │  │
+│  │  • LogQL queries for search &amp; filtering                        │  │
+│  └──────────────────────────┬──────────────────────────────────────┘  │
+└─────────────────────────────┼─────────────────────────────────────────┘
+                              │
+                              ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                       VISUALIZATION LAYER                             │
+│                                                                       │
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │  Grafana (:3200)                                                │  │
+│  │  • Log search &amp; exploration (Explore view)                     │  │
+│  │  • Pre-built dashboards per service                             │  │
+│  │  • Error rate alerts → email / webhook to DevTeam Hub           │  │
+│  │  • Live tail streaming                                          │  │
+│  └──────────────────────────┬──────────────────────────────────────┘  │
+│                              │                                        │
+│  ┌───────────────────────────▼───────────────────────────────────┐    │
+│  │  DevTeam Hub API ← Grafana webhook alerts                     │    │
+│  │  DevTeam Hub API → Loki LogQL queries (read logs in UI)       │    │
+│  └───────────────────────────────────────────────────────────────┘    │
+└───────────────────────────────────────────────────────────────────────┘</pre>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 8. RAILS CONFIGURATION                                              -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="rails-config" class="section">
+  <div class="section-title">8. Rails Configuration — Structured JSON Logging</div>
+  <div class="section-sub">Add the <code>lograge</code> gem and configure JSON output with correlation IDs.</div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>Gemfile</h3>
+      <pre class="code"># Structured JSON logging
+gem "lograge"
+gem "lograge-sql"    # optional: SQL query logging</pre>
+
+      <h3 style="margin-top:1.25rem;">config/initializers/lograge.rb</h3>
+      <pre class="code">Rails.application.configure do
+  config.lograge.enabled = true
+  config.lograge.formatter =
+    Lograge::Formatters::Json.new
+
+  config.lograge.custom_options = lambda do |event|
+    {
+      timestamp:      Time.current.iso8601(3),
+      service:        "devteam-hub",
+      environment:    Rails.env,
+      host:           Socket.gethostname,
+      version:        ENV.fetch("APP_VERSION",
+                                "dev"),
+      correlation_id: event.payload[:correlation_id],
+      request_id:     event.payload[:request_id],
+      user_id:        event.payload[:user_id],
+      ip:             event.payload[:ip],
+      user_agent:     event.payload[:user_agent]
+    }
+  end
+
+  config.lograge.custom_payload do |controller|
+    {
+      correlation_id: controller
+        .request.headers["X-Correlation-ID"] ||
+        controller.request.request_id,
+      request_id: controller.request.request_id,
+      user_id: controller.try(:current_user)&.id,
+      ip: controller.request.remote_ip,
+      user_agent: controller.request.user_agent
+    }
+  end
+end</pre>
+    </div>
+    <div class="card">
+      <h3>ApplicationController Addition</h3>
+      <pre class="code"># app/controllers/application_controller.rb
+
+# Propagate correlation ID across services
+before_action :set_correlation_id
+
+private
+
+def set_correlation_id
+  @correlation_id =
+    request.headers["X-Correlation-ID"] ||
+    request.request_id
+
+  # Pass to downstream HTTP calls
+  response.set_header(
+    "X-Correlation-ID", @correlation_id
+  )
+end</pre>
+
+      <h3 style="margin-top:1.25rem;">Production Logger (config/environments/production.rb)</h3>
+      <pre class="code"># Replace plain-text logger with JSON
+config.log_tags = [:request_id]
+
+config.logger = ActiveSupport::Logger.new(STDOUT)
+config.logger.formatter = proc do |severity,
+  timestamp, _progname, msg|
+  JSON.dump(
+    timestamp: timestamp.utc.iso8601(3),
+    level:     severity.downcase,
+    service:   "devteam-hub",
+    environment: Rails.env,
+    host:      Socket.gethostname,
+    message:   msg.to_s.strip
+  ) + "\n"
+end
+
+config.log_level = ENV.fetch(
+  "RAILS_LOG_LEVEL", "info"
+)</pre>
+
+      <h3 style="margin-top:1.25rem;">Example Output</h3>
+      <pre class="code">{"timestamp":"2026-05-24T14:32:01.456Z",
+ "level":"info","service":"devteam-hub",
+ "environment":"production",
+ "method":"GET","path":"/api/v1/tickets",
+ "format":"json","controller":"Api::V1::Tickets",
+ "action":"index","status":200,
+ "duration":12.34,"view":8.21,"db":3.12,
+ "correlation_id":"req-a1b2c3d4",
+ "request_id":"abc-123","user_id":42}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 9. API ENDPOINTS                                                    -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="api" class="section">
+  <div class="section-title">9. DevTeam Hub — Log API Endpoints</div>
+  <div class="section-sub">New API endpoints to query and push logs from CLI, VS Code extension, and other apps.</div>
+
+  <div class="card">
+    <table class="styled">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Auth</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-blue">GET</span></td>
+          <td><code>/api/v1/logs</code></td>
+          <td>Query logs from Loki — filter by service, level, time range. Returns JSON log entries. Proxies LogQL to Loki.</td>
+          <td>Bearer token</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">GET</span></td>
+          <td><code>/api/v1/logs/services</code></td>
+          <td>List available log services/labels (e.g., devteam-hub, tdi2, jenkins).</td>
+          <td>Bearer token</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">POST</span></td>
+          <td><code>/api/v1/logs/push</code></td>
+          <td>Push log entries from external apps to Loki via DevTeam Hub proxy. Validates schema &amp; adds labels.</td>
+          <td>Bearer token</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">GET</span></td>
+          <td><code>/api/v1/logs/stats</code></td>
+          <td>Aggregated log statistics — error count, log volume by service, top error messages (last 24h).</td>
+          <td>Bearer token</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="two-col" style="margin-top:1rem;">
+    <div class="card">
+      <h3>GET /api/v1/logs — Query Parameters</h3>
+      <pre class="code">GET /api/v1/logs?
+  service=devteam-hub&amp;
+  level=error&amp;
+  from=2026-05-24T00:00:00Z&amp;
+  to=2026-05-24T23:59:59Z&amp;
+  query=ConnectionFailed&amp;
+  limit=100
+
+# Response:
+{
+  "logs": [
+    {
+      "timestamp": "2026-05-24T14:32:01.456Z",
+      "level": "error",
+      "service": "devteam-hub",
+      "message": "Failed to connect to Gitea",
+      "context": { "status": 502 }
+    }
+  ],
+  "total": 42,
+  "has_more": false
+}</pre>
+    </div>
+    <div class="card">
+      <h3>POST /api/v1/logs/push — Request Body</h3>
+      <pre class="code">POST /api/v1/logs/push
+Content-Type: application/json
+Authorization: Bearer &lt;token&gt;
+
+{
+  "entries": [
+    {
+      "timestamp": "2026-05-24T14:32:01Z",
+      "level": "error",
+      "service": "tdi2",
+      "environment": "production",
+      "message": "DB connection timeout",
+      "context": {
+        "host": "srv-db-01",
+        "duration_ms": 5000
+      }
+    }
+  ]
+}
+
+# Response:
+{ "accepted": 1, "rejected": 0 }</pre>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem;">
+    <h3>Rails Controller — Api::V1::LogsController</h3>
+    <pre class="code"># app/controllers/api/v1/logs_controller.rb
+module Api
+  module V1
+    class LogsController &lt; BaseController
+      LOKI_URL = ENV.fetch("LOKI_URL", "http://loki:3100")
+
+      # GET /api/v1/logs
+      def index
+        query = build_logql_query(params)
+        response = loki_query(query,
+          start_time: params[:from],
+          end_time:   params[:to],
+          limit:      params.fetch(:limit, 100).to_i
+        )
+        render json: { logs: response[:entries], total: response[:total], has_more: response[:has_more] }
+      end
+
+      # GET /api/v1/logs/services
+      def services
+        labels = loki_labels("service")
+        render json: { services: labels }
+      end
+
+      # POST /api/v1/logs/push
+      def push
+        entries = params.require(:entries)
+        accepted = push_to_loki(entries)
+        render json: { accepted: accepted, rejected: entries.size - accepted }
+      end
+
+      # GET /api/v1/logs/stats
+      def stats
+        render json: {
+          error_count_24h:  loki_count('{level="error"}', "24h"),
+          warn_count_24h:   loki_count('{level="warn"}',  "24h"),
+          volume_by_service: loki_volume_by_label("service", "24h"),
+          top_errors:        loki_top_messages('{level="error"}', "24h", 10)
+        }
+      end
+
+      private
+
+      def build_logql_query(params)
+        labels = []
+        labels &lt;&lt; %Q(service="#{params[:service]}") if params[:service].present?
+        labels &lt;&lt; %Q(level="#{params[:level]}")      if params[:level].present?
+        selector = "{#{labels.join(',')}}"
+        params[:query].present? ? "#{selector} |= `#{params[:query]}`" : selector
+      end
+
+      def loki_query(query, start_time:, end_time:, limit:)
+        uri = URI("#{LOKI_URL}/loki/api/v1/query_range")
+        uri.query = URI.encode_www_form(
+          query: query, start: start_time, end: end_time, limit: limit
+        )
+        resp = Net::HTTP.get_response(uri)
+        parse_loki_response(resp)
+      end
+
+      def push_to_loki(entries)
+        streams = entries.group_by { |e| e[:service] }.map do |svc, logs|
+          {
+            stream: { service: svc, environment: logs.first[:environment], level: logs.first[:level] },
+            values: logs.map { |l| [(Time.parse(l[:timestamp]).to_f * 1e9).to_i.to_s, l.to_json] }
+          }
+        end
+        uri = URI("#{LOKI_URL}/loki/api/v1/push")
+        req = Net::HTTP::Post.new(uri, "Content-Type" =&gt; "application/json")
+        req.body = { streams: streams }.to_json
+        Net::HTTP.start(uri.hostname, uri.port) { |http| http.request(req) }
+        entries.size
+      end
+    end
+  end
+end</pre>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 10. CLI COMMANDS                                                    -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="cli" class="section">
+  <div class="section-title">10. CLI — Log Commands</div>
+  <div class="section-sub">New <code>dt logs</code> commands for the DevTeam Hub CLI.</div>
+
+  <div class="card">
+    <table class="styled">
+      <thead><tr><th>Command</th><th>Description</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>dt logs</code></td>
+          <td>Show recent logs (default: last 1h, all services)</td>
+          <td><code>dt logs</code></td>
+        </tr>
+        <tr>
+          <td><code>dt logs --service &lt;name&gt;</code></td>
+          <td>Filter by service</td>
+          <td><code>dt logs --service devteam-hub</code></td>
+        </tr>
+        <tr>
+          <td><code>dt logs --level &lt;level&gt;</code></td>
+          <td>Filter by severity</td>
+          <td><code>dt logs --level error</code></td>
+        </tr>
+        <tr>
+          <td><code>dt logs --from/--to</code></td>
+          <td>Time range filter</td>
+          <td><code>dt logs --from "2h ago" --level warn</code></td>
+        </tr>
+        <tr>
+          <td><code>dt logs --query &lt;text&gt;</code></td>
+          <td>Full-text search in messages</td>
+          <td><code>dt logs --query "ConnectionFailed"</code></td>
+        </tr>
+        <tr>
+          <td><code>dt logs --follow</code></td>
+          <td>Live tail — stream new logs in real-time</td>
+          <td><code>dt logs --follow --service tdi2</code></td>
+        </tr>
+        <tr>
+          <td><code>dt logs services</code></td>
+          <td>List available log sources</td>
+          <td><code>dt logs services</code></td>
+        </tr>
+        <tr>
+          <td><code>dt logs stats</code></td>
+          <td>Show error/warning counts and log volume</td>
+          <td><code>dt logs stats</code></td>
+        </tr>
+        <tr>
+          <td><code>dt logs push</code></td>
+          <td>Push log entry from script/CI</td>
+          <td><code>dt logs push --service jenkins --level info --message "Build #42 passed"</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:1rem;">
+    <h3>CLI Implementation (Thor subcommand)</h3>
+    <pre class="code">class Logs &lt; Thor
+  desc "list", "Query application logs"
+  option :service,  type: :string,  desc: "Filter by service name"
+  option :level,    type: :string,  desc: "Filter by log level"
+  option :from,     type: :string,  desc: "Start time (ISO 8601 or relative)"
+  option :to,       type: :string,  desc: "End time"
+  option :query,    type: :string,  desc: "Text search in log messages"
+  option :limit,    type: :numeric, default: 50
+  option :follow,   type: :boolean, default: false, desc: "Live tail"
+  option :json,     type: :boolean, default: false, desc: "Raw JSON output"
+  def list
+    params = options.slice(:service, :level, :from, :to, :query, :limit)
+    resp = DevTeam.api(:get, "/logs", params: params)
+    if options[:json]
+      puts JSON.pretty_generate(resp["logs"])
+    else
+      resp["logs"].each { |l| print_log_line(l) }
+    end
+  end
+  default_task :list
+
+  desc "services", "List available log services"
+  def services
+    resp = DevTeam.api(:get, "/logs/services")
+    resp["services"].each { |s| puts "  #{s}" }
+  end
+
+  desc "stats", "Show log statistics (last 24h)"
+  def stats
+    resp = DevTeam.api(:get, "/logs/stats")
+    puts "Errors (24h):   #{resp['error_count_24h']}"
+    puts "Warnings (24h): #{resp['warn_count_24h']}"
+    puts "\nVolume by service:"
+    resp["volume_by_service"]&.each { |s, c| puts "  #{s}: #{c}" }
+  end
+
+  desc "push", "Push a log entry"
+  option :service,  type: :string,  required: true
+  option :level,    type: :string,  default: "info"
+  option :message,  type: :string,  required: true
+  def push
+    DevTeam.api(:post, "/logs/push", body: {
+      entries: [{
+        timestamp: Time.now.utc.iso8601,
+        service:   options[:service],
+        level:     options[:level],
+        message:   options[:message],
+        environment: "production"
+      }]
+    })
+    puts "✓ Log pushed"
+  end
+end</pre>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 11. CI INTEGRATION                                                  -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="ci-integration" class="section">
+  <div class="section-title">11. CI Integration — Jenkins &amp; GitHub Actions</div>
+  <div class="section-sub">How to connect CI build logs to the unified logging system.</div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>Jenkins Pipeline — Loki Log Plugin</h3>
+      <pre class="code">// Jenkinsfile — post-build log push
+pipeline {
+  agent any
+  environment {
+    LOKI_URL = "http://loki:3100"
+  }
+
+  stages {
+    stage('Build') {
+      steps {
+        sh 'dotnet build'
+      }
+    }
+    stage('Test') {
+      steps {
+        sh 'dotnet test --logger "trx"'
+      }
+    }
+  }
+
+  post {
+    always {
+      // Push build log to Loki
+      script {
+        def logText = currentBuild
+          .rawBuild.getLog(1000).join("\n")
+        def payload = [
+          streams: [[
+            stream: [
+              service: "jenkins",
+              job: env.JOB_NAME,
+              build: env.BUILD_NUMBER,
+              status: currentBuild.result
+            ],
+            values: [
+              ["${System.nanoTime()}", logText]
+            ]
+          ]]
+        ]
+        httpRequest(
+          url: "${LOKI_URL}/loki/api/v1/push",
+          httpMode: 'POST',
+          contentType: 'APPLICATION_JSON',
+          requestBody:
+            groovy.json.JsonOutput
+              .toJson(payload)
+        )
+      }
+
+      // Notify DevTeam Hub
+      sh """
+        curl -X POST \\
+          ${DEVTEAM_URL}/api/v1/logs/push \\
+          -H "Authorization: Bearer \${TOKEN}" \\
+          -H "Content-Type: application/json" \\
+          -d '{"entries":[{
+            "service":"jenkins",
+            "level":"info",
+            "message":"Build #${BUILD_NUMBER} ${currentBuild.result}"
+          }]}'
+      """
+    }
+  }
+}</pre>
+    </div>
+    <div class="card">
+      <h3>GitHub Actions — Log Push Step</h3>
+      <pre class="code"># .github/workflows/ci.yml
+# Add after test job:
+
+  log-results:
+    runs-on: ubuntu-latest
+    needs: [scan_ruby, lint, test]
+    if: always()
+    steps:
+      - name: Push CI logs to Loki
+        env:
+          LOKI_URL: ${{ secrets.LOKI_URL }}
+          DEVTEAM_TOKEN: ${{ secrets.DEVTEAM_TOKEN }}
+        run: |
+          STATUS="success"
+          if [ "${{ needs.test.result }}" != "success" ]; then
+            STATUS="failure"
+          fi
+
+          curl -s -X POST \
+            "${LOKI_URL}/loki/api/v1/push" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"streams\": [{
+                \"stream\": {
+                  \"service\": \"github-actions\",
+                  \"repo\": \"${{ github.repository }}\",
+                  \"branch\": \"${{ github.ref_name }}\",
+                  \"status\": \"${STATUS}\"
+                },
+                \"values\": [
+                  [\"$(date +%s)000000000\",
+                   \"CI run ${STATUS} for ${{ github.sha }}\"]
+                ]
+              }]
+            }"</pre>
+
+      <h3 style="margin-top:1.25rem;">Promtail Config for Jenkins Logs</h3>
+      <pre class="code"># promtail/config.yml (on Jenkins server)
+server:
+  http_listen_port: 9080
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: jenkins
+    static_configs:
+      - targets: [localhost]
+        labels:
+          service: jenkins
+          __path__: /var/log/jenkins/*.log
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            message: message
+      - labels:
+          level:</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 12. OTHER APPLICATIONS                                              -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="other-apps" class="section">
+  <div class="section-title">12. Logging Configuration for Other Applications</div>
+  <div class="section-sub">How to implement the unified JSON format in each technology stack.</div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>ASP.NET Core 10 (TDI2) — Serilog</h3>
+      <pre class="code">// NuGet: Serilog.AspNetCore,
+//        Serilog.Sinks.Console,
+//        Serilog.Formatting.Compact
+
+// Program.cs
+builder.Host.UseSerilog((ctx, cfg) =&gt;
+  cfg
+    .WriteTo.Console(new
+      RenderedCompactJsonFormatter())
+    .Enrich.WithProperty("service", "tdi2")
+    .Enrich.WithProperty("environment",
+      ctx.HostingEnvironment.EnvironmentName)
+    .Enrich.WithMachineName()
+    .Enrich.WithCorrelationId()
+);
+
+// Add correlation ID middleware
+app.UseCorrelationId(new CorrelationIdOptions
+{
+  Header = "X-Correlation-ID",
+  IncludeInResponse = true
+});</pre>
+    </div>
+    <div class="card">
+      <h3>.NET 4.8.1 (Print Server / TDI) — NLog</h3>
+      <pre class="code">&lt;!-- NLog.config --&gt;
+&lt;nlog&gt;
+  &lt;targets&gt;
+    &lt;target name="jsonFile"
+            xsi:type="File"
+            fileName="logs/app.json.log"&gt;
+      &lt;layout xsi:type="JsonLayout"&gt;
+        &lt;attribute name="timestamp"
+          layout="${date:format=o}" /&gt;
+        &lt;attribute name="level"
+          layout="${level:lowercase=true}" /&gt;
+        &lt;attribute name="service"
+          layout="print-server" /&gt;
+        &lt;attribute name="environment"
+          layout="${environment:ASPNET_ENV}" /&gt;
+        &lt;attribute name="host"
+          layout="${machinename}" /&gt;
+        &lt;attribute name="message"
+          layout="${message}" /&gt;
+        &lt;attribute name="logger"
+          layout="${logger}" /&gt;
+        &lt;attribute name="exception"
+          layout="${exception:format=tostring}"
+          encode="false" /&gt;
+      &lt;/layout&gt;
+    &lt;/target&gt;
+  &lt;/targets&gt;
+  &lt;rules&gt;
+    &lt;logger name="*" minlevel="Info"
+            writeTo="jsonFile" /&gt;
+  &lt;/rules&gt;
+&lt;/nlog&gt;</pre>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:1rem;">
+    <div class="card">
+      <h3>NestJS (Digital Internet Services) — Pino</h3>
+      <pre class="code">// npm install nestjs-pino pino-pretty
+
+// app.module.ts
+import { LoggerModule } from 'nestjs-pino';
+
+@Module({
+  imports: [
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: process.env.NODE_ENV !== 'production'
+          ? { target: 'pino-pretty' }
+          : undefined,
+        level: process.env.LOG_LEVEL || 'info',
+        base: {
+          service: 'digital-internet',
+          environment: process.env.NODE_ENV,
+          version: process.env.APP_VERSION,
+        },
+        redact: ['req.headers.authorization'],
+        genReqId: (req) =&gt;
+          req.headers['x-correlation-id'] ||
+          crypto.randomUUID(),
+      },
+    }),
+  ],
+})</pre>
+    </div>
+    <div class="card">
+      <h3>Next.js 16 (Work Mgmt System) — Pino</h3>
+      <pre class="code">// lib/logger.ts
+import pino from 'pino';
+
+export const logger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  base: {
+    service: 'work-mgmt',
+    environment: process.env.NODE_ENV,
+    version: process.env.APP_VERSION,
+  },
+  timestamp: pino.stdTimeFunctions.isoTime,
+  formatters: {
+    level(label) {
+      return { level: label };
+    },
+  },
+  redact: ['req.headers.authorization'],
+});
+
+// Middleware for correlation ID
+export function correlationMiddleware(
+  req, res, next
+) {
+  req.correlationId =
+    req.headers['x-correlation-id'] ||
+    crypto.randomUUID();
+  res.setHeader(
+    'X-Correlation-ID', req.correlationId
+  );
+  next();
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 13. DOCKER SETUP                                                    -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="docker" class="section">
+  <div class="section-title">13. Docker Setup</div>
+  <div class="section-sub">Docker Compose configuration for the logging stack.</div>
+
+  <div class="card">
+    <h3>docker-compose.logging.yml</h3>
+    <pre class="code">version: "3.8"
+services:
+  loki:
+    image: grafana/loki:3.4
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/config.yaml
+    volumes:
+      - ./loki/config.yaml:/etc/loki/config.yaml
+      - loki_data:/loki
+    restart: unless-stopped
+    mem_limit: 1g
+
+  promtail:
+    image: grafana/promtail:3.4
+    container_name: promtail
+    command: -config.file=/etc/promtail/config.yaml
+    volumes:
+      - ./promtail/config.yaml:/etc/promtail/config.yaml
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    restart: unless-stopped
+    depends_on: [loki]
+
+  grafana:
+    image: grafana/grafana:11.6
+    container_name: grafana-logs
+    ports:
+      - "3200:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    restart: unless-stopped
+    depends_on: [loki]
+
+volumes:
+  loki_data:
+  grafana_data:</pre>
+  </div>
+
+  <div class="two-col" style="margin-top:1rem;">
+    <div class="card">
+      <h3>loki/config.yaml</h3>
+      <pre class="code">auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  ring:
+    kvstore:
+      store: inmemory
+  replication_factor: 1
+  path_prefix: /loki
+
+schema_config:
+  configs:
+    - from: "2026-01-01"
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  filesystem:
+    directory: /loki/chunks
+
+limits_config:
+  retention_period: 720h  # 30 days
+  max_query_length: 721h
+  ingestion_rate_mb: 10
+  ingestion_burst_size_mb: 20
+
+compactor:
+  working_directory: /loki/compactor
+  compaction_interval: 10m
+  retention_enabled: true
+  delete_request_store: filesystem</pre>
+    </div>
+    <div class="card">
+      <h3>promtail/config.yaml</h3>
+      <pre class="code">server:
+  http_listen_port: 9080
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Docker container logs
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        target_label: container
+      - source_labels: ['__meta_docker_container_label_service']
+        target_label: service
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            service: service
+            message: message
+      - labels:
+          level:
+          service:
+
+  # Rails log files (dev)
+  - job_name: rails
+    static_configs:
+      - targets: [localhost]
+        labels:
+          service: devteam-hub
+          __path__: /var/log/devteam/*.log
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+      - labels:
+          level:</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 14. DASHBOARDS                                                      -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="dashboards" class="section">
+  <div class="section-title">14. Grafana Dashboards</div>
+  <div class="section-sub">Pre-configured dashboards for log monitoring.</div>
+
+  <div class="three-col">
+    <div class="card">
+      <h3>📊 Overview Dashboard</h3>
+      <ul style="font-size:.82rem;color:#64748b;padding-left:1.2rem;">
+        <li>Total log volume (24h)</li>
+        <li>Error rate by service (time series)</li>
+        <li>Log level distribution (pie chart)</li>
+        <li>Top 10 error messages</li>
+        <li>Service health status</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🔍 Service Detail Dashboard</h3>
+      <ul style="font-size:.82rem;color:#64748b;padding-left:1.2rem;">
+        <li>Logs table with search</li>
+        <li>Error rate over time</li>
+        <li>Request latency (p50/p95/p99)</li>
+        <li>Active users count</li>
+        <li>Deployment markers</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🏗️ CI/CD Dashboard</h3>
+      <ul style="font-size:.82rem;color:#64748b;padding-left:1.2rem;">
+        <li>Build logs aggregated</li>
+        <li>Build success/failure rate</li>
+        <li>Test results summary</li>
+        <li>Deploy event markers</li>
+        <li>SonarQube scan results</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight" style="margin-top:1rem;">
+    <h4>🔔 Alert Rules</h4>
+    <table class="styled" style="margin-top:.5rem;">
+      <thead><tr><th>Alert</th><th>Condition</th><th>Severity</th><th>Notification</th></tr></thead>
+      <tbody>
+        <tr><td>High Error Rate</td><td>&gt; 10 errors/min for 5 min</td><td>Critical</td><td>Email + DevTeam Hub webhook</td></tr>
+        <tr><td>Service Down</td><td>No logs from service for 10 min</td><td>Critical</td><td>Email + DevTeam Hub webhook</td></tr>
+        <tr><td>Disk Usage</td><td>Loki storage &gt; 80%</td><td>Warning</td><td>Email</td></tr>
+        <tr><td>Slow Requests</td><td>p95 latency &gt; 5s for 10 min</td><td>Warning</td><td>DevTeam Hub webhook</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 15. ROLLOUT PLAN                                                    -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="rollout" class="section">
+  <div class="section-title">15. Rollout Plan</div>
+  <div class="section-sub">Phased implementation across all applications.</div>
+
+  <div class="card">
+    <table class="styled">
+      <thead><tr><th>Phase</th><th>Scope</th><th>Tasks</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-teal">Phase 1</span></td>
+          <td>Infrastructure</td>
+          <td>Deploy Loki + Promtail + Grafana via Docker Compose. Configure retention &amp; storage. Set up Grafana data source.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-teal">Phase 2</span></td>
+          <td>DevTeam Hub (Rails)</td>
+          <td>Add lograge gem, configure JSON formatter, add correlation IDs, build API endpoints (logs controller), add CLI commands.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">Phase 3</span></td>
+          <td>TDI2 (ASP.NET Core)</td>
+          <td>Add Serilog + compact JSON formatter, correlation ID middleware, Promtail config for container logs.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">Phase 4</span></td>
+          <td>NestJS + Next.js</td>
+          <td>Add Pino logger with unified schema, correlation middleware, Promtail for Docker logs.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-orange">Phase 5</span></td>
+          <td>.NET 4.8.1 Legacy</td>
+          <td>Configure NLog JSON layout, install Promtail on Windows server, scrape EventLog + file logs.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-purple">Phase 6</span></td>
+          <td>CI Integration</td>
+          <td>Jenkins Loki plugin, GitHub Actions log push step, build log forwarding to Loki.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">Phase 7</span></td>
+          <td>Dashboards &amp; Alerts</td>
+          <td>Build Grafana dashboards (overview, per-service, CI/CD). Configure alert rules. Connect webhooks to DevTeam Hub.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="chart-wrap" style="margin-top:1.5rem;">
+    <div class="chart-title">Implementation Timeline</div>
+    <canvas id="timelineChart" height="180"></canvas>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /page -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- CHARTS                                                                -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+  // Tool comparison radar
+  new Chart(document.getElementById('toolRadar'), {
+    type: 'radar',
+    data: {
+      labels: ['Storage Efficiency', 'RAM Usage (10=low)', 'Query Power', 'Dashboard', 'Alerting', 'Multi-Language', 'On-Prem Ease', 'Live Tail', 'Windows Agent', 'Price (10=free)'],
+      datasets: [
+        {
+          label: 'Grafana Loki',
+          data: [10, 9, 7, 10, 10, 10, 9, 10, 8, 10],
+          backgroundColor: 'rgba(11,122,117,0.15)',
+          borderColor: '#0b7a75',
+          borderWidth: 2,
+          pointBackgroundColor: '#0b7a75'
+        },
+        {
+          label: 'ELK / OpenSearch',
+          data: [3, 3, 10, 9, 8, 10, 5, 6, 9, 8],
+          backgroundColor: 'rgba(230,126,34,0.1)',
+          borderColor: '#e67e22',
+          borderWidth: 2,
+          pointBackgroundColor: '#e67e22'
+        },
+        {
+          label: 'Graylog',
+          data: [4, 4, 8, 8, 9, 9, 4, 8, 7, 7],
+          backgroundColor: 'rgba(142,68,173,0.1)',
+          borderColor: '#8e44ad',
+          borderWidth: 2,
+          pointBackgroundColor: '#8e44ad'
+        },
+        {
+          label: 'Seq',
+          data: [7, 8, 8, 7, 7, 4, 8, 8, 10, 6],
+          backgroundColor: 'rgba(74,144,217,0.1)',
+          borderColor: '#4a90d9',
+          borderWidth: 2,
+          pointBackgroundColor: '#4a90d9'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'Manrope', size: 11 } } } },
+      scales: {
+        r: {
+          min: 0, max: 10,
+          ticks: { stepSize: 2, font: { family: 'Manrope' } },
+          grid: { color: 'rgba(18,37,43,0.08)' },
+          angleLines: { color: 'rgba(18,37,43,0.08)' },
+          pointLabels: { font: { family: 'Manrope', size: 10 } }
+        }
+      }
+    }
+  });
+
+  // RAM usage bar chart
+  new Chart(document.getElementById('ramChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Grafana Loki\n(+Promtail+Grafana)', 'ELK Stack\n(ES+Kibana+Logstash)', 'Graylog\n(+ES+MongoDB)', 'Seq'],
+      datasets: [{
+        label: 'Minimum RAM (GB)',
+        data: [1.5, 8, 8, 1],
+        backgroundColor: ['#0b7a75', '#e67e22', '#8e44ad', '#4a90d9'],
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'RAM (GB)', font: { family: 'Manrope' } } },
+        x: { ticks: { font: { family: 'Manrope', size: 10 } } }
+      }
+    }
+  });
+
+  // Timeline horizontal bar
+  new Chart(document.getElementById('timelineChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Phase 1: Infrastructure', 'Phase 2: Rails (DevTeam Hub)', 'Phase 3: ASP.NET Core (TDI2)', 'Phase 4: NestJS + Next.js', 'Phase 5: .NET 4.8.1 Legacy', 'Phase 6: CI Integration', 'Phase 7: Dashboards & Alerts'],
+      datasets: [{
+        label: 'Days',
+        data: [2, 3, 2, 2, 3, 2, 2],
+        backgroundColor: ['#0b7a75','#0d9488','#4a90d9','#4a90d9','#e67e22','#7b68ee','#38c96d'],
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, title: { display: true, text: 'Estimated Days', font: { family: 'Manrope' } } },
+        y: { ticks: { font: { family: 'Manrope', size: 11 } } }
+      }
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1096 @@
+@use "sass:meta";
+
+// ─── Bootstrap variable overrides (must be before import) ─────────────────
+$primary: #4a90d9;
+$link-color: #4a90d9;
+
+// Bootstrap 5
+@import 'bootstrap/scss/bootstrap';
+
+// Table header styling — make headers clearly visible
+.table thead th {
+    background-color: #2c3e50;
+    color: #fff;
+    font-weight: 600;
+    border-bottom: 2px solid #1a252f;
+}
+
+// fs-7 utility (Bootstrap only ships fs-1 through fs-6)
+.fs-7 {
+    font-size: 0.78rem !important;
+}
+
+.badge-sm {
+    font-size: 0.68rem;
+}
+
+// Ensure Bootstrap alerts have a close button style consistent with app
+.alert .btn-close {
+    float: right;
+}
+
+// ─── DevTeam Hub custom styles ──────────────────────────────────────────────
+
+// Hebrew / RTL support
+html[dir="rtl"] {
+    .navbar-start {
+        margin-right: 0;
+        margin-left: auto;
+    }
+
+    .navbar-end {
+        margin-left: 0;
+        margin-right: auto;
+    }
+
+    .navbar-dropdown {
+        left: auto;
+        right: 0;
+    }
+
+    .is-pulled-right {
+        float: left !important;
+    }
+
+    .is-pulled-left {
+        float: right !important;
+    }
+
+    .ml-auto {
+        margin-left: 0 !important;
+        margin-right: auto !important;
+    }
+
+    .mr-1 {
+        margin-left: 0.25rem !important;
+        margin-right: 0 !important;
+    }
+
+    td,
+    th {
+        text-align: right;
+    }
+
+    // RTL: align action dropdown to the left
+    .dropdown.text-end {
+        text-align: start !important;
+    }
+
+    .dropdown-menu-end {
+        --bs-position: auto;
+        right: auto !important;
+        left: 0 !important;
+    }
+}
+
+// Actions kebab dropdown button
+.actions-kebab {
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0.15rem 0.5rem;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+
+    &::after {
+        display: none; // hide Bootstrap caret
+    }
+
+    &:hover,
+    &:focus {
+        background: #f0f0f0;
+        color: #212529;
+    }
+}
+
+// Ensure dropdown menus inside dark table headers remain readable
+.dropdown-menu {
+    --bs-dropdown-bg: #fff !important;
+    --bs-dropdown-color: #212529 !important;
+    --bs-dropdown-link-color: #212529 !important;
+    --bs-dropdown-link-hover-color: #000 !important;
+    --bs-dropdown-link-hover-bg: #f8f9fa !important;
+    background-color: #fff !important;
+    color: #212529 !important;
+
+    .dropdown-item {
+        color: #212529 !important;
+
+        &:hover,
+        &:focus {
+            background-color: #f8f9fa !important;
+            color: #000 !important;
+        }
+
+        &.text-danger {
+            color: #dc3545 !important;
+        }
+    }
+}
+
+// Status color helpers
+.ci-passed {
+    color: #48c774;
+}
+
+.ci-failed {
+    color: #f14668;
+}
+
+.ci-running {
+    color: #ffdd57;
+}
+
+.ci-pending {
+    color: #3e8ed0;
+}
+
+// Kanban board
+.kanban-board {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+
+    .kanban-column {
+        min-width: 240px;
+        flex: 0 0 240px;
+        background: #f5f5f5;
+        border-radius: 6px;
+        padding: 0.75rem;
+
+        .kanban-column-title {
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .kanban-card {
+            background: white;
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+            cursor: pointer;
+
+            &:hover {
+                box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
+            }
+        }
+    }
+}
+
+// Dashboard stat cards
+.stat-card {
+    text-align: center;
+    padding: 1.5rem;
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #888;
+    }
+}
+
+// CI run log output
+.ci-log {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-family: monospace;
+    font-size: 0.8rem;
+    padding: 1rem;
+    border-radius: 4px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+// Notification badge
+.notification-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 0.7rem;
+}
+
+// ─── Slack-style App Shell ────────────────────────────────────────────────────
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+.app-layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background: #fff;
+}
+
+// ── Left Sidebar ──────────────────────────────────────────────────────────────
+.app-sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: #1a1d2e;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 0;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 2px;
+    }
+}
+
+.sidebar-workspace {
+    padding: 0 1rem;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+
+    .sidebar-workspace-name {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #fff;
+        text-decoration: none;
+        flex: 1;
+    }
+}
+
+.sidebar-section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 1rem 1rem 0.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.3rem 0.75rem;
+    margin: 1px 0.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.88rem;
+    border-radius: 5px;
+    transition: background 0.12s, color 0.12s;
+    cursor: pointer;
+    gap: 0.5rem;
+
+    .nav-icon {
+        font-size: 0.9em;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+
+    &.is-active {
+        background: #4a90d9;
+        color: #fff;
+        font-weight: 600;
+    }
+}
+
+// Channel items (# prefix)
+.sidebar-channel {
+    display: flex;
+    align-items: center;
+    padding: 0.28rem 0.75rem;
+    margin: 1px 0.5rem;
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    font-size: 0.88rem;
+    border-radius: 5px;
+    transition: background 0.12s, color 0.12s;
+    cursor: pointer;
+    gap: 0.4rem;
+
+    .channel-hash {
+        color: rgba(255, 255, 255, 0.35);
+        font-size: 0.95em;
+        flex-shrink: 0;
+    }
+
+    .channel-name {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .channel-badge {
+        background: #e53e3e;
+        color: #fff;
+        border-radius: 10px;
+        font-size: 0.68rem;
+        padding: 1px 6px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+
+    &.is-active {
+        background: #4a90d9;
+        color: #fff;
+
+        .channel-hash {
+            color: rgba(255, 255, 255, 0.6);
+        }
+    }
+}
+
+// Project items (accordion)
+.sidebar-project {
+    margin: 1px 0.5rem;
+
+    .sidebar-project-header {
+        display: flex;
+        align-items: center;
+        padding: 0.3rem 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.88rem;
+        border-radius: 5px;
+        cursor: pointer;
+        gap: 0.4rem;
+        user-select: none;
+        transition: background 0.12s, color 0.12s;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .project-chevron {
+            font-size: 0.6em;
+            margin-left: auto;
+            transition: transform 0.2s;
+            color: rgba(255, 255, 255, 0.35);
+        }
+    }
+
+    &.is-open .project-chevron {
+        transform: rotate(90deg);
+    }
+
+    .sidebar-project-links {
+        display: none;
+        padding: 0 0 0.3rem 1.5rem;
+    }
+
+    &.is-open .sidebar-project-links {
+        display: block;
+    }
+
+    .sidebar-project-link {
+        display: flex;
+        align-items: center;
+        padding: 0.22rem 0.5rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.8rem;
+        text-decoration: none;
+        border-radius: 4px;
+        gap: 0.4rem;
+        transition: color 0.1s, background 0.1s;
+
+        &:hover {
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.07);
+        }
+    }
+}
+
+// CI status dot
+.ci-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+
+    &.passed {
+        background: #38c96d;
+    }
+
+    &.failed {
+        background: #e84545;
+        box-shadow: 0 0 4px rgba(232, 69, 69, 0.5);
+    }
+
+    &.running {
+        background: #f5a623;
+        animation: ci-pulse 1.2s ease-in-out infinite;
+    }
+
+    &.pending {
+        background: #6b7a99;
+    }
+
+    &.none {
+        background: #3a3f55;
+    }
+}
+
+@keyframes ci-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.35;
+    }
+}
+
+.deploy-env-badge {
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    &.production {
+        background: #2d6a9f;
+        color: #fff;
+    }
+
+    &.staging {
+        background: #5a4a8a;
+        color: #fff;
+    }
+
+    &.dev {
+        background: #3a5a3a;
+        color: #fff;
+    }
+}
+
+// Sidebar divider
+.sidebar-divider {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin: 0.5rem 0.75rem;
+}
+
+// Sidebar bottom user info
+.sidebar-user {
+    margin-top: auto;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+
+    .sidebar-user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: #4a90d9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .sidebar-user-name {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sidebar-user-status {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.4);
+    }
+}
+
+// ── Main Content Area ─────────────────────────────────────────────────────────
+.app-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.app-topbar {
+    height: 52px;
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    display: flex;
+    align-items: center;
+    padding: 0 1.25rem;
+    gap: 0.75rem;
+    flex-shrink: 0;
+    z-index: 10;
+
+    .topbar-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1a1d2e;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .topbar-search {
+        flex: 0 0 260px;
+
+        .input {
+            background: #f2f3f5;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            height: 32px;
+
+            &:focus {
+                background: #fff;
+                border-color: #4a90d9;
+                box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.15);
+            }
+        }
+    }
+}
+
+.app-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 2rem;
+
+    // Override Bulma container inside content
+    >.container {
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+
+// Flash inside app-content
+.app-flash {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin-bottom: 1rem;
+}
+
+// ── Right Notifications Panel ─────────────────────────────────────────────────
+.app-right-panel {
+    width: 280px;
+    min-width: 280px;
+    border-left: 1px solid #e8e8e8;
+    background: #f8f9fb;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    &.is-hidden {
+        display: none;
+    }
+}
+
+.right-panel-header {
+    height: 52px;
+    border-bottom: 1px solid #e8e8e8;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1a1d2e;
+    flex-shrink: 0;
+    gap: 0.5rem;
+
+    .right-panel-tabs {
+        display: flex;
+        gap: 0.25rem;
+        margin-left: auto;
+
+        button {
+            background: none;
+            border: none;
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: #666;
+
+            &.is-active {
+                background: #e8e8e8;
+                color: #1a1d2e;
+                font-weight: 600;
+            }
+
+            &:hover {
+                background: #e8e8e8;
+            }
+        }
+    }
+}
+
+.right-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.notification-entry {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #eee;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.1s;
+
+    &.is-unread {
+        background: #fffbe6;
+        border-left: 3px solid #f5a623;
+    }
+
+    &:hover {
+        background: #f0f2f5;
+    }
+
+    .notification-text {
+        color: #2d3748;
+        line-height: 1.4;
+    }
+
+    .notification-time {
+        color: #999;
+        font-size: 0.72rem;
+        margin-top: 0.15rem;
+    }
+
+    .notification-type-badge {
+        display: inline-block;
+        font-size: 0.65rem;
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.2rem;
+
+        &.ci {
+            background: #bee3f8;
+            color: #2b6cb0;
+        }
+
+        &.deploy {
+            background: #c6f6d5;
+            color: #276749;
+        }
+
+        &.ticket {
+            background: #fed7e2;
+            color: #97266d;
+        }
+
+        &.pr {
+            background: #e9d8fd;
+            color: #553c9a;
+        }
+
+        &.other {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+    }
+}
+
+.right-panel-mark-all {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid #eee;
+    background: #fff;
+    flex-shrink: 0;
+
+    a {
+        font-size: 0.78rem;
+        color: #4a90d9;
+    }
+}
+
+// ── Chat Room ─────────────────────────────────────────────────────────────────
+.chat-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.chat-header {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid #e8e8e8;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+    background: #fff;
+
+    .chat-room-name {
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .chat-room-desc {
+        font-size: 0.82rem;
+        color: #888;
+    }
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    scroll-behavior: smooth;
+}
+
+.chat-day-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1rem 0 0.5rem;
+    color: #aaa;
+    font-size: 0.75rem;
+    font-weight: 600;
+
+    hr {
+        flex: 1;
+        border: none;
+        border-top: 1px solid #e8e8e8;
+    }
+}
+
+.chat-msg {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    transition: background 0.1s;
+
+    &:hover {
+        background: #f5f7fa;
+    }
+
+    &.is-continuation .chat-msg-avatar {
+        visibility: hidden;
+    }
+
+    .chat-msg-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+        background: #4a90d9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+        align-self: flex-start;
+        margin-top: 2px;
+    }
+
+    .chat-msg-body {
+        flex: 1;
+        min-width: 0;
+
+        .chat-msg-meta {
+            font-size: 0.75rem;
+            margin-bottom: 0.1rem;
+
+            .chat-msg-author {
+                font-weight: 700;
+                color: #1a1d2e;
+            }
+
+            .chat-msg-time {
+                color: #aaa;
+                margin-left: 0.4rem;
+            }
+        }
+
+        .chat-msg-text {
+            font-size: 0.88rem;
+            color: #2d3748;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    }
+}
+
+// Embedded reference chips
+.chat-ref {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: opacity 0.1s;
+
+    &:hover {
+        opacity: 0.8;
+        text-decoration: none;
+    }
+
+    &.chat-ref-ticket {
+        background: #fff0f3;
+        border-color: #ffb3c1;
+        color: #c0392b;
+    }
+
+    &.chat-ref-ci {
+        background: #f0f8ff;
+        border-color: #90caf9;
+        color: #1565c0;
+    }
+
+    &.chat-ref-deploy {
+        background: #f0fff4;
+        border-color: #9ae6b4;
+        color: #276749;
+    }
+
+    &.chat-ref-test {
+        background: #fffaf0;
+        border-color: #fbd38d;
+        color: #c05621;
+    }
+
+    &.chat-ref-pr {
+        background: #f5f0ff;
+        border-color: #d6bcfa;
+        color: #553c9a;
+    }
+
+    &.chat-ref-mention {
+        background: #ebf8ff;
+        border-color: #90cdf4;
+        color: #2b6cb0;
+        font-weight: 700;
+    }
+}
+
+// Chat compose area
+.chat-compose {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid #e8e8e8;
+    background: #fff;
+    flex-shrink: 0;
+
+    .chat-compose-box {
+        border: 1.5px solid #d1d5db;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: border-color 0.1s;
+
+        &:focus-within {
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.12);
+        }
+    }
+
+    textarea {
+        width: 100%;
+        border: none;
+        outline: none;
+        resize: none;
+        font-size: 0.88rem;
+        padding: 0.65rem 0.9rem;
+        line-height: 1.5;
+        font-family: inherit;
+        color: #2d3748;
+        background: transparent;
+        display: block;
+    }
+
+    .chat-compose-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.35rem 0.75rem;
+        border-top: 1px solid #e8e8e8;
+        background: #fafbfc;
+
+        .compose-hints {
+            font-size: 0.72rem;
+            color: #aaa;
+        }
+    }
+}
+
+// Ref legend in compose
+.ref-guide {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+
+    .ref-guide-item {
+        font-size: 0.72rem;
+        color: #888;
+    }
+}
+
+// Right panel toggle button (topbar)
+.topbar-panel-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 4px;
+    color: #666;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+        background: #f0f2f5;
+        color: #1a1d2e;
+    }
+
+    &.is-active {
+        color: #4a90d9;
+    }
+}
+
+// Override: remove old container/main margins in Slack layout
+.app-content .container {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+// ─── Trix WYSIWYG editor ────────────────────────────────────────────────────
+@include meta.load-css("trix/dist/trix");
+
+// Trix editor style overrides for Bootstrap 5 integration
+trix-editor {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    min-height: 300px;
+    padding: 0.75rem;
+    background: #fff;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    outline: none;
+
+    &:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+}
+
+trix-toolbar {
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    border-radius: 0.375rem 0.375rem 0 0;
+    background: #f8f9fa;
+    padding: 0.375rem 0.5rem;
+}
+
+.trix-content {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-weight: 600;
+        margin-top: 1.25em;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+    }
+
+    h3 {
+        font-size: 1.1rem;
+    }
+
+    pre {
+        background: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    blockquote {
+        border-left: 3px solid #dee2e6;
+        padding-left: 1rem;
+        color: #6c757d;
+    }
+
+    img {
+        max-width: 100%;
+        border-radius: 0.375rem;
+    }
+}
+
+// ─── simple_form × Bulma select wrapper fix ───────────────────────────────
+// simple_form tags each input wrapper with the input type as a class, so a
+// <select> field's wrapper becomes `div.select.optional`. Bulma's `.select`
+// control styling then hijacks that wrapper — forcing inline-block sizing
+// (which collapses the grid columns) and drawing a floating dropdown arrow
+// that overlaps the next field's label. Neutralize it here; the Bootstrap
+// `.form-select` inside the wrapper already renders its own arrow.
+.select.optional,
+.select.required {
+    display: block;
+    height: auto;
+    max-width: 100%;
+
+    &::after {
+        content: none !important;
+    }
+}

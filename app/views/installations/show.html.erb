@@ -1,0 +1,26 @@
+<nav class="breadcrumb is-small"><ul><li><%= link_to "Customers", customers_path %></li><li><%= link_to @customer.name, @customer %></li><li><%= link_to "Installations", customer_installations_path(@customer) %></li><li class="is-active"><a><%= @installation.software_name %> <%= @installation.version %></a></li></ul></nav>
+
+<div class="level">
+  <div class="level-left">
+    <div>
+      <h1 class="fw-bold"><%= @installation.software_name %> <code><%= @installation.version %></code></h1>
+      <div class="d-flex flex-wrap gap-1">
+        <%= status_tag(@installation.status) %>
+        <span class="badge bg-light text-dark"><%= @installation.environment %></span>
+      </div>
+    </div>
+  </div>
+  <div class="level-right">
+    <%= link_to t("common.actions.edit"), edit_customer_installation_path(@customer, @installation), class: "btn btn-warning is-light" %>
+  </div>
+</div>
+
+<div class="card p-3 mb-3">
+  <table class="table w-100 is-borderless">
+    <tr><th>Customer</th><td><%= link_to @customer.name, @customer %></td></tr>
+    <tr><th>Project</th><td><%= @installation.project ? link_to(@installation.project.name, @installation.project) : "—" %></td></tr>
+    <tr><th>From Deployment</th><td><%= @installation.deployment ? link_to("Deployment ##{@installation.deployment.id}", @installation.deployment) : "—" %></td></tr>
+    <tr><th>Installed At</th><td><%= @installation.installed_at&.strftime("%d/%m/%Y %H:%M") || "—" %></td></tr>
+    <tr><th>Notes</th><td><%= @installation.notes || "—" %></td></tr>
+  </table>
+</div>

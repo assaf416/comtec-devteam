@@ -1,0 +1,55 @@
+<%= form_with(model: project, class: "card p-3 mb-3") do |f| %>
+  <% if project.errors.any? %>
+    <div class="alert alert-danger is-light">
+      <ul><% project.errors.full_messages.each do |m| %><li><%= m %></li><% end %></ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= f.label :name, class: "label" %>
+    <div class=""><%= f.text_field :name, class: "input", required: true %></div>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :description, class: "label" %>
+    <div class=""><%= f.text_area :description, class: "textarea", rows: 3 %></div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="mb-3">
+        <%= f.label :tech_stack, "Tech Stack", class: "label" %>
+        <div class=""><%= f.text_field :tech_stack, class: "input", placeholder: "Rails, PostgreSQL, Vue 3" %></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="mb-3">
+        <%= f.label :gitea_repo_id, "Gitea Repo (owner/repo)", class: "label" %>
+        <div class=""><%= f.text_field :gitea_repo_id, class: "input", placeholder: "myorg/myrepo" %></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="mb-3">
+        <%= f.label :default_branch, "Default Branch", class: "label" %>
+        <div class=""><%= f.text_field :default_branch, class: "input", value: project.default_branch.presence || "main" %></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :repo_url, "Repository URL", class: "label" %>
+    <div class=""><%= f.url_field :repo_url, class: "input" %></div>
+  </div>
+
+  <div class="mb-3">
+    <div class="">
+      <%= f.check_box :active, class: "checkcard p-3 mb-3" %>
+      <%= f.label :active, "Active project", class: "ms-2" %>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 align-items-end">
+    <div class=""><%= f.submit project.new_record? ? "Create Project" : "Update Project", class: "btn btn-primary" %></div>
+    <div class=""><%= link_to "Cancel", projects_path, class: "btn btn-secondary" %></div>
+  </div>
+<% end %>

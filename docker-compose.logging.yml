@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  loki:
+    image: grafana/loki:3.4
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/config.yaml
+    volumes:
+      - ./loki/config.yaml:/etc/loki/config.yaml
+      - loki_data:/loki
+    restart: unless-stopped
+    mem_limit: 1g
+
+  promtail:
+    image: grafana/promtail:3.4
+    container_name: promtail
+    command: -config.file=/etc/promtail/config.yaml
+    volumes:
+      - ./promtail/config.yaml:/etc/promtail/config.yaml
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    restart: unless-stopped
+    depends_on: [loki]
+
+  grafana:
+    image: grafana/grafana:11.6
+    container_name: grafana-logs
+    ports:
+      - "3200:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    restart: unless-stopped
+    depends_on: [loki]
+
+volumes:
+  loki_data:
+  grafana_data:

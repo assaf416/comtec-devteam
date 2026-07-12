@@ -1,0 +1,191 @@
+{
+    "name": "devteam-hub",
+    "displayName": "DevTeam Hub",
+    "description": "CLI + UI client for DevTeam Hub: checkout tickets, run tests, deploy, and manage work directly from VS Code.",
+    "version": "0.1.0",
+    "publisher": "devteam",
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "icon": "images/icon.png",
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "configuration": {
+            "title": "DevTeam Hub",
+            "properties": {
+                "devteamHub.apiUrl": {
+                    "type": "string",
+                    "default": "http://localhost:3000",
+                    "description": "URL of the DevTeam Hub Rails server"
+                },
+                "devteamHub.apiToken": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Your API token (run `devteam whoami` or visit /api/v1/token)",
+                    "markdownDescription": "Your API token. Get it by running `devteam setup` or from `{apiUrl}/api/v1/token`."
+                },
+                "devteamHub.cliPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to the devteam CLI script (e.g. /path/to/project/cli/devteam)"
+                }
+            }
+        },
+        "commands": [
+            {
+                "command": "devteam.setup",
+                "title": "DevTeam: Setup / Configure"
+            },
+            {
+                "command": "devteam.whoami",
+                "title": "DevTeam: Who Am I?"
+            },
+            {
+                "command": "devteam.checkout",
+                "title": "DevTeam: Checkout Ticket Branch"
+            },
+            {
+                "command": "devteam.status",
+                "title": "DevTeam: Show Current Status"
+            },
+            {
+                "command": "devteam.ticketList",
+                "title": "DevTeam: List My Tickets"
+            },
+            {
+                "command": "devteam.ticketShow",
+                "title": "DevTeam: Show Ticket Details"
+            },
+            {
+                "command": "devteam.ticketUpdate",
+                "title": "DevTeam: Update Ticket Status"
+            },
+            {
+                "command": "devteam.ticketStart",
+                "title": "DevTeam: Start Ticket (checkout + in_progress)"
+            },
+            {
+                "command": "devteam.ticketDone",
+                "title": "DevTeam: Mark Ticket Done"
+            },
+            {
+                "command": "devteam.test",
+                "title": "DevTeam: Run Tests"
+            },
+            {
+                "command": "devteam.runServer",
+                "title": "DevTeam: Run Dev Server"
+            },
+            {
+                "command": "devteam.stopServer",
+                "title": "DevTeam: Stop Dev Server"
+            },
+            {
+                "command": "devteam.deploy",
+                "title": "DevTeam: Deploy..."
+            },
+            {
+                "command": "devteam.pr",
+                "title": "DevTeam: Create Pull Request"
+            },
+            {
+                "command": "devteam.refreshTickets",
+                "title": "DevTeam: Refresh Tickets",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "devteam.openInBrowser",
+                "title": "DevTeam: Open in Browser",
+                "icon": "$(globe)"
+            }
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "devteam-explorer",
+                    "title": "DevTeam Hub",
+                    "icon": "images/sidebar-icon.svg"
+                }
+            ]
+        },
+        "views": {
+            "devteam-explorer": [
+                {
+                    "id": "devteam.myTickets",
+                    "name": "My Tickets",
+                    "icon": "$(tasklist)"
+                },
+                {
+                    "id": "devteam.projects",
+                    "name": "Projects",
+                    "icon": "$(repo)"
+                }
+            ]
+        },
+        "menus": {
+            "view/title": [
+                {
+                    "command": "devteam.refreshTickets",
+                    "when": "view == devteam.myTickets",
+                    "group": "navigation"
+                },
+                {
+                    "command": "devteam.openInBrowser",
+                    "when": "view == devteam.myTickets",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "devteam.ticketStart",
+                    "when": "view == devteam.myTickets && viewItem == ticket",
+                    "group": "1_ticket@1"
+                },
+                {
+                    "command": "devteam.ticketUpdate",
+                    "when": "view == devteam.myTickets && viewItem == ticket",
+                    "group": "1_ticket@2"
+                },
+                {
+                    "command": "devteam.ticketDone",
+                    "when": "view == devteam.myTickets && viewItem == ticket",
+                    "group": "1_ticket@3"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "devteam.refreshTickets",
+                    "when": "false"
+                }
+            ]
+        },
+        "statusBar": [
+            {
+                "id": "devteam.currentTicket",
+                "name": "DevTeam Current Ticket",
+                "alignment": "left",
+                "priority": 50
+            }
+        ]
+    },
+    "scripts": {
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "package": "npx vsce package",
+        "lint": "eslint src"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "@types/vscode": "^1.85.0",
+        "typescript": "^5.3.0",
+        "@typescript-eslint/eslint-plugin": "^6.0.0",
+        "@typescript-eslint/parser": "^6.0.0",
+        "eslint": "^8.0.0"
+    }
+}

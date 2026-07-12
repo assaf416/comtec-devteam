@@ -1,0 +1,5 @@
+# Drop this at your project root as .devteam.yml
+project: print-tdi
+base_branch: main
+test_cmd: bundle exec rspec
+run_cmd: bin/dev

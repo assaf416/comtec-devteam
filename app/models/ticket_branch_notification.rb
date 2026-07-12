@@ -1,0 +1,2 @@
+class TicketBranchNotification < Notification
+end

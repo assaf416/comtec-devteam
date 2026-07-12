@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTeam API Reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f0e8;
+      --panel: #fffdf7;
+      --ink: #12252b;
+      --muted: #5c6f76;
+      --line: #d7d0c2;
+      --teal: #0b7a75;
+      --navy: #17324a;
+      --orange: #d26d18;
+      --red: #b63a34;
+      --shadow: 0 18px 44px rgba(18, 37, 43, 0.09);
+      --radius: 18px;
+      --mono: "JetBrains Mono", monospace;
+      --sans: "Manrope", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--sans);
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(11, 122, 117, 0.14), transparent),
+        radial-gradient(760px 340px at 100% 0%, rgba(210, 109, 24, 0.12), transparent),
+        var(--bg);
+      line-height: 1.55;
+    }
+
+    .shell {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 24px 18px 60px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 253, 247, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .topbar nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .topbar a {
+      text-decoration: none;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #ffffff;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 18px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 32px;
+      background: linear-gradient(135deg, #faf7ee 0%, #f7fcfb 45%, #fff6eb 100%);
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px dashed rgba(11, 122, 117, 0.45);
+      background: rgba(11, 122, 117, 0.08);
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 4vw, 48px);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      color: var(--muted);
+      max-width: 76ch;
+      margin: 12px 0 0;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stats {
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
+      margin-top: 18px;
+    }
+
+    .stat,
+    .card,
+    .section,
+    .endpoint,
+    .code,
+    .notice {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .stat,
+    .card,
+    .endpoint,
+    .notice {
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .stat .n {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1;
+    }
+
+    .stat .l {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .hero-panel {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .section {
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+
+    .section header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(11, 122, 117, 0.08), rgba(210, 109, 24, 0.08));
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .section .sub {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .section-body {
+      padding: 18px;
+    }
+
+    .cards-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .cards-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .card h3,
+    .endpoint h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    .card p,
+    .endpoint p,
+    .card li,
+    .endpoint li,
+    .section li {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-right: 6px;
+      margin-top: 6px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .pill.get { color: var(--teal); border-color: rgba(11, 122, 117, 0.25); }
+    .pill.post { color: var(--orange); border-color: rgba(210, 109, 24, 0.25); }
+    .pill.patch { color: var(--navy); border-color: rgba(23, 50, 74, 0.25); }
+    .pill.auth { color: var(--red); border-color: rgba(182, 58, 52, 0.25); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3f8f7;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .endpoint-index {
+      font-size: 13px;
+    }
+
+    .endpoint {
+      margin-bottom: 14px;
+    }
+
+    .path {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 8px;
+      background: #eef5f6;
+      border: 1px solid #d5e2e4;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .code {
+      border-radius: 14px;
+      padding: 0;
+      overflow: hidden;
+      background: #0d1f2d;
+      color: #d8f4ff;
+    }
+
+    .code-title {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 9px 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: #9ed3df;
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+
+    pre {
+      margin: 0;
+      padding: 14px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .notice {
+      background: #fff7ee;
+      border-left: 6px solid var(--orange);
+    }
+
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .cards-2,
+      .cards-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#auth">Authentication</a>
+        <a href="#users">Users</a>
+        <a href="#projects">Projects</a>
+        <a href="#checkout">Checkout</a>
+        <a href="#tickets">Tickets</a>
+        <a href="#pull-requests">Pull Requests</a>
+        <a href="#ci-runs">CI Runs</a>
+        <a href="#test-results">Test Results</a>
+        <a href="#deployments">Deployments</a>
+      </nav>
+    </div>
+
+    <section id="overview" class="hero">
+      <div>
+        <div class="eyebrow">DevTeam API · Current v1 Surface</div>
+        <h1>REST API Reference For Client Apps, CLI, And The VS Code Extension</h1>
+        <p>
+          This document describes every currently supported endpoint under <strong>/api/v1</strong> in the app.
+          It is based on the live Rails routes and controller behavior, including bearer-token authentication,
+          request payloads, curl examples, query filters, and representative JSON response shapes.
+        </p>
+        <div class="grid stats">
+          <div class="stat"><div class="n">22</div><div class="l">Documented Endpoints</div></div>
+          <div class="stat"><div class="n">8</div><div class="l">Resource Groups</div></div>
+          <div class="stat"><div class="n">Bearer</div><div class="l">Authentication Scheme</div></div>
+          <div class="stat"><div class="n">JSON</div><div class="l">Request And Response Format</div></div>
+        </div>
+      </div>
+      <div class="hero-panel">
+        <div class="card">
+          <h3>Base URL</h3>
+          <div class="path">http://localhost:5000/api/v1</div>
+          <p>All examples below assume the local Rails server is running on port 5000.</p>
+        </div>
+        <div class="card">
+          <h3>Authorization Header</h3>
+          <div class="path">Authorization: Bearer YOUR_API_TOKEN</div>
+          <p>API requests resolve the token against <code>User.api_token</code>. No session cookie is required.</p>
+        </div>
+        <div class="notice">
+          Unauthorized requests return <strong>401</strong> with <code>{ "error": "Unauthorized" }</code>.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <header>
+        <h2>Endpoint Index</h2>
+        <div class="sub">All currently supported API routes under <strong>/api/v1</strong>.</div>
+      </header>
+      <div class="section-body endpoint-index">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Path</th>
+              <th>Purpose</th>
+              <th>Primary Client</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>GET</td><td>/me</td><td>Return the authenticated API user profile and membership summary.</td><td>CLI, VS Code extension</td></tr>
+            <tr><td>GET</td><td>/token</td><td>Return the caller's current API token.</td><td>CLI, client tools</td></tr>
+            <tr><td>POST</td><td>/token/regenerate</td><td>Rotate the caller's API token.</td><td>CLI, client tools</td></tr>
+            <tr><td>GET</td><td>/projects</td><td>List projects the current user belongs to.</td><td>CLI, VS Code extension</td></tr>
+            <tr><td>GET</td><td>/projects/:id</td><td>Show a project and the caller's assigned tickets in it.</td><td>CLI, VS Code extension</td></tr>
+            <tr><td>POST</td><td>/checkout</td><td>Return canonical branch checkout metadata for a ticket.</td><td>CLI, VS Code extension</td></tr>
+            <tr><td>GET</td><td>/tickets</td><td>List tickets with filters.</td><td>All clients</td></tr>
+            <tr><td>GET</td><td>/tickets/:id</td><td>Show one ticket.</td><td>All clients</td></tr>
+            <tr><td>POST</td><td>/tickets</td><td>Create a ticket.</td><td>Client apps, VS Code extension</td></tr>
+            <tr><td>PATCH</td><td>/tickets/:id</td><td>Update a ticket.</td><td>Client apps, VS Code extension</td></tr>
+            <tr><td>GET</td><td>/pull_requests</td><td>List PR records with filters.</td><td>VS Code extension</td></tr>
+            <tr><td>GET</td><td>/pull_requests/:id</td><td>Show one PR record.</td><td>VS Code extension</td></tr>
+            <tr><td>POST</td><td>/pull_requests</td><td>Create a Gitea PR and persist it locally.</td><td>VS Code extension</td></tr>
+            <tr><td>GET</td><td>/ci_runs</td><td>List CI runs with filters.</td><td>CLI, dashboards, VS Code extension</td></tr>
+            <tr><td>GET</td><td>/ci_runs/:id</td><td>Show one CI run and attached test results.</td><td>CLI, VS Code extension</td></tr>
+            <tr><td>POST</td><td>/ci_runs</td><td>Trigger a Jenkins run and create a local pending record.</td><td>CLI, VS Code extension</td></tr>
+            <tr><td>GET</td><td>/ci_runs/:ci_run_id/test_results</td><td>List test results for a CI run.</td><td>CI helpers, dashboards</td></tr>
+            <tr><td>POST</td><td>/ci_runs/:ci_run_id/test_results</td><td>Store a suite result for a CI run.</td><td>CI helpers, client runners</td></tr>
+            <tr><td>GET</td><td>/deployments</td><td>List deployments with filters.</td><td>Client apps, VS Code extension</td></tr>
+            <tr><td>GET</td><td>/deployments/:id</td><td>Show one deployment and its current status.</td><td>Client apps, VS Code extension</td></tr>
+            <tr><td>POST</td><td>/deployments</td><td>Create a deployment command/status record.</td><td>Client apps, VS Code extension</td></tr>
+            <tr><td>PATCH</td><td>/deployments/:id</td><td>Update deployment status or metadata.</td><td>Client apps, CI bridges</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="auth" class="section">
+      <header>
+        <h2>Authentication</h2>
+        <div class="sub">All API requests are stateless and require a bearer token.</div>
+      </header>
+      <div class="section-body grid cards-2">
+        <div class="card">
+          <h3>Request Convention</h3>
+          <p>Send the token in the <code>Authorization</code> header. Requests and responses are JSON. The API disables CSRF session protection for this namespace and authenticates directly against the token.</p>
+          <div class="code">
+            <div class="code-title">Common headers</div>
+            <pre>Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+Accept: application/json</pre>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Error Behavior</h3>
+          <p>If the token is missing or invalid, the API returns HTTP 401.</p>
+          <div class="code">
+            <div class="code-title">401 response</div>
+            <pre>{
+  "error": "Unauthorized"
+}</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="users" class="section">
+      <header>
+        <h2>User Endpoints</h2>
+        <div class="sub">Profile and token management for the authenticated client identity.</div>
+      </header>
+      <div class="section-body">
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>Current User</h3>
+          <div class="path">/api/v1/me</div>
+          <p>Returns the current API user, their role, current token, open assigned ticket count, and project memberships.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  http://localhost:5000/api/v1/me</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>{
+  "id": 4,
+  "name": "Noam Dev",
+  "email": "noam@devteam.local",
+  "role": "developer",
+  "api_token": "...",
+  "tickets": 6,
+  "projects": [
+    { "id": 2, "name": "DevTeam Hub" },
+    { "id": 5, "name": "TDI2" }
+  ]
+}</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>Current Token</h3>
+          <div class="path">/api/v1/token</div>
+          <p>Returns the active API token for the current user.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  http://localhost:5000/api/v1/token</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>{
+  "api_token": "..."
+}</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill post">POST</div><div class="pill auth">Auth</div>
+          <h3>Regenerate Token</h3>
+          <div class="path">/api/v1/token/regenerate</div>
+          <p>Rotates the caller's token and returns the new value. Clients should persist the replacement immediately.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s -X POST \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  http://localhost:5000/api/v1/token/regenerate</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>{
+  "api_token": "new-rotated-token"
+}</pre></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects" class="section">
+      <header>
+        <h2>Project Endpoints</h2>
+        <div class="sub">Project discovery for the authenticated user's memberships.</div>
+      </header>
+      <div class="section-body">
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>List Projects</h3>
+          <div class="path">/api/v1/projects</div>
+          <p>Returns only projects the current API user belongs to, including repo metadata and an open-ticket count.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  http://localhost:5000/api/v1/projects</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>[
+  {
+    "id": 2,
+    "name": "DevTeam Hub",
+    "repo_url": "http://gitea.local/devteam/dev-team",
+    "default_branch": "main",
+    "tech_stack": "Rails / SQLite / Hotwire",
+    "active": true,
+    "open_tickets": 11
+  }
+]</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>Show Project</h3>
+          <div class="path">/api/v1/projects/:id</div>
+          <p>Returns a single project plus the caller's assigned tickets in that project.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  http://localhost:5000/api/v1/projects/2</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>{
+  "id": 2,
+  "name": "DevTeam Hub",
+  "repo_url": "http://gitea.local/devteam/dev-team",
+  "default_branch": "main",
+  "tech_stack": "Rails / SQLite / Hotwire",
+  "tickets": [
+    {
+      "id": 88,
+      "title": "Add deployment widgets",
+      "status": "in_progress"
+    }
+  ]
+}</pre></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="checkout" class="section">
+      <header>
+        <h2>Checkout Endpoint</h2>
+        <div class="sub">Branch bootstrap metadata for CLI and editor integrations.</div>
+      </header>
+      <div class="section-body">
+        <div class="endpoint">
+          <div class="pill post">POST</div><div class="pill auth">Auth</div>
+          <h3>Canonical Ticket Checkout</h3>
+          <div class="path">/api/v1/checkout</div>
+          <p>Returns the branch name, repo URL, base branch, and SSH clone URL for a ticket. If the ticket is unassigned or the request includes <code>assign=true</code>, the ticket is assigned to the current user and set to <code>in_progress</code>.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s -X POST \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  http://localhost:5000/api/v1/checkout \
+  -d '{
+    "ticket_id": 88,
+    "assign": true
+  }'</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>{
+  "branch": "feature/T-88-add-deployment-widgets",
+  "ticket_id": 88,
+  "title": "Add deployment widgets",
+  "repo_url": "http://gitea.local/devteam/dev-team",
+  "base": "main",
+  "clone_ssh": "git@gitea.local:devteam/dev-team.git"
+}</pre></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tickets" class="section">
+      <header>
+        <h2>Ticket Endpoints</h2>
+        <div class="sub">Ticket retrieval, creation, and mutation for all supported clients.</div>
+      </header>
+      <div class="section-body">
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>List Tickets</h3>
+          <div class="path">/api/v1/tickets</div>
+          <p>Returns up to 100 tickets ordered by <code>updated_at desc</code>.</p>
+          <p>Supported query parameters: <code>assignee=me</code>, <code>project_id</code>, <code>status</code>, <code>priority</code>.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  "http://localhost:5000/api/v1/tickets?project_id=2&amp;status=open&amp;assignee=me"</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>[
+  {
+    "id": 88,
+    "title": "Add deployment widgets",
+    "description": "Build status cards for release dashboards",
+    "status": "open",
+    "priority": "high",
+    "kind": "story",
+    "level": "moderate",
+    "project": {
+      "id": 2,
+      "name": "DevTeam Hub",
+      "repo_url": "http://gitea.local/devteam/dev-team",
+      "default_branch": "main"
+    },
+    "branch_name": "feature/T-88-add-deployment-widgets"
+  }
+]</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>Show Ticket</h3>
+          <div class="path">/api/v1/tickets/:id</div>
+          <p>Returns the full ticket payload rendered by the API base controller.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  http://localhost:5000/api/v1/tickets/88</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill post">POST</div><div class="pill auth">Auth</div>
+          <h3>Create Ticket</h3>
+          <div class="path">/api/v1/tickets</div>
+          <p>Creates a ticket. The owner defaults to the current API user unless <code>owner_id</code> is provided.</p>
+          <p>Permitted body fields: <code>project_id</code>, <code>title</code>, <code>description</code>, <code>status</code>, <code>priority</code>, <code>kind</code>, <code>level</code>, <code>how_to_reproduce</code>, <code>assignee_id</code>, <code>owner_id</code>, <code>dev_estimate_hours</code>, <code>tester_estimate_hours</code>.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s -X POST \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  http://localhost:5000/api/v1/tickets \
+  -d '{
+    "ticket": {
+      "project_id": 2,
+      "title": "Printer timeout on floor 2",
+      "description": "Opened from the desktop app",
+      "status": "open",
+      "priority": "high",
+      "kind": "bug_fix"
+    }
+  }'</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill patch">PATCH</div><div class="pill auth">Auth</div>
+          <h3>Update Ticket</h3>
+          <div class="path">/api/v1/tickets/:id</div>
+          <p>Updates ticket fields including status, priority, PR metadata, estimates, assignee, and textual fields.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s -X PATCH \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  http://localhost:5000/api/v1/tickets/88 \
+  -d '{
+    "ticket": {
+      "status": "in_review",
+      "priority": "critical",
+      "pr_number": 42,
+      "pr_url": "http://gitea.local/devteam/dev-team/pulls/42"
+    }
+  }'</pre></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pull-requests" class="section">
+      <header>
+        <h2>Pull Request Endpoints</h2>
+        <div class="sub">PR generation and readback for branch-based workflows.</div>
+      </header>
+      <div class="section-body">
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>List Pull Requests</h3>
+          <div class="path">/api/v1/pull_requests</div>
+          <p>Returns locally stored PR records. Supported filters: <code>project_id</code>, <code>ticket_id</code>, <code>status</code>.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  "http://localhost:5000/api/v1/pull_requests?project_id=2&amp;status=open"</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>Show Pull Request</h3>
+          <div class="path">/api/v1/pull_requests/:id</div>
+          <p>Returns the PR payload including changed-file breakdown and any synced build/test data already stored on the record.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  http://localhost:5000/api/v1/pull_requests/12</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>{
+  "id": 12,
+  "title": "T-88: add deployment widgets",
+  "status": "open",
+  "pr_number": 42,
+  "author": "Noam Dev",
+  "gitea_url": "http://gitea.local/devteam/dev-team/pulls/42",
+  "source_files": ["app/controllers/reports_controller.rb"],
+  "test_files": ["spec/requests/reports_spec.rb"],
+  "latest_test_results": [],
+  "project": { "id": 2, "name": "DevTeam Hub" },
+  "ticket": { "id": 88, "title": "Add deployment widgets", "branch_name": "feature/T-88-add-deployment-widgets" }
+}</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill post">POST</div><div class="pill auth">Auth</div>
+          <h3>Create Pull Request</h3>
+          <div class="path">/api/v1/pull_requests</div>
+          <p>Creates the PR in Gitea and saves the matching local <code>PullRequest</code> record. <code>ticket_id</code> is required. <code>source_branch</code> falls back to the ticket branch name if omitted. <code>base_branch</code> falls back to the project default branch or <code>main</code>.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s -X POST \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  http://localhost:5000/api/v1/pull_requests \
+  -d '{
+    "pull_request": {
+      "ticket_id": 88,
+      "title": "T-88: add deployment widgets",
+      "description": "Generated from the VS Code extension",
+      "source_branch": "feature/T-88-add-deployment-widgets",
+      "base_branch": "main"
+    }
+  }'</pre></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="ci-runs" class="section">
+      <header>
+        <h2>CI Run Endpoints</h2>
+        <div class="sub">Jenkins-triggered test execution and CI status polling.</div>
+      </header>
+      <div class="section-body">
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>List CI Runs</h3>
+          <div class="path">/api/v1/ci_runs</div>
+          <p>Returns CI runs with optional filters: <code>project_id</code>, <code>ticket_id</code>, <code>status</code>.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  "http://localhost:5000/api/v1/ci_runs?project_id=2&amp;status=failed"</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>Show CI Run</h3>
+          <div class="path">/api/v1/ci_runs/:id</div>
+          <p>Returns one CI run including nested test results, duration, and trigger metadata.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  http://localhost:5000/api/v1/ci_runs/15</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>{
+  "id": 15,
+  "build_number": "queued-a1b2c3d4e5f6",
+  "status": "pending",
+  "branch_name": "feature/T-88-add-deployment-widgets",
+  "commit_sha": "f4c3b00c",
+  "log_url": "http://localhost:8080/job/devteam-hub-smoke/",
+  "started_at": "2026-05-23T10:51:00Z",
+  "finished_at": null,
+  "duration_minutes": null,
+  "project": { "id": 2, "name": "DevTeam Hub" },
+  "ticket": { "id": 88, "title": "Add deployment widgets" },
+  "triggered_by": { "id": 4, "name": "Noam Dev" },
+  "test_results": []
+}</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill post">POST</div><div class="pill auth">Auth</div>
+          <h3>Create CI Run</h3>
+          <div class="path">/api/v1/ci_runs</div>
+          <p>Triggers a Jenkins build via <code>JenkinsService#trigger_build</code> and creates a local pending <code>CiRun</code>. <code>project_id</code> or a ticket-linked project is required. <code>job_name</code> defaults to the parameterized project name.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s -X POST \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  http://localhost:5000/api/v1/ci_runs \
+  -d '{
+    "ci_run": {
+      "project_id": 2,
+      "ticket_id": 88,
+      "job_name": "devteam-hub-smoke",
+      "branch_name": "feature/T-88-add-deployment-widgets",
+      "commit_sha": "f4c3b00c"
+    }
+  }'</pre></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="test-results" class="section">
+      <header>
+        <h2>Test Result Endpoints</h2>
+        <div class="sub">Suite-level results attached to a CI run.</div>
+      </header>
+      <div class="section-body">
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>List CI Run Test Results</h3>
+          <div class="path">/api/v1/ci_runs/:ci_run_id/test_results</div>
+          <p>Returns all stored test result rows for the run, ordered by creation.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  http://localhost:5000/api/v1/ci_runs/15/test_results</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill post">POST</div><div class="pill auth">Auth</div>
+          <h3>Create Test Result</h3>
+          <div class="path">/api/v1/ci_runs/:ci_run_id/test_results</div>
+          <p>Stores a suite result for the run. On success the parent CI run is automatically updated to <code>passed</code> when <code>failed == 0</code>, otherwise <code>failed</code>. If the run has no <code>finished_at</code>, the endpoint stamps it.</p>
+          <p>Permitted fields: <code>suite_name</code>, <code>total</code>, <code>passed</code>, <code>failed</code>, <code>skipped</code>, <code>duration_ms</code>, <code>xml_report</code>.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s -X POST \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  http://localhost:5000/api/v1/ci_runs/15/test_results \
+  -d '{
+    "test_result": {
+      "suite_name": "Playwright smoke",
+      "total": 12,
+      "passed": 11,
+      "failed": 1,
+      "skipped": 0,
+      "duration_ms": 18900,
+      "xml_report": "&lt;testsuite&gt;&lt;/testsuite&gt;"
+    }
+  }'</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>{
+  "id": 31,
+  "suite_name": "Playwright smoke",
+  "total": 12,
+  "passed": 11,
+  "failed": 1,
+  "skipped": 0,
+  "duration_ms": 18900,
+  "xml_report": "&lt;testsuite&gt;&lt;/testsuite&gt;"
+}</pre></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="deployments" class="section">
+      <header>
+        <h2>Deployment Endpoints</h2>
+        <div class="sub">Deployment creation, polling, and status mutation.</div>
+      </header>
+      <div class="section-body">
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>List Deployments</h3>
+          <div class="path">/api/v1/deployments</div>
+          <p>Returns deployments with optional filters: <code>project_id</code>, <code>environment</code>, <code>status</code>.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  "http://localhost:5000/api/v1/deployments?project_id=2&amp;environment=staging&amp;status=in_progress"</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill get">GET</div><div class="pill auth">Auth</div>
+          <h3>Show Deployment</h3>
+          <div class="path">/api/v1/deployments/:id</div>
+          <p>Returns deployment metadata, deploy status, project reference, actor, and optional client account.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  http://localhost:5000/api/v1/deployments/22</pre></div>
+          <div class="code"><div class="code-title">response</div><pre>{
+  "id": 22,
+  "version": "2026.05.23",
+  "environment": "staging",
+  "status": "in_progress",
+  "deploy_type": "docker",
+  "machine_name": "app-01",
+  "notes": "Deploy initiated from VS Code",
+  "env_vars": [
+    { "key": "RELEASE_SHA", "value": "abc123" }
+  ],
+  "deployed_at": "2026-05-23T11:15:00Z",
+  "project": { "id": 2, "name": "DevTeam Hub" },
+  "deployed_by": { "id": 4, "name": "Noam Dev" },
+  "client_account": null
+}</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill post">POST</div><div class="pill auth">Auth</div>
+          <h3>Create Deployment</h3>
+          <div class="path">/api/v1/deployments</div>
+          <p>Creates a deployment record for a project. The API sets <code>deployed_by</code> to the current user and defaults <code>deployed_at</code> to the current time when omitted.</p>
+          <p>Permitted fields: <code>project_id</code>, <code>version</code>, <code>environment</code>, <code>status</code>, <code>machine_name</code>, <code>client_account_id</code>, <code>deploy_type</code>, <code>notes</code>, <code>deployed_at</code>, <code>env_vars[]</code>.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s -X POST \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  http://localhost:5000/api/v1/deployments \
+  -d '{
+    "deployment": {
+      "project_id": 2,
+      "version": "2026.05.23",
+      "environment": "staging",
+      "status": "in_progress",
+      "deploy_type": "docker",
+      "machine_name": "app-01",
+      "notes": "Deploy initiated from VS Code",
+      "env_vars": [
+        { "key": "RELEASE_SHA", "value": "abc123" },
+        { "key": "ROLLING", "value": "true" }
+      ]
+    }
+  }'</pre></div>
+        </div>
+
+        <div class="endpoint">
+          <div class="pill patch">PATCH</div><div class="pill auth">Auth</div>
+          <h3>Update Deployment</h3>
+          <div class="path">/api/v1/deployments/:id</div>
+          <p>Updates deployment state or metadata. <code>project_id</code> is ignored for updates even if supplied.</p>
+          <div class="code"><div class="code-title">curl</div><pre>curl -s -X PATCH \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  http://localhost:5000/api/v1/deployments/22 \
+  -d '{
+    "deployment": {
+      "status": "succeeded",
+      "notes": "Smoke tests passed",
+      "deployed_at": "2026-05-23T11:42:00Z"
+    }
+  }'</pre></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <header>
+        <h2>Suggested Client Flows</h2>
+        <div class="sub">Reference sequences for the extension and other client apps.</div>
+      </header>
+      <div class="section-body grid cards-2">
+        <div class="card">
+          <h3>VS Code Extension</h3>
+          <p>Typical flow:</p>
+          <p>1. <code>POST /tickets</code> to create work from the editor.<br>
+             2. <code>POST /checkout</code> to get branch metadata.<br>
+             3. <code>POST /pull_requests</code> when code is review-ready.<br>
+             4. <code>POST /ci_runs</code> to trigger Jenkins validation.<br>
+             5. <code>GET /ci_runs/:id</code> and <code>GET /ci_runs/:id/test_results</code> to show feedback.<br>
+             6. <code>POST /deployments</code> and <code>GET /deployments/:id</code> for release workflows.</p>
+        </div>
+        <div class="card">
+          <h3>Client Apps And Automation Bridges</h3>
+          <p>Typical flow:</p>
+          <p>1. Discover memberships with <code>GET /me</code> and <code>GET /projects</code>.<br>
+             2. Create or update tickets as incidents arrive.<br>
+             3. Trigger CI runs or submit test results from external runners.<br>
+             4. Create deployment records and poll deployment status during rollout.<br>
+             5. Rotate tokens with <code>POST /token/regenerate</code> when needed.</p>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer">DevTeam API Reference · Generated From Current Rails Routes And Controller Behavior</p>
+  </div>
+</body>
+</html>

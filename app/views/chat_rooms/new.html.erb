@@ -1,0 +1,59 @@
+<% content_for :page_title, "New Channel" %>
+
+<div class="p-5" style="max-width:520px;">
+  <h1 class="fw-bold">Create a Channel</h1>
+
+  <%= form_with model: @chat_room, url: chat_rooms_path do |f| %>
+    <% if @chat_room.errors.any? %>
+      <div class="alert alert-danger is-light">
+        <% @chat_room.errors.full_messages.each do |m| %>
+          <p><%= m %></p>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="mb-3">
+      <%= f.label :name, "Channel name", class: "label" %>
+      <div class=" has-icons-left">
+        <%= f.text_field :name, class: "input", placeholder: "e.g. api-service-alerts" %>
+        <span class="icon is-left">#</span>
+      </div>
+      <p class="form-text text-muted">Lowercase, no spaces (use hyphens)</p>
+    </div>
+
+    <div class="mb-3">
+      <%= f.label :description, class: "label" %>
+      <div class="">
+        <%= f.text_area :description, class: "textarea is-small", rows: 2,
+              placeholder: "What is this channel for?" %>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <%= f.label :room_type, "Type", class: "label" %>
+      <div class="">
+        <%= f.select :room_type,
+              ChatRoom.room_types.keys.map { |k| [k.humanize, k] },
+              {},
+              class: "select w-100" %>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <%= f.label :project_id, "Linked project (optional)", class: "label" %>
+      <div class="">
+        <%= f.select :project_id,
+              [["— none —", nil]] + @projects.map { |p| [p.name, p.id] },
+              {},
+              class: "select w-100" %>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <div class="">
+        <%= f.submit "Create channel", class: "btn btn-primary" %>
+        <%= link_to "Cancel", chat_rooms_path, class: "btn btn-secondary ms-2" %>
+      </div>
+    </div>
+  <% end %>
+</div>

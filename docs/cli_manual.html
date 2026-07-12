@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dt — DevTeam CLI Manual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f0e8;
+      --panel: #fffdf7;
+      --ink: #12252b;
+      --muted: #5c6f76;
+      --line: #d7d0c2;
+      --teal: #0b7a75;
+      --navy: #17324a;
+      --orange: #d26d18;
+      --red: #b63a34;
+      --green: #1a7a3a;
+      --shadow: 0 18px 44px rgba(18, 37, 43, 0.09);
+      --radius: 18px;
+      --mono: "JetBrains Mono", monospace;
+      --sans: "Manrope", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--sans);
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(11, 122, 117, 0.14), transparent),
+        radial-gradient(760px 340px at 100% 0%, rgba(210, 109, 24, 0.12), transparent),
+        var(--bg);
+      line-height: 1.55;
+    }
+
+    .shell {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 24px 18px 60px;
+    }
+
+    /* ── Topbar ─────────────────────────────────────────── */
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 253, 247, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 22px;
+    }
+
+    .topbar-logo {
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: var(--teal);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar-logo span { font-size: 1.4rem; }
+
+    .topbar-nav {
+      display: flex;
+      gap: 6px;
+    }
+
+    .topbar-nav a {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: 0.15s;
+    }
+
+    .topbar-nav a:hover { background: rgba(11, 122, 117, 0.08); color: var(--teal); }
+
+    /* ── Hero ───────────────────────────────────────────── */
+
+    .hero {
+      text-align: center;
+      padding: 52px 18px 36px;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin: 0 0 10px;
+    }
+
+    .hero h1 code {
+      font-family: var(--mono);
+      color: var(--teal);
+      background: rgba(11, 122, 117, 0.08);
+      padding: 2px 14px;
+      border-radius: 10px;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    .badge.teal { color: var(--teal); border-color: rgba(11, 122, 117, 0.3); }
+    .badge.orange { color: var(--orange); border-color: rgba(210, 109, 24, 0.3); }
+    .badge.navy { color: var(--navy); border-color: rgba(23, 50, 74, 0.3); }
+
+    /* ── Section ────────────────────────────────────────── */
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .section h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin: 0 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section h2 .icon { font-size: 1.5rem; }
+
+    .section h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--teal);
+      margin: 28px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section p, .section li {
+      color: var(--ink);
+      line-height: 1.65;
+    }
+
+    .section ul { padding-left: 20px; }
+
+    /* ── Code blocks ────────────────────────────────────── */
+
+    pre {
+      background: #1c2833;
+      color: #e8e6df;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      padding: 18px 22px;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 12px 0 16px;
+      line-height: 1.6;
+    }
+
+    pre .comment { color: #6a7f8a; }
+    pre .cmd { color: #5ddbcf; }
+    pre .flag { color: #f5a623; }
+    pre .arg { color: #a8d8ea; }
+    pre .output { color: #6a7f8a; font-style: italic; }
+    pre .prompt { color: #5ddbcf; user-select: none; }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      background: rgba(11, 122, 117, 0.07);
+      color: var(--teal);
+      padding: 2px 7px;
+      border-radius: 5px;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    /* ── Command table ──────────────────────────────────── */
+
+    .cmd-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 8px;
+    }
+
+    .cmd-table th {
+      text-align: left;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-bottom: 2px solid var(--line);
+    }
+
+    .cmd-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.92rem;
+      vertical-align: top;
+    }
+
+    .cmd-table tr:last-child td { border-bottom: none; }
+
+    .cmd-table td:first-child {
+      font-family: var(--mono);
+      font-weight: 500;
+      color: var(--teal);
+      white-space: nowrap;
+    }
+
+    .cmd-table td:last-child { color: var(--muted); }
+
+    /* ── Terminal preview ───────────────────────────────── */
+
+    .terminal {
+      background: #0e1a24;
+      border-radius: 14px;
+      overflow: hidden;
+      margin: 16px 0;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    }
+
+    .terminal-bar {
+      background: #1a2d3d;
+      padding: 9px 16px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .terminal-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.r { background: #ff5f57; }
+    .terminal-dot.y { background: #febc2e; }
+    .terminal-dot.g { background: #28c840; }
+
+    .terminal-title {
+      color: #6a7f8a;
+      font-size: 0.78rem;
+      font-family: var(--mono);
+      margin-left: 10px;
+    }
+
+    .terminal pre {
+      margin: 0;
+      border-radius: 0;
+      padding: 18px 22px 22px;
+      background: #0e1a24;
+    }
+
+    /* ── Tip callout ────────────────────────────────────── */
+
+    .tip {
+      background: rgba(11, 122, 117, 0.06);
+      border-left: 3px solid var(--teal);
+      padding: 14px 18px;
+      border-radius: 0 10px 10px 0;
+      margin: 16px 0;
+      font-size: 0.92rem;
+    }
+
+    .tip strong { color: var(--teal); }
+
+    .warn {
+      background: rgba(210, 109, 24, 0.06);
+      border-left: 3px solid var(--orange);
+      padding: 14px 18px;
+      border-radius: 0 10px 10px 0;
+      margin: 16px 0;
+      font-size: 0.92rem;
+    }
+
+    .warn strong { color: var(--orange); }
+
+    /* ── Grid ───────────────────────────────────────────── */
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 820px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 2rem; }
+    }
+
+    /* ── Footer ─────────────────────────────────────────── */
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      padding: 32px 0 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-logo"><span>⚡</span> dt CLI Manual</div>
+    <nav class="topbar-nav">
+      <a href="#install">Install</a>
+      <a href="#setup">Setup</a>
+      <a href="#tickets">Tickets</a>
+      <a href="#ci">CI</a>
+      <a href="#deploy">Deploy</a>
+      <a href="#log">Log</a>
+      <a href="#reference">Reference</a>
+    </nav>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1><code>dt</code> CLI Manual</h1>
+    <p>The DevTeam Hub terminal client. Manage tickets, run tests, deploy, and review code — without leaving your terminal.</p>
+    <div class="hero-badges">
+      <span class="badge teal">v1.0.0</span>
+      <span class="badge orange">Ruby</span>
+      <span class="badge navy">macOS / Linux</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- Installation                                        -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div class="section" id="install">
+    <h2><span class="icon">📦</span> Installation</h2>
+    <p>The <code>dt</code> CLI is a single Ruby script with no gem dependencies beyond the standard library. Symlink it to your PATH:</p>
+
+    <pre><code><span class="comment"># From the project root</span>
+<span class="prompt">$ </span><span class="cmd">ln -sf</span> <span class="arg">"$(pwd)/cli/dt"</span> <span class="arg">/usr/local/bin/dt</span></code></pre>
+
+    <p>Verify it works:</p>
+    <pre><code><span class="prompt">$ </span><span class="cmd">dt</span> <span class="flag">--version</span>
+<span class="output">dt 1.0.0</span></code></pre>
+
+    <div class="tip">
+      <strong>💡 Tip:</strong> The CLI reuses the same <code>~/.devteam.yml</code> config file as the <code>devteam</code> CLI. If you already ran <code>devteam setup</code>, you're ready to go.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- Setup                                               -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div class="section" id="setup">
+    <h2><span class="icon">🔧</span> First-Time Setup</h2>
+    <p>Configure the CLI with your DevTeam Hub server URL and API token:</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">Terminal — dt setup</div>
+      </div>
+      <pre><code><span class="prompt">$ </span><span class="cmd">dt</span> setup
+──────────────────────────────────────────────────
+  <strong>DevTeam Hub — Setup</strong>
+──────────────────────────────────────────────────
+  Hub URL [http://localhost:3000]: <span class="arg">https://hub.mycompany.com</span>
+  API token (from https://hub.mycompany.com/api/v1/token): <span class="arg">abcdef123456</span>
+  ✓ Authenticated as Jane Smith (developer)
+  Config saved to /Users/jane/.devteam.yml</code></pre>
+    </div>
+
+    <p>Your API token is available at <code>{hub-url}/api/v1/token</code> after logging in to the web interface.</p>
+    <p>Configuration is stored in <code>~/.devteam.yml</code>:</p>
+    <pre><code><span class="comment"># ~/.devteam.yml</span>
+host: https://hub.mycompany.com
+token: abcdef123456</code></pre>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- Tickets                                             -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div class="section" id="tickets">
+    <h2><span class="icon">🎫</span> Ticket Management</h2>
+    <p>All ticket commands follow the pattern: <code>dt ticket &lt;command&gt; [args]</code>. Shorthand: <code>dt t &lt;command&gt;</code>.</p>
+    <p>Most commands auto-detect the ticket ID from the current git branch (e.g. <code>feature/T-42-login-page</code>).</p>
+
+    <h3>List tickets</h3>
+    <pre><code><span class="comment"># List your assigned tickets</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> list
+
+<span class="comment"># List all tickets across projects</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> list <span class="flag">--all</span>
+
+<span class="comment"># Filter by status</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> list <span class="flag">--status</span> <span class="arg">in_progress</span>
+
+<span class="comment"># Filter by project</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> list <span class="flag">--project</span> <span class="arg">3</span></code></pre>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">Terminal — dt ticket list</div>
+      </div>
+      <pre><code><span class="prompt">$ </span><span class="cmd">dt ticket</span> list
+──────────────────────────────────────────────────
+  <strong>Tickets</strong>
+──────────────────────────────────────────────────
+
+  ID      Priority  Status        Title                     Project     Assignee
+  ──────  ────────  ──────────    ──────────────────────    ─────────   ────────
+  T-42    CRITICAL  ▶ in progress Login page redesign       WebApp      Jane
+  T-38    HIGH      ◎ in review   Fix payment gateway       WebApp      Jane
+  T-55    MEDIUM    ○ open        Add dark mode toggle      MobileApp   Jane</code></pre>
+    </div>
+
+    <h3>Show ticket details</h3>
+    <pre><code><span class="prompt">$ </span><span class="cmd">dt ticket</span> show <span class="arg">42</span>
+
+<span class="comment"># Or auto-detect from current branch</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> show</code></pre>
+
+    <h3>Change ticket status</h3>
+    <pre><code><span class="comment"># Reopen a ticket</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> open <span class="arg">42</span>
+
+<span class="comment"># Cancel a ticket (sets to closed)</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> cancel <span class="arg">42</span>
+
+<span class="comment"># Close / mark done</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> close <span class="arg">42</span></code></pre>
+
+    <h3>Update ticket fields</h3>
+    <p>Pass field-value pairs after the ticket ID:</p>
+    <pre><code><span class="prompt">$ </span><span class="cmd">dt ticket</span> update <span class="arg">42</span> status <span class="arg">done</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> update <span class="arg">42</span> priority <span class="arg">high</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> update <span class="arg">42</span> status <span class="arg">in_review</span> priority <span class="arg">critical</span></code></pre>
+
+    <table class="cmd-table">
+      <thead><tr><th>Field</th><th>Accepted Values</th></tr></thead>
+      <tbody>
+        <tr><td>status</td><td>backlog, open, in_progress, in_review, testing, done, closed, blocked</td></tr>
+        <tr><td>priority</td><td>low, medium, high, critical</td></tr>
+        <tr><td>kind</td><td>story, meta_story, bug_fix, spike, hotfix</td></tr>
+        <tr><td>level</td><td>trivial, simple, moderate, complex, expert</td></tr>
+        <tr><td>points</td><td>Integer (story points)</td></tr>
+        <tr><td>title</td><td>Any string</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Assign a ticket</h3>
+    <pre><code><span class="comment"># Assign to yourself</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> assign <span class="arg">42</span>
+
+<span class="comment"># Assign to a team member (name match)</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> assign <span class="arg">42</span> to <span class="arg">John</span></code></pre>
+
+    <h3>Move to a sprint</h3>
+    <pre><code><span class="prompt">$ </span><span class="cmd">dt ticket</span> move <span class="arg">42</span> to sprint <span class="arg">5</span></code></pre>
+
+    <h3>Checkout ticket branch</h3>
+    <p>Creates or switches to the ticket's git branch and auto-sets status to <code>in_progress</code>:</p>
+    <pre><code><span class="prompt">$ </span><span class="cmd">dt ticket</span> checkout <span class="arg">42</span>
+
+<span class="comment"># Shorthand</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> co <span class="arg">42</span></code></pre>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">Terminal — dt ticket checkout</div>
+      </div>
+      <pre><code><span class="prompt">$ </span><span class="cmd">dt ticket</span> checkout <span class="arg">42</span>
+──────────────────────────────────────────────────
+  <strong>Checkout T-42</strong>
+──────────────────────────────────────────────────
+  Login page redesign
+  Branch: <strong>feature/T-42-login-page-redesign</strong>
+
+  Creating new branch from main...
+  ✓ On feature/T-42-login-page-redesign — status → in_progress</code></pre>
+    </div>
+
+    <div class="tip">
+      <strong>💡 Branch naming:</strong> Branches are auto-named based on ticket kind:
+      <code>feature/T-&lt;id&gt;-&lt;slug&gt;</code> for stories,
+      <code>bugfix/T-&lt;id&gt;-&lt;slug&gt;</code> for bugs,
+      <code>hotfix/T-&lt;id&gt;-&lt;slug&gt;</code> for hotfixes,
+      <code>spike/T-&lt;id&gt;-&lt;slug&gt;</code> for spikes.
+    </div>
+
+    <h3>Run tests</h3>
+    <p>Triggers a CI run for the ticket via the DevTeam Hub API (Jenkins integration):</p>
+    <pre><code><span class="comment"># Run tests for a specific ticket</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> run <span class="arg">42</span>
+
+<span class="comment"># Auto-detect ticket from branch</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> run</code></pre>
+
+    <h3>Code review</h3>
+    <p>Shows diff stats, changed files, and opens the PR in your browser:</p>
+    <pre><code><span class="prompt">$ </span><span class="cmd">dt ticket</span> review <span class="arg">42</span>
+
+<span class="comment"># Auto-detect ticket</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> review</code></pre>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">Terminal — dt ticket review</div>
+      </div>
+      <pre><code><span class="prompt">$ </span><span class="cmd">dt ticket</span> review
+──────────────────────────────────────────────────
+  <strong>Code Review — T-42</strong>
+──────────────────────────────────────────────────
+  Login page redesign
+  PR: <strong>http://gitea.local/webapp/pulls/18</strong>
+
+  Fetching diff stats...
+
+  <strong>Changed files:</strong>
+  app/views/sessions/new.html.erb  | 45 ++++++---
+  app/assets/stylesheets/login.css | 22 +++++
+  spec/features/login_spec.rb      | 18 ++++
+  3 files changed, 68 insertions(+), 17 deletions(-)
+
+  <strong>Files to review:</strong>
+    1  app/views/sessions/new.html.erb
+    2  app/assets/stylesheets/login.css
+    3  spec/features/login_spec.rb
+
+  Open in browser? [y/N]: y</code></pre>
+    </div>
+
+    <h3>Commit and push</h3>
+    <p>Stages changes, commits with a ticket-prefixed message, pushes, and sets status to <code>in_review</code>:</p>
+    <pre><code><span class="prompt">$ </span><span class="cmd">dt ticket</span> commit</code></pre>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">Terminal — dt ticket commit</div>
+      </div>
+      <pre><code><span class="prompt">$ </span><span class="cmd">dt ticket</span> commit
+──────────────────────────────────────────────────
+  <strong>Commit — T-42</strong>
+──────────────────────────────────────────────────
+  <strong>Unstaged / untracked:</strong>
+  app/views/sessions/new.html.erb | 12 +++---
+  ?? app/assets/stylesheets/login.css
+
+  Stage all changes? [y/N]: y
+  Commit message [T-42: Login page redesign]: <span class="arg">T-42: Redesign login page with new branding</span>
+  Pushing to origin...
+  ✓ Committed, pushed, and T-42 → in_review</code></pre>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- CI                                                  -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div class="section" id="ci">
+    <h2><span class="icon">🔬</span> CI / Testing</h2>
+    <p>Manage CI test runs directly from the terminal. All commands: <code>dt ci &lt;command&gt;</code>.</p>
+
+    <h3>Run tests</h3>
+    <pre><code><span class="comment"># Run all tests</span>
+<span class="prompt">$ </span><span class="cmd">dt ci</span> test
+
+<span class="comment"># Run a specific test scope</span>
+<span class="prompt">$ </span><span class="cmd">dt ci</span> test <span class="arg">frontend</span>
+<span class="prompt">$ </span><span class="cmd">dt ci</span> test <span class="arg">backend</span>
+<span class="prompt">$ </span><span class="cmd">dt ci</span> test <span class="arg">ui</span></code></pre>
+
+    <table class="cmd-table">
+      <thead><tr><th>Scope</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>all</td><td>Run the full test suite (default)</td></tr>
+        <tr><td>frontend</td><td>Run frontend / JavaScript tests only</td></tr>
+        <tr><td>backend</td><td>Run Rails / backend tests only</td></tr>
+        <tr><td>ui</td><td>Run UI / integration / Cucumber tests only</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Rerun failing tests</h3>
+    <p>Finds the most recent failed CI run for the current ticket and reruns it:</p>
+    <pre><code><span class="prompt">$ </span><span class="cmd">dt ci</span> rerun</code></pre>
+
+    <h3>Cancel running tests</h3>
+    <pre><code><span class="prompt">$ </span><span class="cmd">dt ci</span> cancel</code></pre>
+
+    <h3>Check CI status</h3>
+    <pre><code><span class="prompt">$ </span><span class="cmd">dt ci</span> status</code></pre>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">Terminal — dt ci status</div>
+      </div>
+      <pre><code><span class="prompt">$ </span><span class="cmd">dt ci</span> status
+──────────────────────────────────────────────────
+  <strong>CI Status — T-42</strong>
+──────────────────────────────────────────────────
+
+  Build     Status   Branch                            Project   Started
+  ────────  ───────  ──────────────────────────────    ────────  ─────────────
+  #247      passed   feature/T-42-login-page-redesign  WebApp    2026-05-24 09:12
+  #245      failed   feature/T-42-login-page-redesign  WebApp    2026-05-23 17:45
+  #240      passed   main                              WebApp    2026-05-23 14:00</code></pre>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- Deploy                                              -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div class="section" id="deploy">
+    <h2><span class="icon">🚀</span> Deployment</h2>
+    <p>Deploy the current branch to an environment. Shorthand: <code>dt d</code>.</p>
+
+    <pre><code><span class="comment"># Deploy to staging</span>
+<span class="prompt">$ </span><span class="cmd">dt deploy</span> <span class="arg">staging</span>
+
+<span class="comment"># "to" is optional syntactic sugar</span>
+<span class="prompt">$ </span><span class="cmd">dt deploy</span> to <span class="arg">staging</span>
+
+<span class="comment"># Deploy to production (requires confirmation)</span>
+<span class="prompt">$ </span><span class="cmd">dt deploy</span> <span class="arg">production</span></code></pre>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">Terminal — dt deploy production</div>
+      </div>
+      <pre><code><span class="prompt">$ </span><span class="cmd">dt deploy</span> <span class="arg">production</span>
+──────────────────────────────────────────────────
+  <strong>Deploy to PRODUCTION</strong>
+──────────────────────────────────────────────────
+  Branch:  feature/T-42-login-page-redesign
+  Ticket:  T-42
+
+  Deploy to PRODUCTION? [y/N]: y
+
+  Push branch...    ✓
+  Run migrations... ✓
+  Restart server... ✓
+  ✓ T-42 marked done
+  ✓ Deploy to production complete!</code></pre>
+    </div>
+
+    <div class="warn">
+      <strong>⚠ Production deploys</strong> require confirmation. When deploying to production, the linked ticket is automatically set to <code>done</code>.
+    </div>
+
+    <p>The deploy process runs these steps:</p>
+    <ol>
+      <li><strong>Push branch</strong> — <code>git push -u origin &lt;branch&gt;</code></li>
+      <li><strong>Run migrations</strong> — <code>bin/rails db:migrate RAILS_ENV=&lt;env&gt;</code></li>
+      <li><strong>Restart server</strong> — <code>touch tmp/restart.txt</code></li>
+    </ol>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- Log                                                 -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div class="section" id="log">
+    <h2><span class="icon">📜</span> Log</h2>
+    <p>View git history or deployment logs. Shorthand: <code>dt l</code>.</p>
+
+    <pre><code><span class="comment"># Recent git commits (last 15)</span>
+<span class="prompt">$ </span><span class="cmd">dt log</span>
+
+<span class="comment"># Git log for a specific file</span>
+<span class="prompt">$ </span><span class="cmd">dt log</span> <span class="arg">app/models/ticket.rb</span>
+
+<span class="comment"># Deployment history for staging</span>
+<span class="prompt">$ </span><span class="cmd">dt log</span> <span class="arg">staging</span>
+
+<span class="comment"># Deployment history for production</span>
+<span class="prompt">$ </span><span class="cmd">dt log</span> <span class="arg">production</span></code></pre>
+
+    <div class="tip">
+      <strong>💡 Smart detection:</strong> When the argument is <code>staging</code> or <code>production</code>, <code>dt log</code> shows the deployment history from the DevTeam Hub API. Any other argument is treated as a file path for <code>git log</code>.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- Full Reference                                      -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div class="section" id="reference">
+    <h2><span class="icon">📖</span> Command Reference</h2>
+
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>dt setup</td><td>Configure CLI with server URL and API token</td></tr>
+        <tr><td>dt ticket list</td><td>List your assigned tickets (<code>--all</code>, <code>--status</code>, <code>--project</code>)</td></tr>
+        <tr><td>dt ticket show &lt;ID&gt;</td><td>Show full ticket details</td></tr>
+        <tr><td>dt ticket open &lt;ID&gt;</td><td>Set ticket status to open</td></tr>
+        <tr><td>dt ticket cancel &lt;ID&gt;</td><td>Cancel / close a ticket</td></tr>
+        <tr><td>dt ticket close &lt;ID&gt;</td><td>Mark ticket as done</td></tr>
+        <tr><td>dt ticket update &lt;ID&gt; &lt;key&gt; &lt;val&gt;</td><td>Update one or more ticket fields</td></tr>
+        <tr><td>dt ticket assign &lt;ID&gt; [to &lt;name&gt;]</td><td>Assign to yourself or a team member</td></tr>
+        <tr><td>dt ticket move &lt;ID&gt; to sprint &lt;SID&gt;</td><td>Move ticket to a different sprint</td></tr>
+        <tr><td>dt ticket checkout &lt;ID&gt;</td><td>Checkout the ticket branch + set in_progress</td></tr>
+        <tr><td>dt ticket run [ID]</td><td>Trigger a CI test run for the ticket</td></tr>
+        <tr><td>dt ticket review [ID]</td><td>Show diff stats and open PR in browser</td></tr>
+        <tr><td>dt ticket commit</td><td>Stage, commit, push, and set to in_review</td></tr>
+        <tr><td>dt deploy [to] &lt;env&gt;</td><td>Deploy current branch (staging or production)</td></tr>
+        <tr><td>dt ci test [scope]</td><td>Run CI tests (all / frontend / backend / ui)</td></tr>
+        <tr><td>dt ci rerun</td><td>Rerun the last failing CI run</td></tr>
+        <tr><td>dt ci cancel</td><td>Cancel running CI for current ticket</td></tr>
+        <tr><td>dt ci status</td><td>Show recent CI run status</td></tr>
+        <tr><td>dt log [file]</td><td>Git log (optionally scoped to a file)</td></tr>
+        <tr><td>dt log staging</td><td>Show staging deployment history</td></tr>
+        <tr><td>dt log production</td><td>Show production deployment history</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Shortcuts</h3>
+    <table class="cmd-table">
+      <thead><tr><th>Shorthand</th><th>Expands to</th></tr></thead>
+      <tbody>
+        <tr><td>dt t</td><td>dt ticket</td></tr>
+        <tr><td>dt d</td><td>dt deploy</td></tr>
+        <tr><td>dt l</td><td>dt log</td></tr>
+        <tr><td>dt ticket co</td><td>dt ticket checkout</td></tr>
+        <tr><td>dt ticket ls</td><td>dt ticket list</td></tr>
+        <tr><td>dt ticket info</td><td>dt ticket show</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Branch auto-detection</h3>
+    <p>When a ticket ID is omitted, <code>dt</code> extracts it from the current git branch name. Recognized patterns:</p>
+    <pre><code>feature/T-42-login-page      → Ticket ID: 42
+bugfix/T-18-fix-crash        → Ticket ID: 18
+hotfix/T-99-urgent-patch     → Ticket ID: 99
+chore/T-7-update-deps        → Ticket ID: 7
+spike/T-33-evaluate-redis    → Ticket ID: 33</code></pre>
+
+    <h3>Configuration file</h3>
+    <table class="cmd-table">
+      <thead><tr><th>Key</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>host</td><td>DevTeam Hub URL (default: <code>http://localhost:3000</code>)</td></tr>
+        <tr><td>token</td><td>Your personal API token</td></tr>
+      </tbody>
+    </table>
+    <p>Stored at <code>~/.devteam.yml</code>. Shared with the <code>devteam</code> CLI.</p>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- Typical Workflow                                    -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div class="section" id="workflow">
+    <h2><span class="icon">🔄</span> Typical Workflow</h2>
+    <p>A complete ticket lifecycle from the terminal:</p>
+
+    <pre><code><span class="comment"># 1. See your tickets</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> list
+
+<span class="comment"># 2. Start working on a ticket</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> checkout <span class="arg">42</span>
+
+<span class="comment"># 3. ... write code ...</span>
+
+<span class="comment"># 4. Run tests</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> run
+
+<span class="comment"># 5. Check CI status</span>
+<span class="prompt">$ </span><span class="cmd">dt ci</span> status
+
+<span class="comment"># 6. Commit and push</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> commit
+
+<span class="comment"># 7. Review the diff</span>
+<span class="prompt">$ </span><span class="cmd">dt ticket</span> review
+
+<span class="comment"># 8. Deploy to staging</span>
+<span class="prompt">$ </span><span class="cmd">dt deploy</span> <span class="arg">staging</span>
+
+<span class="comment"># 9. Deploy to production</span>
+<span class="prompt">$ </span><span class="cmd">dt deploy</span> <span class="arg">production</span></code></pre>
+  </div>
+
+  <div class="footer">
+    DevTeam Hub — <code>dt</code> CLI v1.0.0 — Generated May 2026
+  </div>
+
+</div>
+</body>
+</html>
