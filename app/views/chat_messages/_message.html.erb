@@ -1,0 +1,44 @@
+<% is_continuation = local_assigns.fetch(:is_continuation, false) %>
+<div class="chat-msg <%= is_continuation ? 'is-continuation' : '' %>" id="<%= dom_id(message) %>">
+  <% if message.user.avatar.attached? %>
+    <%= user_avatar(message.user, size: 32, css_class: "chat-msg-avatar") %>
+  <% else %>
+    <div class="chat-msg-avatar"
+         style="background:<%= ["#4a90d9","#7b68ee","#20c997","#fd7e14","#e83e8c"].rotate(message.user_id % 5).first %>;">
+      <%= message.user.initials %>
+    </div>
+  <% end %>
+  <div class="chat-msg-body">
+    <% unless is_continuation %>
+      <div class="chat-msg-meta">
+        <span class="chat-msg-author"><%= message.user.display_name %></span>
+        <span class="chat-msg-time" title="<%= message.created_at.strftime('%Y-%m-%d %H:%M') %>">
+          <%= message.created_at.strftime("%-I:%M %p") %>
+        </span>
+        <% if message.edited? %><span class="chat-msg-time">(edited)</span><% end %>
+      </div>
+    <% end %>
+
+    <% if message.body.present? %>
+      <div class="chat-msg-text"><%= render_chat_body(message.body) %></div>
+    <% end %>
+
+    <% if message.files.attached? %>
+      <div class="chat-msg-attachments d-flex flex-wrap gap-2 mt-1">
+        <% message.files.each do |file| %>
+          <% if file.content_type.to_s.start_with?("image/") %>
+            <%= link_to rails_blob_path(file, disposition: "inline"), target: "_blank", rel: "noopener" do %>
+              <%= image_tag rails_blob_path(file, disposition: "inline"),
+                    class: "chat-attach-img", loading: "lazy", alt: file.filename.to_s %>
+            <% end %>
+          <% else %>
+            <%= link_to rails_blob_path(file, disposition: "attachment"),
+                  class: "chat-attach-file", target: "_blank", rel: "noopener" do %>
+              📎 <span class="chat-attach-name"><%= file.filename %></span>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

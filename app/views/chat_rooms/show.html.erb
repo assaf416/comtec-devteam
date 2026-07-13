@@ -2,6 +2,9 @@
 
 <div class="chat-layout" data-controller="chat">
 
+  <%= turbo_stream_from @chat_room %>
+
+
   <%# ── Channel header ──────────────────────────────────────────────────── %>
   <div class="chat-header">
     <span style="font-size:1.1rem;color:#aaa;">#</span>
@@ -40,30 +43,7 @@
           <% is_continuation = false %>
         <% end %>
 
-        <div class="chat-msg <%= is_continuation ? 'is-continuation' : '' %>">
-          <% if msg.user.avatar.attached? %>
-            <%= user_avatar(msg.user, size: 32, css_class: "chat-msg-avatar") %>
-          <% else %>
-            <div class="chat-msg-avatar"
-                 style="background:<%= ["#4a90d9","#7b68ee","#20c997","#fd7e14","#e83e8c"].rotate(msg.user_id % 5).first %>;">
-              <%= msg.user.initials %>
-            </div>
-          <% end %>
-          <div class="chat-msg-body">
-            <% unless is_continuation %>
-              <div class="chat-msg-meta">
-                <span class="chat-msg-author"><%= msg.user.display_name %></span>
-                <span class="chat-msg-time" title="<%= msg.created_at.strftime('%Y-%m-%d %H:%M') %>">
-                  <%= msg.created_at.strftime("%-I:%M %p") %>
-                </span>
-                <% if msg.edited? %>
-                  <span class="chat-msg-time">(edited)</span>
-                <% end %>
-              </div>
-            <% end %>
-            <div class="chat-msg-text"><%= render_chat_body(msg.body) %></div>
-          </div>
-        </div>
+        <%= render "chat_messages/message", message: msg, is_continuation: is_continuation %>
 
         <%
           prev_user_id = msg.user_id
@@ -88,30 +68,6 @@
   </turbo-frame>
 
   <%# ── Compose area ───────────────────────────────────────────────────── %>
-  <div class="chat-compose">
-    <%= form_with url: chat_room_chat_messages_path(@chat_room),
-                  method: :post,
-                  data: { action: "submit->chat#afterSubmit" } do |f| %>
-      <div class="chat-compose-card p-3 mb-3">
-        <textarea name="chat_message[body]"
-                  placeholder="Message #<%= @chat_room.name %>  ·  Use #T-123 for tickets, #CI-456 for CI, #D-789 for deploys, @name to mention"
-                  rows="2"
-                  data-chat-target="textarea"
-                  data-action="input->chat#autoGrow keydown->chat#keySubmit"
-                  style="min-height:52px;"></textarea>
-        <div class="chat-compose-footer">
-          <span class="compose-hints">
-            <code>#T-<em>id</em></code> ticket &nbsp;
-            <code>#CI-<em>id</em></code> build &nbsp;
-            <code>#D-<em>id</em></code> deploy &nbsp;
-            <code>#PR-<em>id</em></code> PR &nbsp;
-            <code>@name</code> mention &nbsp;·&nbsp;
-            <kbd>⌘↵</kbd> to send
-          </span>
-          <%= f.submit "Send", class: "btn btn-primary btn-sm" %>
-        </div>
-      </div>
-    <% end %>
-  </div>
+  <%= render "chat_rooms/compose", chat_room: @chat_room %>
 
 </div>

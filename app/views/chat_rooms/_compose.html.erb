@@ -1,0 +1,24 @@
+<div class="chat-compose" id="chatComposeForm">
+  <%= form_with url: chat_room_chat_messages_path(chat_room),
+                method: :post, html: { multipart: true },
+                data: { action: "submit->chat#afterSubmit" } do |f| %>
+    <div class="chat-compose-card p-3 mb-3">
+      <textarea name="chat_message[body]"
+                placeholder="Message #<%= chat_room.name %>  ·  #T-123 tickets, @name to mention"
+                rows="2"
+                data-chat-target="textarea"
+                data-action="input->chat#autoGrow keydown->chat#keySubmit"
+                style="min-height:52px;"></textarea>
+      <div class="chat-compose-footer">
+        <label class="btn btn-sm btn-outline-secondary mb-0" title="Attach files">
+          📎 <span class="d-none d-md-inline">Attach</span>
+          <%= file_field_tag "chat_message[files][]", multiple: true, class: "d-none" %>
+        </label>
+        <span class="compose-hints ms-2">
+          <kbd>⌘↵</kbd> to send
+        </span>
+        <%= f.submit "Send", class: "btn btn-primary btn-sm ms-auto" %>
+      </div>
+    </div>
+  <% end %>
+</div>
