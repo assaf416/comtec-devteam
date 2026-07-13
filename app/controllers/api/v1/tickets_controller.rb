@@ -1,10 +1,7 @@
 module Api
   module V1
     class TicketsController < BaseController
-      before_action :set_ticket, only: %i[show]
-
-      # Tickets mirror GitHub issues and are read-only here; author/edit them on
-      # GitHub, then sync (POST /projects/:id/sync_issues or `rake github:sync`).
+      before_action :set_ticket, only: %i[show update]
 
       # GET /api/v1/tickets
       # ?status=open&project_id=1&assignee=me
@@ -23,6 +20,44 @@ module Api
       # GET /api/v1/tickets/:id
       def show
         render json: render_ticket(@ticket)
+      end
+
+      # POST /api/v1/tickets — create a ticket (and open a GitHub issue if the
+      # project is GitHub-backed).
+      def create
+        project = Project.find_by(id: params[:project_id])
+        return render json: { error: "Project not found" }, status: :not_found unless project
+
+        ticket = project.tickets.new(
+          title:       params[:title],
+          description: params[:description],
+          kind:        params[:kind].presence || "story",
+          priority:    params[:priority].presence || "medium",
+          assignee_id: params[:assignee_id]
+        )
+        ticket.owner = current_api_user
+
+        if ticket.save
+          TicketGithubIssueService.new(ticket).call
+          render json: render_ticket(ticket), status: :created
+        else
+          render json: { errors: ticket.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
+      # PATCH /api/v1/tickets/:id — assign to a user and/or update the status.
+      def update
+        return if performed? # set_ticket already rendered not_found
+
+        attrs = {}
+        attrs[:status]      = params[:status]      if params[:status].present?
+        attrs[:assignee_id] = params[:assignee_id] if params.key?(:assignee_id)
+
+        if @ticket.update(attrs)
+          render json: render_ticket(@ticket)
+        else
+          render json: { errors: @ticket.errors.full_messages }, status: :unprocessable_entity
+        end
       end
 
       private
