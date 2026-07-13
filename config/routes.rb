@@ -5,13 +5,16 @@ Rails.application.routes.draw do
       get  "me",               to: "users#me"
       get  "token",            to: "users#token"
       post "token/regenerate", to: "users#regenerate_token"
-      resources :tickets,  only: %i[index show]
+      resources :users, only: %i[create]
+      resources :tickets,  only: %i[index show create update]
       resources :pull_requests, only: %i[index show create]
       resources :ci_runs, only: %i[index show create] do
         resources :test_results, only: %i[index create], module: :ci_runs
       end
       resources :deployments, only: %i[index show create update]
-      resources :projects, only: %i[index show]
+      resources :projects, only: %i[index show create] do
+        member { post :add_member }
+      end
       resources :attachments, only: %i[index show create]
       post "checkout", to: "checkout#create"
 

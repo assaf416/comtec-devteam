@@ -152,6 +152,33 @@ module Api
         }
       end
 
+      def render_user(user)
+        {
+          id:         user.id,
+          name:       user.display_name,
+          email:      user.email,
+          role:       user.role,
+          phone:      user.phone,
+          avatar_url: (user.avatar.attached? ? rails_blob_url(user.avatar) : nil),
+          created_at: user.created_at,
+          updated_at: user.updated_at
+        }
+      end
+
+      def render_project(project)
+        {
+          id:             project.id,
+          name:           project.name,
+          repo_url:       project.repo_url,
+          default_branch: project.default_branch,
+          tech_stack:     project.tech_stack,
+          active:         project.active,
+          members:        project.members.order(:name).map { |u| { id: u.id, name: u.display_name, email: u.email } },
+          created_at:     project.created_at,
+          updated_at:     project.updated_at
+        }
+      end
+
       def render_attachment(attachment)
         {
           id:                attachment.id,

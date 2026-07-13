@@ -32,6 +32,40 @@ module Api
       rescue ActiveRecord::RecordNotFound
         render json: { error: "Project not found" }, status: :not_found
       end
+
+      # Create a project (name, github url). The creator is added as a lead member.
+      def create
+        project = Project.new(
+          name:     params[:name],
+          repo_url: params[:github_url].presence || params[:repo_url]
+        )
+
+        if project.save
+          project.project_memberships.create(user: current_api_user, role: :lead)
+          render json: render_project(project), status: :created
+        else
+          render json: { errors: project.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
+      # Add a user to the project (by user_id or email), optionally with a role.
+      def add_member
+        project = Project.find_by(id: params[:id])
+        return render json: { error: "Project not found" }, status: :not_found unless project
+
+        user = User.find_by(id: params[:user_id]) || User.find_by(email: params[:email])
+        return render json: { error: "User not found" }, status: :not_found unless user
+
+        membership = project.project_memberships.find_or_initialize_by(user: user)
+        was_new = membership.new_record?
+        membership.role = params[:role] if params[:role].present?
+
+        if membership.save
+          render json: render_project(project), status: (was_new ? :created : :ok)
+        else
+          render json: { errors: membership.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
     end
   end
 end
