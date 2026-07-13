@@ -64,6 +64,88 @@ class GithubService
     false
   end
 
+  # ── Write operations (used to deploy edited Cucumber tests) ────────────────
+
+  # Repo's default branch name (e.g. "main"), or nil on failure.
+  def default_branch(repo_owner:, repo_name:)
+    response = @conn.get("/repos/#{repo_owner}/#{repo_name}")
+    response.success? ? response.body["default_branch"] : nil
+  rescue Faraday::Error => e
+    Rails.logger.error "GithubService#default_branch failed: #{e.message}"
+    nil
+  end
+
+  # Decoded UTF-8 content of a file at path (optionally on a ref), or nil.
+  def file_content(repo_owner:, repo_name:, path:, ref: nil)
+    response = @conn.get("/repos/#{repo_owner}/#{repo_name}/contents/#{path}") do |req|
+      req.params["ref"] = ref if ref.present?
+    end
+    return nil unless response.success?
+
+    Base64.decode64(response.body["content"].to_s).force_encoding("UTF-8")
+  rescue Faraday::Error => e
+    Rails.logger.error "GithubService#file_content failed: #{e.message}"
+    nil
+  end
+
+  # SHA the branch currently points at (for branching), or nil.
+  def branch_sha(repo_owner:, repo_name:, branch:)
+    response = @conn.get("/repos/#{repo_owner}/#{repo_name}/git/ref/heads/#{branch}")
+    response.success? ? response.body.dig("object", "sha") : nil
+  rescue Faraday::Error => e
+    Rails.logger.error "GithubService#branch_sha failed: #{e.message}"
+    nil
+  end
+
+  # Blob SHA of an existing file on a ref (needed to update it), or nil if new.
+  def content_sha(repo_owner:, repo_name:, path:, ref:)
+    response = @conn.get("/repos/#{repo_owner}/#{repo_name}/contents/#{path}") do |req|
+      req.params["ref"] = ref
+    end
+    response.success? ? response.body["sha"] : nil
+  rescue Faraday::Error
+    nil
+  end
+
+  # Create a new branch pointing at from_sha. Returns true on success.
+  def create_branch(repo_owner:, repo_name:, new_branch:, from_sha:)
+    response = @conn.post("/repos/#{repo_owner}/#{repo_name}/git/refs") do |req|
+      req.body = { ref: "refs/heads/#{new_branch}", sha: from_sha }
+    end
+    response.success?
+  rescue Faraday::Error => e
+    Rails.logger.error "GithubService#create_branch failed: #{e.message}"
+    false
+  end
+
+  # Create or update a file on a branch. Pass sha to update an existing file.
+  # Returns the response body (with commit info) or nil on failure.
+  def put_file(repo_owner:, repo_name:, path:, content:, message:, branch:, sha: nil)
+    response = @conn.put("/repos/#{repo_owner}/#{repo_name}/contents/#{path}") do |req|
+      req.body = {
+        message: message,
+        content: Base64.strict_encode64(content.to_s),
+        branch:  branch,
+        sha:     sha
+      }.compact
+    end
+    response.success? ? response.body : nil
+  rescue Faraday::Error => e
+    Rails.logger.error "GithubService#put_file failed: #{e.message}"
+    nil
+  end
+
+  # Open a pull request. Returns the created PR hash (with html_url) or nil.
+  def create_pull_request(repo_owner:, repo_name:, title:, head:, base:, body: nil)
+    response = @conn.post("/repos/#{repo_owner}/#{repo_name}/pulls") do |req|
+      req.body = { title: title, head: head, base: base, body: body }.compact
+    end
+    response.success? ? response.body : nil
+  rescue Faraday::Error => e
+    Rails.logger.error "GithubService#create_pull_request failed: #{e.message}"
+    nil
+  end
+
   # Parse owner/name from a repo URL like https://github.com/acme/widget(.git).
   # Returns [nil, nil] when the URL isn't a recognisable GitHub repo URL.
   def self.repo_parts(repo_url)
