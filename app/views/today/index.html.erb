@@ -185,6 +185,25 @@
       <% end %>
     </div>
 
+    <%# Files I recently opened -%>
+    <div id="section-recent-files" class="card p-3 mb-4">
+      <h2 class="fw-bold fs-5 mb-3">📎 <%= t("today.recent_files_header") %></h2>
+      <% if @recent_attachments.empty? %>
+        <p class="text-muted"><%= t("today.no_recent_files") %></p>
+      <% else %>
+        <% @recent_attachments.each do |att| %>
+          <div class="d-flex justify-content-between py-1" style="border-bottom: 1px solid #f5f5f5;">
+            <div>
+              <span class="me-1"><%= attachment_type_icon(att) %></span>
+              <%= link_to (att.title.presence || att.filename), attachment_path(att) %>
+              <span class="badge bg-light text-dark is-small ms-1"><%= att.project.name %></span>
+            </div>
+            <span class="text-muted fs-7"><%= attachment_size(att) %></span>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
   </div><%# /left column %>
 
   <%# ── RIGHT COLUMN ───────────────────────────────────────────────────────── %>

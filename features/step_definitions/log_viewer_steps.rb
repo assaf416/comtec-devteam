@@ -1,40 +1,40 @@
 # Steps for the Log Viewer feature. LogQueryService is stubbed in
 # features/support/log_viewer_support.rb, so these run without a Loki server.
 
-Given("the log store has no entries") do
+Given("מאגר הלוגים ריק מרשומות") do
   LogQueryService.test_entries = []
 end
 
-Given("the log store is unreachable") do
+Given("מאגר הלוגים אינו נגיש") do
   LogQueryService.test_entries   = []
   LogQueryService.test_available = false
 end
 
-When("I visit the log viewer") do
+When("אני מבקר במציג הלוגים") do
   visit log_viewer_path
 end
 
-When("I view the logs filtered by level {string}") do |level|
+When("אני צופה בלוגים מסוננים לפי רמה {string}") do |level|
   visit log_viewer_path(level: level)
 end
 
-When("I open the live log tail") do
+When("אני פותח את מעקב הלוגים החי") do
   visit log_viewer_tail_path
 end
 
-Then("I should see the log filters") do
+Then("אני אמור לראות את מסנני הלוגים") do
   expect(page).to have_css("select[name='service']")
   expect(page).to have_css("select[name='level']")
 end
 
-Then("error lines should be highlighted") do
+Then("שורות שגיאה אמורות להיות מודגשות") do
   expect(page).to have_css(".log-line.log-error")
 end
 
-Then("exception lines should be highlighted") do
+Then("שורות חריגה אמורות להיות מודגשות") do
   expect(page).to have_css(".log-line.log-exception")
 end
 
-Then("the error count should be shown") do
+Then("ספירת השגיאות אמורה להיות מוצגת") do
   expect(page).to have_content("errors")
 end

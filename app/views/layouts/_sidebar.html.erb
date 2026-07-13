@@ -32,6 +32,11 @@
     <span class="nav-icon">📚</span> <%= t('nav.library') %>
   <% end %>
 
+  <%= link_to attachments_path,
+        class: "sidebar-nav-item #{controller_name == 'attachments' ? 'is-active' : ''}" do %>
+    <span class="nav-icon">📎</span> <%= t('nav.files') %>
+  <% end %>
+
   <hr class="sidebar-divider">
 
   <%# ── כלים / Tools ──────────────────────────────────────────────────────── %>

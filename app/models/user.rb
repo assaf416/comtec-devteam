@@ -30,6 +30,9 @@ class User < ApplicationRecord
   has_many :activities,        foreign_key: :user_id,         dependent: :destroy
   has_many :subject_activities, class_name: "Activity", foreign_key: :subject_user_id, dependent: :nullify
   has_many :ai_chat_sessions, dependent: :destroy
+  has_many :uploaded_attachments, class_name: "Attachment", foreign_key: :uploaded_by_id, dependent: :nullify
+  has_many :attachment_views, dependent: :destroy
+  has_many :recently_viewed_attachments, through: :attachment_views, source: :attachment
 
   validates :name, presence: true
   validates :email, presence: true, uniqueness: true

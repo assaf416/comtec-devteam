@@ -1,0 +1,57 @@
+<% content_for :title, @attachment.title.presence || @attachment.filename %>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center gap-2" style="min-width:0;">
+    <span style="font-size:2rem;"><%= attachment_type_icon(@attachment) %></span>
+    <div style="min-width:0;">
+      <h1 class="fw-bold mb-0 text-truncate"><%= @attachment.title.presence || @attachment.filename %></h1>
+      <p class="text-muted small mb-0">
+        <%= link_to @attachment.project.name, project_path(@attachment.project), class: "text-decoration-none" %>
+        · <%= @attachment.content_type %>
+        · <%= attachment_size(@attachment) %>
+      </p>
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <%= link_to "⬇️ #{t('attachments.download')}",
+          rails_blob_path(@attachment.file, disposition: "attachment"),
+          class: "btn btn-primary" %>
+    <%= button_to "🗑️", attachment_path(@attachment), method: :delete,
+          class: "btn btn-outline-danger",
+          form: { data: { turbo_confirm: t("attachments.confirm_delete") } } %>
+  </div>
+</div>
+
+<%# Preview %>
+<div class="card mb-4">
+  <div class="card-body text-center">
+    <% ct = @attachment.content_type.to_s %>
+    <% if ct.start_with?("image/") %>
+      <%= image_tag rails_blob_path(@attachment.file), class: "img-fluid", style: "max-height:70vh;" %>
+    <% elsif ct == "application/pdf" || ct == "text/html" %>
+      <iframe src="<%= rails_blob_path(@attachment.file, disposition: 'inline') %>"
+              style="width:100%;height:70vh;border:0;"></iframe>
+    <% else %>
+      <p class="text-muted my-4">
+        <%= t("attachments.no_preview") %>
+        <%= link_to t("attachments.download"),
+              rails_blob_path(@attachment.file, disposition: "attachment") %>
+      </p>
+    <% end %>
+  </div>
+</div>
+
+<%# Extracted text (search index) %>
+<div class="card">
+  <div class="card-header d-flex align-items-center gap-2">
+    <span class="fw-semibold"><%= t("attachments.extracted_text") %></span>
+    <%= attachment_status_badge(@attachment) %>
+  </div>
+  <div class="card-body">
+    <% if @attachment.extracted_text.present? && @attachment.done? %>
+      <pre style="white-space:pre-wrap;max-height:40vh;overflow:auto;"><%= @attachment.extracted_text %></pre>
+    <% else %>
+      <p class="text-muted mb-0"><%= t("attachments.no_extracted_text") %></p>
+    <% end %>
+  </div>
+</div>

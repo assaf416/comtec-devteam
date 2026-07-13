@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_13_100002) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_13_100004) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -98,6 +98,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_13_100002) do
     t.index ["reviewable_type", "reviewable_id"], name: "index_ai_reviews_on_reviewable"
     t.index ["status"], name: "index_ai_reviews_on_status"
     t.index ["user_id"], name: "index_ai_reviews_on_user_id"
+  end
+
+  create_table "attachment_views", force: :cascade do |t|
+    t.integer "attachment_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.datetime "viewed_at", null: false
+    t.index ["attachment_id"], name: "index_attachment_views_on_attachment_id"
+    t.index ["user_id", "attachment_id"], name: "index_attachment_views_on_user_id_and_attachment_id", unique: true
+    t.index ["user_id", "viewed_at"], name: "index_attachment_views_on_user_id_and_viewed_at"
+    t.index ["user_id"], name: "index_attachment_views_on_user_id"
+  end
+
+  create_table "attachments", force: :cascade do |t|
+    t.integer "attachable_id"
+    t.string "attachable_type"
+    t.datetime "created_at", null: false
+    t.text "extracted_text"
+    t.integer "extraction_status", default: 0, null: false
+    t.integer "project_id", null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.integer "uploaded_by_id"
+    t.index ["attachable_type", "attachable_id"], name: "index_attachments_on_attachable"
+    t.index ["project_id"], name: "index_attachments_on_project_id"
+    t.index ["uploaded_by_id"], name: "index_attachments_on_uploaded_by_id"
   end
 
   create_table "branches", force: :cascade do |t|
@@ -627,6 +654,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_13_100002) do
   add_foreign_key "activities", "users"
   add_foreign_key "activities", "users", column: "subject_user_id"
   add_foreign_key "ai_chat_messages", "ai_chat_sessions"
+  add_foreign_key "attachment_views", "attachments"
+  add_foreign_key "attachment_views", "users"
+  add_foreign_key "attachments", "projects"
+  add_foreign_key "attachments", "users", column: "uploaded_by_id"
   add_foreign_key "branches", "projects"
   add_foreign_key "branches", "tickets"
   add_foreign_key "chat_messages", "chat_rooms"
