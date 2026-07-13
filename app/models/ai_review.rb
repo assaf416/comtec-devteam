@@ -14,11 +14,13 @@ class AiReview < ApplicationRecord
     code_review:         1,   # diff review (Go / Ruby / C# / Node + lint + best practice)
     test_review:         2,   # cucumber test review & missing-coverage suggestions
     estimation_analysis: 3,   # estimated vs actual delivery time
+    test_generation:     4,   # generate Cucumber tests for a ticket
     solution_suggestion: 5,   # read a ticket and suggest an approach
     bug_fix:             6,   # propose a fix for a bug ticket
     task_breakdown:      7,   # break a story into estimated tasks
     status_presentation: 8,   # generate a project status presentation
-    spec_document:       9    # generate a specification document
+    spec_document:       9,   # generate a specification document
+    ticket_estimation:   10   # estimate the effort/time for a single ticket
   }, prefix: true
 
   enum :status, {

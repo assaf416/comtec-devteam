@@ -1,0 +1,12 @@
+<% content_for :title, "New Ticket" %>
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="fw-bold mb-0">🎫 New Ticket — <%= @project.name %></h1>
+  <%= link_to "Back", project_tickets_path(@project), class: "btn btn-outline-secondary" %>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <%= render "form", project: @project, ticket: @ticket %>
+  </div>
+</div>

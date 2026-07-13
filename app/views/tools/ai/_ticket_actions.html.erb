@@ -19,6 +19,10 @@
   <%= button_to "🧩 Generate tasks & estimations", tools_ai_generate_tasks_path(ticket_id: ticket.id),
         class: "btn btn-sm btn-outline-primary w-100 mb-2" %>
 
+  <%# Generate Cucumber tests (Hebrew) for the ticket %>
+  <%= button_to "🧪 Generate tests", tools_ai_generate_tests_path(ticket_id: ticket.id),
+        class: "btn btn-sm btn-outline-primary w-100 mb-2" %>
+
   <%# Service #2 — code review of a pasted diff %>
   <details class="mb-2">
     <summary class="btn btn-sm btn-outline-secondary w-100">🔍 Code review</summary>

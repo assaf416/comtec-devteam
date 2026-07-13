@@ -102,6 +102,7 @@ Rails.application.routes.draw do
     post "ai/solution_suggestion", to: "ai#solution_suggestion", as: :ai_solution_suggestion
     post "ai/fix_bug",             to: "ai#fix_bug",             as: :ai_fix_bug
     post "ai/generate_tasks",      to: "ai#generate_tasks",      as: :ai_generate_tasks
+    post "ai/generate_tests",      to: "ai#generate_tests",      as: :ai_generate_tests
   end
 
   devise_for :users, controllers: {
@@ -176,7 +177,7 @@ Rails.application.routes.draw do
         post :open_issues   # approve a task-list proposal → open GitHub issues
       end
     end
-    resources :tickets, only: %i[index show], shallow: true
+    resources :tickets, only: %i[index show new create], shallow: true
     resources :milestones, shallow: true
     resources :ci_runs, only: [ :index, :show ], shallow: true
     resources :deployments, shallow: true
@@ -241,6 +242,9 @@ Rails.application.routes.draw do
 
   # Ticket comments — derived from ticket (project resolved via ticket.project)
   resources :tickets, only: [] do
+    member do
+      post :estimate
+    end
     resources :comments, only: %i[create destroy]
     resources :tasks, only: %i[create update destroy] do
       member do

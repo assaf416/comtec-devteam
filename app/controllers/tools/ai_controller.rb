@@ -56,6 +56,13 @@ module Tools
       redirect_to tools_ai_review_path(review), notice: result_notice(review)
     end
 
+    # ── Generate Cucumber tests (Hebrew) for a ticket ─────────────────────────
+    def generate_tests
+      ticket = Ticket.find(params[:ticket_id])
+      review = Ai::TestGenerationService.new(reviewable: ticket, user: current_user).call
+      redirect_to tools_ai_review_path(review), notice: result_notice(review)
+    end
+
     # ── Service #3: cucumber test review ──────────────────────────────────────
     def test_review
       ticket = Ticket.find_by(id: params[:ticket_id])

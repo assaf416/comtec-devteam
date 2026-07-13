@@ -1,0 +1,29 @@
+<div class="card p-3 mb-3" id="estimate">
+  <h3 class="fw-bold fs-6 mb-2">⏱️ Developer estimate</h3>
+
+  <% if ticket.dev_estimate_hours.present? %>
+    <p class="mb-2">
+      Dev estimate: <strong><%= hours_label(ticket.dev_estimate_hours) %>h</strong>
+      <% if ticket.estimated_by %>
+        <span class="text-muted fs-7">by <%= ticket.estimated_by.display_name %></span>
+      <% end %>
+    </p>
+  <% else %>
+    <span class="badge bg-warning text-dark mb-2">Needs estimate</span>
+  <% end %>
+
+  <% if current_user == ticket.assignee %>
+    <%= form_with url: estimate_ticket_path(ticket), method: :post,
+          class: "d-flex gap-2 align-items-end" do %>
+      <div>
+        <label for="dev_estimate_hours" class="form-label fs-7 mb-0">Hours</label>
+        <%= number_field_tag :dev_estimate_hours, ticket.dev_estimate_hours,
+              step: 0.5, min: 0, id: "dev_estimate_hours",
+              class: "form-control form-control-sm", style: "width:120px;" %>
+      </div>
+      <%= submit_tag "Save estimate", class: "btn btn-sm btn-primary" %>
+    <% end %>
+  <% else %>
+    <p class="text-muted fs-7 mb-0">Only the assigned developer can set the estimate.</p>
+  <% end %>
+</div>

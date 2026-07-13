@@ -21,6 +21,7 @@ module Ai
 
     def route(text)
       t = text.to_s
+      return estimate(t)    if estimate?(t)
       return diagram(t)     if diagram?(t)
       return cucumber(t)    if cucumber?(t)
       return task_list(t)   if task_list?(t)
@@ -31,6 +32,7 @@ module Ai
     end
 
     # ── Intent detection (Hebrew + English) ────────────────────────────────
+    def estimate?(t)    = t.match?(/הערכת זמן|הערכת זמנים|אומדן זמן|כמה זמן|estimate|estimation/i)
     def diagram?(t)     = t.match?(/diagram|דיאגרמ|תרשים|\berd\b|\buml\b|\bflow\b|flowchart|מבנה נתונים|מבנה הנתונים/i)
     def cucumber?(t)    = t.match?(/cucumber|gherkin|\.feature|טסטים|בדיקות|כתוב.*טסט|write.*tests?/i)
     def task_list?(t)   = t.match?(/מטלות|רשימת מטלות|task list|generate tasks|לפתוח issues|open .*issues|issues מהקובץ|from (?:this )?file/i)
@@ -40,6 +42,17 @@ module Ai
     private
 
     # ── Skills ─────────────────────────────────────────────────────────────
+    def estimate(text)
+      number = text[/#?\b(\d{1,6})\b/, 1] || text[/T-(\d+)/i, 1]
+      ticket = find_ticket(number)
+      unless ticket
+        return Result.new(handled: true, skill: :ticket_estimation,
+                          reply: "לא מצאתי טיקט/issue מספר #{number || '—'} בפרויקט הזה. ציין מספר טיקט קיים.")
+      end
+      review = TicketEstimationService.new(reviewable: ticket, user: @user, client: @client).call
+      Result.new(handled: true, skill: :ticket_estimation, reply: review.body.presence || review.error_message)
+    end
+
     def diagram(text)
       kind = if text.match?(/erd|מבנה נתונים|מבנה הנתונים/i) then :erd
       elsif text.match?(/uml/i) then :uml

@@ -1,0 +1,37 @@
+<%= form_with model: ticket, url: project_tickets_path(project) do |f| %>
+  <% if ticket.errors.any? %>
+    <div class="alert alert-danger">
+      <%= ticket.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= f.label :title, "Title", class: "form-label fw-semibold" %>
+    <%= f.text_field :title, class: "form-control", required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :description, "Description", class: "form-label fw-semibold" %>
+    <%= f.text_area :description, rows: 5, class: "form-control" %>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <%= f.label :kind, "Type", class: "form-label fw-semibold" %>
+      <%= f.select :kind, Ticket.kinds.keys.map { |k| [k.humanize, k] }, {}, class: "form-select" %>
+    </div>
+    <div class="col-md-4">
+      <%= f.label :priority, "Priority", class: "form-label fw-semibold" %>
+      <%= f.select :priority, Ticket.priorities.keys.map { |k| [k.humanize, k] }, { selected: "medium" }, class: "form-select" %>
+    </div>
+    <div class="col-md-4">
+      <%= f.label :assignee_id, "Assignee", class: "form-label fw-semibold" %>
+      <%= f.collection_select :assignee_id, User.order(:name), :id, :display_name,
+            { include_blank: "— Unassigned —" }, class: "form-select" %>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <%= f.submit "Create Ticket", class: "btn btn-primary" %>
+  </div>
+<% end %>

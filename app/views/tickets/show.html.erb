@@ -68,6 +68,9 @@
       <% end %>
     </div>
 
+    <%# Developer time estimate %>
+    <%= render "tickets/estimate", ticket: @ticket %>
+
     <%# Tasks (story breakdown + progress) %>
     <%= render "tickets/tasks", ticket: @ticket %>
 
