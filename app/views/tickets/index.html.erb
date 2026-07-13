@@ -33,35 +33,44 @@
   <% end %>
 </div>
 
-<%# Kanban Board %>
-<div class="kanban-board" id="kanban-board">
-  <% Ticket.statuses.keys.each do |status_key| %>
-    <% status_tickets = @tickets.select { |t| t.status == status_key } %>
-    <div class="kanban-col">
-      <div class="kanban-col-fw-bold">
-        <%= t("tickets.statuses.#{status_key}") %>
-        <span class="badge bg-secondary is-light ms-1"><%= status_tickets.count %></span>
-      </div>
-      <% status_tickets.each do |ticket| %>
-        <div class="kanban-card" onclick="window.location='<%= ticket_path(ticket) %>'">
-          <div class="d-flex justify-content-between mb-1">
-            <span class="fs-7 text-muted">#<%= ticket.id %></span>
-            <%= priority_tag(ticket.priority) %>
-          </div>
-          <p class="fs-7 fw-semibold"><%= ticket.title %></p>
-          <div class="d-flex flex-wrap gap-1 my-1"><%= render "tickets/progress_badges", ticket: ticket %></div>
-          <div class="d-flex align-items-center gap-1 mt-1">
-            <%= render "tickets/people", ticket: ticket, size: 22 %>
-            <% if ticket.assignee %><span class="fs-7 text-muted"><%= ticket.assignee.display_name %></span><% end %>
-          </div>
-          <% if ticket.branch_name.present? %>
-            <p class="fs-7 text-muted"><code class="fs-7"><%= ticket.branch_name %></code></p>
+<%# Tickets table %>
+<turbo-frame id="tickets_list">
+  <div class="card p-0">
+    <% if @tickets.empty? %>
+      <p class="text-muted p-3 mb-0"><%= t("tickets.filtered.empty") %></p>
+    <% else %>
+      <table class="table table-striped table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th><%= t("table_headers.id") %></th>
+            <th><%= t("table_headers.title") %></th>
+            <th><%= t("table_headers.status") %></th>
+            <th><%= t("table_headers.priority") %></th>
+            <th><%= t("table_headers.assignee") %></th>
+            <th><%= t("table_headers.branch") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @tickets.each do |ticket| %>
+            <tr style="cursor:pointer;" onclick="window.location='<%= ticket_path(ticket) %>'">
+              <td class="text-muted">#<%= ticket.id %></td>
+              <td>
+                <span class="fw-semibold"><%= ticket.title %></span>
+                <div class="d-flex flex-wrap gap-1 mt-1"><%= render "tickets/progress_badges", ticket: ticket %></div>
+              </td>
+              <td><span class="badge bg-secondary is-light"><%= t("tickets.statuses.#{ticket.status}") %></span></td>
+              <td><%= priority_tag(ticket.priority) %></td>
+              <td>
+                <div class="d-flex align-items-center gap-1">
+                  <%= render "tickets/people", ticket: ticket, size: 22 %>
+                  <% if ticket.assignee %><span class="fs-7"><%= ticket.assignee.display_name %></span><% end %>
+                </div>
+              </td>
+              <td><% if ticket.branch_name.present? %><code class="fs-7"><%= ticket.branch_name %></code><% end %></td>
+            </tr>
           <% end %>
-          <% if (ci = ticket.latest_ci_run) %>
-            <div class="mt-1"><%= status_tag(ci.status) %> CI</div>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-  <% end %>
-</div>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</turbo-frame>
