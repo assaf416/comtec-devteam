@@ -65,9 +65,9 @@ module Tools
       redirect_to tools_ai_review_path(review), notice: result_notice(review)
     end
 
-    # ── Service #4: estimation accuracy (project or sprint) ───────────────────
+    # ── Service #4: estimation accuracy (project) ─────────────────────────────
     def estimation_analysis
-      subject = resolve_subject
+      subject = Project.find(params[:project_id])
       review  = Ai::EstimationAnalysisService.new(reviewable: subject, user: current_user).call
       redirect_to tools_ai_review_path(review), notice: result_notice(review)
     end
@@ -113,22 +113,7 @@ module Tools
       redirect_to ticket_path(ticket, anchor: "tasks"), notice: notice
     end
 
-    # ── Service #5: live sprint analysis (lazy Turbo Frame) ───────────────────
-    def sprint_analysis
-      @sprint = Sprint.find(params[:sprint_id])
-      @review = Ai::SprintAnalysisService.new(reviewable: @sprint, user: current_user).call
-      render partial: "tools/ai/sprint_analysis", locals: { review: @review, sprint: @sprint }
-    end
-
     private
-
-    def resolve_subject
-      if params[:sprint_id].present?
-        Sprint.find(params[:sprint_id])
-      else
-        Project.find(params[:project_id])
-      end
-    end
 
     # Verify story telling failed → send the ticket back to its owner for rework.
     def bounce_ticket_to_owner(ticket, review)

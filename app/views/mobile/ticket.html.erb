@@ -27,11 +27,6 @@
       <span class="tag is-rounded is-small is-light"><%= @ticket.status.to_s.humanize %></span>
       <span class="tag is-rounded is-small is-light"><%= @ticket.priority.to_s.humanize %> priority</span>
       <span class="tag is-rounded is-small is-light"><%= @ticket.kind.to_s.humanize %></span>
-      <% if @ticket.sprint %>
-        <%= link_to mobile_sprint_path(@ticket.sprint), class: "tag is-rounded is-small is-info is-light" do %>
-          🏃 <%= @ticket.sprint.name.truncate(20) %>
-        <% end %>
-      <% end %>
       <% if @ticket.estimated? %>
         <span class="tag is-rounded is-small is-light">📊 <%= @ticket.story_points || "—" %> pts</span>
       <% end %>

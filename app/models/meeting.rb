@@ -1,7 +1,6 @@
 class Meeting < ApplicationRecord
   belongs_to :project, optional: true
   belongs_to :organizer, class_name: "User", optional: true
-  belongs_to :sprint, optional: true
 
   has_many :meeting_attendees
   has_many :attendees, through: :meeting_attendees, source: :user

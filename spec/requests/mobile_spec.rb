@@ -8,8 +8,7 @@ RSpec.describe "Mobile show screens", type: :request do
 
   describe "GET /mobile/project/:id" do
     it "shows the project with tickets, PRs, members, notes and comments sections" do
-      sprint = create(:sprint, project: project, name: "Sprint One")
-      ticket = create(:ticket, project: project, sprint: sprint, title: "Mobile ticket A")
+      ticket = create(:ticket, project: project, title: "Mobile ticket A")
       create(:pull_request, project: project, ticket: ticket, pr_number: 5, title: "PR five")
       Comment.create!(commentable: ticket, author: user, body: "a project-level discussion note")
 
@@ -17,7 +16,6 @@ RSpec.describe "Mobile show screens", type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include(project.name)
-      expect(response.body).to include("Sprint One")
       expect(response.body).to include("Mobile ticket A")
       expect(response.body).to include("Pull Requests")
       expect(response.body).to include("Members")
@@ -25,24 +23,6 @@ RSpec.describe "Mobile show screens", type: :request do
       expect(response.body).to include("a project-level discussion note")
       # ticket links go to the mobile ticket screen
       expect(response.body).to include(mobile_ticket_path(ticket))
-    end
-  end
-
-  describe "GET /mobile/sprint/:id" do
-    it "shows the sprint with its tickets, members, comments and PRs" do
-      sprint = create(:sprint, project: project, name: "Sprint Beta", status: :active)
-      ticket = create(:ticket, project: project, sprint: sprint, assignee: user, title: "Sprint ticket")
-      create(:pull_request, project: project, ticket: ticket, pr_number: 9, title: "Sprint PR")
-      sprint.comments.create!(author: user, body: "sprint retro note", kind: :green_card)
-
-      get mobile_sprint_path(sprint)
-
-      expect(response).to have_http_status(:success)
-      expect(response.body).to include("Sprint Beta")
-      expect(response.body).to include("Sprint ticket")
-      expect(response.body).to include("Members")
-      expect(response.body).to include("sprint retro note")
-      expect(response.body).to include(user.display_name)
     end
   end
 

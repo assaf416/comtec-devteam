@@ -5,7 +5,7 @@ Rails.application.routes.draw do
       get  "me",               to: "users#me"
       get  "token",            to: "users#token"
       post "token/regenerate", to: "users#regenerate_token"
-      resources :tickets,  only: %i[index show create update]
+      resources :tickets,  only: %i[index show]
       resources :pull_requests, only: %i[index show create]
       resources :ci_runs, only: %i[index show create] do
         resources :test_results, only: %i[index create], module: :ci_runs
@@ -34,7 +34,6 @@ Rails.application.routes.draw do
   get "reports/ci_summary"
   get "reports/deployment_summary"
   get "reports/test_coverage"
-  get "reports/sprint_velocity"
   get "reports/estimation_accuracy"
 
   # ── CI Dashboard ────────────────────────────────────────────────────────────
@@ -50,13 +49,6 @@ Rails.application.routes.draw do
   get  "cucumber_tests/edit",   to: "cucumber_tests#edit",   as: :edit_cucumber_test
   post "cucumber_tests/review", to: "cucumber_tests#review", as: :review_cucumber_test
 
-
-  # ── Team ceremonies ─────────────────────────────────────────────────────────
-  get "daily_meeting", to: "daily_meetings#show", as: :daily_meeting
-  get "retro_meeting", to: "retro_meetings#show", as: :retro_meeting
-  # Planning · Backlog refinement · Sprint review (demo)
-  get "ceremonies/:kind", to: "ceremonies#show", as: :ceremony,
-      constraints: { kind: /planning|refinement|review/ }
 
   # ── Server / remote-machine monitoring (heartbeats) ─────────────────────────
   get "servers",        to: "servers#index",   as: :servers
@@ -105,11 +97,6 @@ Rails.application.routes.draw do
     post "ai/solution_suggestion", to: "ai#solution_suggestion", as: :ai_solution_suggestion
     post "ai/fix_bug",             to: "ai#fix_bug",             as: :ai_fix_bug
     post "ai/generate_tasks",      to: "ai#generate_tasks",      as: :ai_generate_tasks
-
-    # Sprint analysis — GET drives the lazy Turbo Frame (live render on the
-    # sprint page); POST forces a refresh.
-    get  "ai/sprint_analysis", to: "ai#sprint_analysis", as: :ai_sprint_analysis
-    post "ai/sprint_analysis", to: "ai#sprint_analysis"
   end
 
   devise_for :users, controllers: {
@@ -139,6 +126,9 @@ Rails.application.routes.draw do
   root "dashboard#index"
   get "dashboard", to: "dashboard#index", as: :dashboard
   get "today",     to: "today#index",     as: :today
+
+  # Time logging (רישום שעות)
+  resources :time_logs, only: %i[index create destroy]
   get "calendar",  to: "calendar#index",  as: :calendar
 
   # ── Ticket views (cross-project) ────────────────────────────────────────
@@ -146,7 +136,6 @@ Rails.application.routes.draw do
   get "tickets/mine",           to: "tickets#mine",           as: :my_tickets
   get "tickets/late",           to: "tickets#late",           as: :late_tickets
   get "tickets/backlog",        to: "tickets#backlog_list",   as: :backlog_tickets
-  get "tickets/current_sprint", to: "tickets#current_sprint", as: :current_sprint_tickets
   get "calendar/events", to: "calendar#events", as: :calendar_events
 
   resources :customers do
@@ -162,15 +151,12 @@ Rails.application.routes.draw do
   resources :projects do
     # Chat with AI — scoped to the project (code context = the project's repo)
     resources :ai_chats, only: %i[index create show], shallow: true do
-      member { post :message }
-    end
-    resources :tickets, shallow: true
-    resources :sprints, shallow: true do
       member do
-        get   :dashboard
-        patch :activate   # make this the project's current (active) sprint
+        post :message
+        post :open_issues   # approve a task-list proposal → open GitHub issues
       end
     end
+    resources :tickets, only: %i[index show], shallow: true
     resources :milestones, shallow: true
     resources :ci_runs, only: [ :index, :show ], shallow: true
     resources :deployments, shallow: true
@@ -196,10 +182,11 @@ Rails.application.routes.draw do
     resources :project_memberships, only: %i[create destroy]
     resources :activities,           only: %i[index]
     member do
-      get :dashboard
-      get :report
-      get :ci_dashboard
-      get :calendar_events
+      get  :dashboard
+      get  :report
+      get  :ci_dashboard
+      get  :calendar_events
+      post :sync_issues   # pull GitHub issues into this project's tickets
     end
   end
 
@@ -232,11 +219,6 @@ Rails.application.routes.draw do
 
   # Ticket comments — derived from ticket (project resolved via ticket.project)
   resources :tickets, only: [] do
-    member do
-      patch :move_to_sprint
-      patch :update_status
-      patch :approve
-    end
     resources :comments, only: %i[create destroy]
     resources :tasks, only: %i[create update destroy] do
       member do
@@ -245,11 +227,6 @@ Rails.application.routes.draw do
         patch :reopen
       end
     end
-  end
-
-  # Sprint comments
-  resources :sprints, only: [] do
-    resources :comments, only: %i[create destroy], controller: "sprint_comments"
   end
 
   # Webhooks (no CSRF – verified by secret header)
@@ -261,7 +238,6 @@ Rails.application.routes.draw do
     get :ci_summary
     get :deployment_summary
     get :test_coverage
-    get :sprint_velocity
     get :estimation_accuracy
   end
 
@@ -285,7 +261,6 @@ Rails.application.routes.draw do
     get "project/:id", to: "mobile#project",     as: :project
     get "tickets",     to: "mobile#tickets",     as: :tickets
     get "ticket/:id",  to: "mobile#ticket",      as: :ticket
-    get "sprint/:id",  to: "mobile#sprint",      as: :sprint
     get "video-calls", to: "mobile#video_calls", as: :video_calls
     root to: "mobile#today", as: :root
   end

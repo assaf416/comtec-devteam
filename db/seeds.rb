@@ -134,7 +134,7 @@ projects_data = [
                     "Handles print queue management, driver distribution, and " \
                     "enterprise printer configuration.",
     tech_stack:     "C# .NET 4.8.1, VB.net, Windows Print Spooler, WinForms",
-    repo_url:       "http://gitea.local/devteam/print-server-tdi",
+    repo_url:       "https://github.com/assaf416/print-server-tdi",
     default_branch: "main",
     active:         true
   },
@@ -146,7 +146,7 @@ projects_data = [
     tech_stack:     "ASP.NET MVC Core 10, Visual Studio 2026, IIS, Razor Pages, " \
                     "NuGet, RabbitMQ, EntityFrameworkCore, Serilog, SQL Server, " \
                     "JavaScript, HTML, CSS, Bootstrap, JSON/XML, NUnit, Multithread",
-    repo_url:       "http://gitea.local/devteam/tdi2",
+    repo_url:       "https://github.com/assaf416/tdi2",
     default_branch: "main",
     active:         true
   },
@@ -157,7 +157,7 @@ projects_data = [
                     "with SQL Server persistence.",
     tech_stack:     "Vue 3 (Composition API + TypeScript), Vite, NestJS (Node.js), " \
                     "SQL Server, Docker (Windows Containers)",
-    repo_url:       "http://gitea.local/devteam/digital-internet-services",
+    repo_url:       "https://github.com/assaf416/digital-internet-services",
     default_branch: "main",
     active:         true
   },
@@ -167,7 +167,7 @@ projects_data = [
                     "running on Bun runtime with PostgreSQL 16 storage and " \
                     "Jenkins CI/CD pipelines.",
     tech_stack:     "Next.js 16, TypeScript, Bun (runtime), PostgreSQL 16, Jenkins",
-    repo_url:       "http://gitea.local/devteam/work-management-system",
+    repo_url:       "https://github.com/assaf416/work-management-system",
     default_branch: "main",
     active:         true
   },
@@ -178,7 +178,7 @@ projects_data = [
                     "in a single Slack-style interface.",
     tech_stack:     "Rails 8.1, Ruby 3.4, SQLite3, Hotwire (Turbo + Stimulus), " \
                     "Bulma CSS, Devise, Pundit, ActiveStorage",
-    repo_url:       "http://gitea.local/devteam/dev-team-hub",
+    repo_url:       "https://github.com/assaf416/dev-team-hub",
     default_branch: "main",
     active:         true
   }
@@ -357,7 +357,7 @@ tickets_data = [
     tester_estimate_hours: 2.0,
     actual_hours:          "7h",
     pr_number:             12,
-    pr_url:                "http://gitea.local/devteam/print-server-tdi/pulls/12",
+    pr_url:                "https://github.com/assaf416/print-server-tdi/pulls/12",
     attach_spec:           false
   },
   {
@@ -449,7 +449,7 @@ tickets_data = [
     tester_estimate_hours: 8.0,
     actual_hours:          "18h",
     pr_number:             34,
-    pr_url:                "http://gitea.local/devteam/tdi2/pulls/34",
+    pr_url:                "https://github.com/assaf416/tdi2/pulls/34",
     attach_spec:           false
   },
   {
@@ -563,7 +563,7 @@ tickets_data = [
     tester_estimate_hours: 4.0,
     actual_hours:          "11h",
     pr_number:             18,
-    pr_url:                "http://gitea.local/devteam/digital-internet-services/pulls/18",
+    pr_url:                "https://github.com/assaf416/digital-internet-services/pulls/18",
     attach_spec:           false
   },
 
@@ -658,7 +658,7 @@ tickets_data = [
     tester_estimate_hours: 4.0,
     actual_hours:          "10h",
     pr_number:             9,
-    pr_url:                "http://gitea.local/devteam/work-management-system/pulls/9",
+    pr_url:                "https://github.com/assaf416/work-management-system/pulls/9",
     attach_spec:           false
   },
   {
@@ -897,45 +897,7 @@ milestones = milestones_data.map do |m|
 end
 puts "  ✓ #{milestones.size} milestones"
 
-# ─────────────────────────────────────────────────────────────────
-# Sprints  (3 completed + 1 active + 1 planning per project)
-# ─────────────────────────────────────────────────────────────────
 today  = Date.today
-
-sprint_templates = [
-  { label: "Sprint 1 — Foundation",    offset_start: -49, offset_end: -36, status: :completed, velocity: 34, goals: "Establish core architecture, CI pipeline, and database schema."      },
-  { label: "Sprint 2 — Core Features", offset_start: -35, offset_end: -22, status: :completed, velocity: 40, goals: "Build primary user-facing features and key integrations."              },
-  { label: "Sprint 3 — Polish & Bugs", offset_start: -21, offset_end:  -8, status: :completed, velocity: 38, goals: "Fix critical bugs surfaced in Sprint 2 review. Improve UX."          },
-  { label: "Sprint 4 — Active",        offset_start:  -7, offset_end:   6, status: :active,    velocity: 42, goals: "Finish milestone features, address tech-debt, prep for release."      },
-  { label: "Sprint 5 — Planning",      offset_start:   7, offset_end:  20, status: :planning,  velocity: 40, goals: "TBD — items to be pulled from backlog during sprint planning session." }
-]
-
-sprints_by_project = {}   # project_id => array of sprints in order
-
-projects.each do |project|
-  sprints_by_project[project.id] = sprint_templates.map do |tmpl|
-    sprint = Sprint.find_or_create_by!(project: project, name: "#{project.name.truncate(20)} — #{tmpl[:label]}") do |s|
-      s.start_date = today + tmpl[:offset_start]
-      s.end_date   = today + tmpl[:offset_end]
-      s.status     = tmpl[:status]
-      s.velocity   = tmpl[:velocity]
-      s.goals      = tmpl[:goals]
-    end
-    sprint
-  end
-end
-
-total_sprints = sprints_by_project.values.sum(&:size)
-puts "  ✓ #{total_sprints} sprints (#{Sprint.active.count} active)"
-
-# Assign retrospective copy to completed sprints
-Sprint.where(status: :completed).find_each do |s|
-  next if s.things_that_went_right.present?
-  s.update_columns(
-    things_that_went_right: "<p>Team collaboration was strong. CI pipeline ran without issues. Sprint velocity met target.</p><ul><li>All planned stories delivered</li><li>Zero production incidents</li><li>Good code-review turnaround time</li></ul>",
-    things_to_improve:      "<p>Estimation accuracy needs work on complex tasks.</p><ul><li>Underestimated integration complexity in 2 tickets</li><li>Daily standup attendance could improve</li><li>More detailed acceptance criteria needed upfront</li></ul>"
-  )
-end
 
 # ─────────────────────────────────────────────────────────────────
 # Deployments
@@ -1184,14 +1146,12 @@ meetings_data = [
 ]
 
 meetings_data.each do |m|
-  sprint = sprints_by_project[m[:project].id][m[:sprint_idx]]
   meeting = Meeting.find_or_create_by!(project: m[:project], title: m[:title]) do |mt|
     mt.meeting_type     = m[:meeting_type]
     mt.status           = m[:status]
     mt.scheduled_at     = m[:scheduled_at].is_a?(Date) ? m[:scheduled_at].to_time + 9.hours : m[:scheduled_at]
     mt.duration_minutes = m[:duration]
     mt.organizer        = m[:organizer]
-    mt.sprint           = sprint
     mt.jitsi_room       = m[:jitsi_room]
     mt.agenda           = m[:agenda]
     mt.notes            = m[:notes] if m[:notes]
@@ -1596,65 +1556,6 @@ docs_to_seed.each do |d|
 end
 
 puts "  ✓ #{doc_count} documents seeded from docs/ folder"
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Sprint documents (related to a sprint) + sprint comments with kinds
-# ──────────────────────────────────────────────────────────────────────────────
-sprint_doc_count = 0
-Sprint.includes(project: :members).find_each do |sprint|
-  next if sprint.documents.any?
-
-  author = sprint.project.members.to_a.sample || admin
-  [
-    { title: "#{sprint.name} — Sprint Plan", doc_type: :timeline,
-      content: "# #{sprint.name} — Plan\n\n## Goal\n#{sprint.goals}\n\n## Committed scope\n_Tickets pulled into this sprint._\n" },
-    { title: "#{sprint.name} — Retro Notes", doc_type: :other,
-      content: "# #{sprint.name} — Retrospective\n\n## What went well\n- TBD\n\n## To improve\n- TBD\n" }
-  ].each do |attrs|
-    sprint.project.documents.create!(attrs.merge(sprint: sprint, author: author, version_number: "1.0", is_template: false))
-    sprint_doc_count += 1
-  end
-end
-puts "  ✓ #{sprint_doc_count} sprint documents"
-
-SAMPLE_SPRINT_COMMENTS = [
-  [ :green_card, "Great pace this week — CI stayed green throughout. 👏" ],
-  [ :red_card,   "Two high-priority tickets slipped; we need tighter WIP limits." ],
-  [ :note,       "Reminder: demo prep on Thursday before the review." ]
-].freeze
-sprint_comment_count = 0
-Sprint.active.includes(:project).find_each do |sprint|
-  next if sprint.comments.any?
-
-  members = sprint.participants.to_a
-  SAMPLE_SPRINT_COMMENTS.each do |kind, body|
-    sprint.comments.create!(kind: kind, body: body, author: members.sample || admin)
-    sprint_comment_count += 1
-  end
-end
-puts "  ✓ #{sprint_comment_count} sprint comments (with green/red cards)"
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Assign tickets to sprints so sprint dashboards have data
-#   done/closed → a completed sprint · active work → the active sprint · backlog → none
-# ──────────────────────────────────────────────────────────────────────────────
-assigned = 0
-Ticket.includes(project: :sprints).find_each do |ticket|
-  next if ticket.sprint_id.present? || ticket.status == "backlog"
-
-  sprints = ticket.project.sprints
-  target =
-    if %w[done closed].include?(ticket.status)
-      sprints.where(status: :completed).order(:start_date).last
-    else
-      sprints.find_by(status: :active)
-    end
-  next unless target
-
-  ticket.update_column(:sprint_id, target.id) # skip callbacks
-  assigned += 1
-end
-puts "  ✓ #{assigned} tickets assigned to sprints"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Tasks  (break every ticket into estimable tasks; some done, some not)

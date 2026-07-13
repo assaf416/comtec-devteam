@@ -1,7 +1,7 @@
 class Project < ApplicationRecord
-  has_many :sprints
   has_many :milestones
   has_many :tickets
+  has_many :time_logs, dependent: :destroy
   has_many :ci_runs
   has_many :deployments
   has_many :documents
@@ -16,11 +16,6 @@ class Project < ApplicationRecord
   has_many :chat_rooms, dependent: :nullify
 
   validates :name, presence: true
-
-  # The project's current sprint is its active one (only one can be active).
-  def current_sprint
-    sprints.active.first
-  end
 
   scope :active, -> { where(active: true) }
 

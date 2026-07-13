@@ -3,7 +3,6 @@
 <% @projects.each do |project| %>
   <%
     open_tickets  = project.tickets.where.not(status: [:done, :closed]).count
-    active_sprint = project.sprints.where(status: :active).first
     open_prs      = project.pull_requests.where(status: :open).count rescue 0
   %>
   <div class="mobile-card">
@@ -18,11 +17,7 @@
           <%= link_to project.name, mobile_project_path(project), class: "has-text-dark" %>
         </div>
         <div class="mobile-card-meta">
-          <% if active_sprint %>
-            <%= t('mobile.projects.sprint_prefix') %> <%= active_sprint.name.truncate(24) %>
-          <% else %>
-            <%= t('mobile.projects.no_sprint') %>
-          <% end %>
+          <%= t('mobile.projects.open') %>: <%= open_tickets %>
         </div>
       </div>
       <span class="tag is-rounded is-small <%= project.active? ? 'is-success is-light' : 'is-light' %>">
@@ -54,9 +49,6 @@
         <% end %>
         <%= link_to project_tickets_path(project), class: "button is-small is-light is-rounded" do %>
           <%= t('mobile.projects.tickets_btn') %>
-        <% end %>
-        <%= link_to project_sprints_path(project), class: "button is-small is-light is-rounded" do %>
-          <%= t('mobile.projects.sprints_btn') %>
         <% end %>
         <%= link_to project_meetings_path(project), class: "button is-small is-light is-rounded" do %>
           <%= t('mobile.projects.meetings_btn') %>

@@ -97,7 +97,7 @@ class MeetingsController < ApplicationController
 
   def meeting_params
     params.require(:meeting).permit(
-      :title, :description, :meeting_type, :project_id, :sprint_id,
+      :title, :description, :meeting_type, :project_id,
       :scheduled_at, :duration_minutes, :jitsi_room,
       :recording_url, :status, :agenda, :notes
     )

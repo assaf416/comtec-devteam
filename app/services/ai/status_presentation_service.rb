@@ -15,7 +15,7 @@ module Ai
         Include these slides in order:
         1. Title & one-line summary of where the project stands
         2. Delivery progress & key metrics (tickets, tasks, estimates, CI)
-        3. Sprint status
+        3. Milestone status
         4. Risks & blockers
         5. Recommended next steps
 
@@ -33,7 +33,6 @@ module Ai
       tickets = project.tickets
       total   = tickets.count
       done    = tickets.where(status: [ :done, :closed ]).count
-      active  = project.sprints.active.first
       ci      = project.ci_runs.where(created_at: 7.days.ago..)
       ci_rate = ci.count.zero? ? "n/a" : "#{(ci.passed.count * 100.0 / ci.count).round}%"
 
@@ -53,8 +52,6 @@ module Ai
         Open pull requests: #{project.pull_requests.where(status: :open).count}
         CI pass rate (7d): #{ci_rate}
         Deployments (30d): #{project.deployments.where(created_at: 30.days.ago..).count}
-
-        Active sprint: #{active ? "#{active.name} — #{active.progress_percent}% done, #{active.days_remaining} days left" : 'none'}
 
         Milestones:
         #{milestones.presence&.join("\n") || '- none'}

@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: [ :show, :edit, :update, :destroy, :dashboard, :report, :ci_dashboard, :calendar_events ]
+  before_action :set_project, only: [ :show, :edit, :update, :destroy, :dashboard, :report, :ci_dashboard, :calendar_events, :sync_issues ]
 
   def index
     @projects = Project.order(:name)
@@ -75,7 +75,6 @@ class ProjectsController < ApplicationController
     @status_counts   = tickets.group(:status).count
     @priority_counts = not_closed.group(:priority).count
 
-    @active_sprint = @project.sprints.active.first
     @open_prs      = @project.pull_requests.where(status: :open).count
     @deploys_30    = @project.deployments.where(created_at: 30.days.ago..).count
 
@@ -104,7 +103,6 @@ class ProjectsController < ApplicationController
   end
 
   def report
-    @sprint_stats = @project.sprints.includes(:tickets)
     @test_summary = @project.ci_runs.includes(:test_results)
   end
 
@@ -112,6 +110,18 @@ class ProjectsController < ApplicationController
     @ci_runs = @project.ci_runs.includes(:triggered_by, :test_results, :ticket)
                         .order(created_at: :desc).limit(100)
     render "ci_runs/index"
+  end
+
+  # POST /projects/:id/sync_issues — pull the project's GitHub issues into
+  # tickets. GitHub is the source of truth for ticket data.
+  def sync_issues
+    result = GithubIssueSyncService.new(@project).call
+    notice = if result.ok?
+      "Synced GitHub issues: #{result.imported} new, #{result.updated} updated."
+    else
+      nil
+    end
+    redirect_to project_path(@project), notice: notice, alert: (result.ok? ? nil : result.error)
   end
 
   # GET /projects/:id/calendar_events.json
@@ -151,25 +161,6 @@ class ProjectsController < ApplicationController
       }
     end
 
-    # Sprints
-    @project.sprints.each do |s|
-      next unless s.start_date.present? && s.end_date.present?
-      next if range_start && s.end_date < range_start.to_date
-      next if range_end   && s.start_date > range_end.to_date
-
-      events << {
-        id:    "sprint-#{s.id}",
-        title: "⚡ #{s.name}",
-        start: s.start_date.iso8601,
-        end:   (s.end_date + 1.day).iso8601,
-        allDay: true,
-        url:   sprint_path(s),
-        color: "#38c96d",
-        display: "background",
-        extendedProps: { type: "sprint" }
-      }
-    end
-
     render json: events
   end
 
@@ -203,7 +194,6 @@ class ProjectsController < ApplicationController
     end
     insights << { level: "danger",  text: "#{@blocked} ticket(s) are blocked and need attention." } if @blocked.positive?
     insights << { level: "warning", text: "#{@needs_estimation} open ticket(s) have no dev estimate." } if @needs_estimation.positive?
-    insights << { level: "info",    text: "No active sprint — schedule one to keep work moving." } if @active_sprint.nil?
 
     if @ci_pass_rate
       level = @ci_pass_rate >= 90 ? "success" : (@ci_pass_rate >= 70 ? "warning" : "danger")

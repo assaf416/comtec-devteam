@@ -1,29 +1,30 @@
-<%# OpenAI-style chat. locals: session (may be nil), sessions %>
+<%# OpenAI-style chat, in Hebrew (RTL). locals: session (may be nil), sessions %>
 <%
   recos = [
-    [ "📄 Generate a specification", "Generate a software specification document for this project based on its tickets." ],
-    [ "⚠️ Risk management",          "Create a risk management document for this project: top risks, likelihood, impact and mitigations." ],
-    [ "🧪 Test plan",                "Draft a test plan for the current sprint's tickets." ],
-    [ "📊 Sprint status",            "Summarize the current sprint status, progress and risks." ],
-    [ "💡 Next steps",               "Based on the tickets and sprint, what should the team focus on next?" ]
+    [ "🧩 הצע פתרון ל-issue", "קרא את issue #1 ב-GitHub issues והצע פתרון מפורט." ],
+    [ "🧪 טסטים ב-Cucumber",  "כתוב לי טסטים ב-Cucumber לקוד שזה עתה נכנס לגרסה." ],
+    [ "📋 מטלות → issues",    "קרא את הטקסט הבא וייצר ממנו רשימת מטלות לפתיחה כ-GitHub issues:\n\n" ],
+    [ "🔍 סקירת קוד",         "בצע code review לקוד האחרון שנכנס לפרויקט." ],
+    [ "📊 דיאגרמה",           "צור דיאגרמת flow של תהליך העבודה בפרויקט." ]
   ]
   post_url = session ? message_ai_chat_path(session) : project_ai_chats_path(@project)
 %>
 <style>
-  .ai-chat-layout { display:flex; gap:0; height:calc(100vh - 130px); border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; background:#fff; }
-  .ai-chat-sessions { width:260px; flex-shrink:0; border-right:1px solid #e2e8f0; background:#f8fafb; padding:12px; overflow-y:auto; }
+  .ai-chat-layout { display:flex; gap:0; height:calc(100vh - 130px); border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; background:#fff; direction:rtl; }
+  .ai-chat-sessions { width:260px; flex-shrink:0; border-left:1px solid #e2e8f0; background:#f8fafb; padding:12px; overflow-y:auto; }
   .ai-session { display:block; padding:8px 10px; border-radius:8px; font-size:.85rem; color:#12252b; text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ai-session:hover { background:#eef2f6; }
   .ai-session.active { background:#e6efff; font-weight:600; }
   .ai-chat-main { flex:1; display:flex; flex-direction:column; min-width:0; }
   .ai-chat-header { padding:10px 18px; border-bottom:1px solid #e2e8f0; }
-  .ai-chat-messages { flex:1; overflow-y:auto; padding:20px 18px; }
+  .ai-chat-messages { flex:1; overflow-y:auto; padding:20px 18px; text-align:right; }
   .ai-msg { display:flex; margin-bottom:14px; }
-  .ai-msg-user { justify-content:flex-end; }
-  .ai-msg-bubble { max-width:760px; padding:10px 14px; border-radius:14px; font-size:.9rem; line-height:1.55; }
-  .ai-msg-user .ai-msg-bubble { background:#2563eb; color:#fff; border-bottom-right-radius:4px; }
-  .ai-msg-assistant .ai-msg-bubble { background:#f1f5f9; color:#12252b; border-bottom-left-radius:4px; }
-  .ai-msg-assistant .ai-msg-bubble pre { background:#0e1116; color:#e8e6df; padding:10px; border-radius:8px; overflow-x:auto; }
+  .ai-msg-user { justify-content:flex-start; }
+  .ai-msg-assistant, .ai-msg-proposal { justify-content:flex-end; }
+  .ai-msg-bubble { max-width:760px; padding:10px 14px; border-radius:14px; font-size:.9rem; line-height:1.7; }
+  .ai-msg-user .ai-msg-bubble { background:#2563eb; color:#fff; border-bottom-left-radius:4px; }
+  .ai-msg-assistant .ai-msg-bubble, .ai-msg-proposal .ai-msg-bubble { background:#f1f5f9; color:#12252b; border-bottom-right-radius:4px; }
+  .ai-msg-assistant .ai-msg-bubble pre { background:#0e1116; color:#e8e6df; padding:10px; border-radius:8px; overflow-x:auto; direction:ltr; text-align:left; }
   .ai-chat-empty { max-width:720px; margin:6vh auto 0; text-align:center; }
   .ai-chat-empty h2 { font-weight:800; }
   .ai-recos { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:18px; }
@@ -31,41 +32,51 @@
   .ai-reco-chip:hover { border-color:#2563eb; color:#2563eb; }
   .ai-chat-input { border-top:1px solid #e2e8f0; padding:14px 18px; }
   .ai-input-form { display:flex; gap:8px; max-width:900px; margin:0 auto; align-items:flex-end; }
-  .ai-input-form textarea { flex:1; border:1px solid #cbd5e1; border-radius:14px; padding:12px 16px; resize:none; font-size:.95rem; min-height:48px; max-height:200px; }
+  .ai-input-form textarea { flex:1; border:1px solid #cbd5e1; border-radius:14px; padding:12px 16px; resize:none; font-size:.95rem; min-height:48px; max-height:200px; text-align:right; }
 </style>
 
-<div class="ai-chat-layout" data-controller="ai-chat">
+<div class="ai-chat-layout" dir="rtl" data-controller="ai-chat">
   <aside class="ai-chat-sessions">
-    <%= button_to "➕ New chat", project_ai_chats_path(@project), method: :post, class: "btn btn-primary btn-sm w-100 mb-3" %>
-    <div class="text-muted fs-8 text-uppercase mb-1" style="letter-spacing:.05em;">Previous chats</div>
+    <%= button_to "➕ שיחה חדשה", project_ai_chats_path(@project), method: :post, class: "btn btn-primary btn-sm w-100 mb-3" %>
+    <div class="text-muted fs-8 text-uppercase mb-1" style="letter-spacing:.05em;">שיחות קודמות</div>
     <% sessions.each do |s| %>
       <%= link_to s.display_title, ai_chat_path(s),
             class: "ai-session #{'active' if session && s.id == session.id}", title: s.display_title %>
     <% end %>
-    <% if sessions.empty? %><p class="text-muted fs-8">No chats yet.</p><% end %>
+    <% if sessions.empty? %><p class="text-muted fs-8">אין שיחות עדיין.</p><% end %>
   </aside>
 
   <section class="ai-chat-main">
     <div class="ai-chat-header">
-      <strong>🤖 Chat with AI</strong>
+      <strong>🤖 צ'אט עם סוכן ה-AI</strong>
       <% if session&.project %>
-        <span class="text-muted fs-7">· <%= session.project.name %><% if session.sprint %> · <%= session.sprint.name %><% end %></span>
+        <span class="text-muted fs-7">· <%= session.project.name %></span>
       <% end %>
     </div>
 
     <div class="ai-chat-messages" data-ai-chat-target="scroll">
       <% if session && session.ai_chat_messages.any? %>
         <% session.ai_chat_messages.each do |m| %>
-          <div class="ai-msg ai-msg-<%= m.role %>">
-            <div class="ai-msg-bubble content">
-              <% if m.assistant? %><%= render_markdown(m.content) %><% else %><%= simple_format(m.content) %><% end %>
+          <% if m.role == "proposal" %>
+            <div class="ai-msg ai-msg-proposal">
+              <div class="ai-msg-bubble content">
+                <p class="mb-2">📋 מוכן לפתוח את המטלות האלה כ-GitHub issues?</p>
+                <%= button_to "✅ אשר ופתח issues", open_issues_ai_chat_path(session), method: :post,
+                      class: "btn btn-success btn-sm" %>
+              </div>
             </div>
-          </div>
+          <% else %>
+            <div class="ai-msg ai-msg-<%= m.role %>">
+              <div class="ai-msg-bubble content">
+                <% if m.assistant? %><%= render_markdown(m.content) %><% else %><%= simple_format(m.content) %><% end %>
+              </div>
+            </div>
+          <% end %>
         <% end %>
       <% else %>
         <div class="ai-chat-empty">
-          <h2>How can I help with <%= session&.project&.name || "your work" %>?</h2>
-          <p class="text-muted">I load this project's tickets, sprint, team messages and recent code as context. Try a popular document:</p>
+          <h2>איך אפשר לעזור עם <%= session&.project&.name || "הפרויקט" %>?</h2>
+          <p class="text-muted">אני מריץ LLM מקומי (Ollama על ה-Mac mini M4 Pro) וטוען את ה-issues, הקוד והצוות כהקשר. נסה אחת מהמיומנויות:</p>
           <div class="ai-recos">
             <% recos.each do |label, prompt| %>
               <%= form_with url: post_url, method: :post, class: "d-inline" do %>
@@ -81,9 +92,9 @@
 
     <div class="ai-chat-input">
       <%= form_with url: post_url, method: :post, class: "ai-input-form" do %>
-        <textarea name="message" rows="1" placeholder="Message the AI…" required
+        <textarea name="message" rows="1" placeholder="כתוב הודעה לסוכן ה-AI…" required
                   data-ai-chat-target="input" data-action="keydown.enter->ai-chat#submitOnEnter"></textarea>
-        <button type="submit" class="btn btn-primary">Send</button>
+        <button type="submit" class="btn btn-primary">שליחה</button>
       <% end %>
     </div>
   </section>

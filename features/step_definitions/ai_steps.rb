@@ -30,13 +30,8 @@ Given("an AI project {string} with a ticket {string} owned by {string} and assig
                                 owner: @owner, assignee: @assignee)
 end
 
-Given("an AI project {string} with an active sprint {string}") do |project_name, sprint_name|
-  @project = FactoryBot.create(:project, name: project_name, active: true)
-  @sprint  = FactoryBot.create(:active_sprint, project: @project, name: sprint_name)
-end
-
-Given("the sprint has a ticket estimated {int} hours that actually took {string}") do |estimate, actual|
-  FactoryBot.create(:ticket, project: @project, sprint: @sprint, status: :done,
+Given("that project has a ticket estimated {int} hours that actually took {string}") do |estimate, actual|
+  FactoryBot.create(:ticket, project: @project, status: :done,
                     dev_estimate_hours: estimate, actual_hours: actual)
 end
 
@@ -67,17 +62,9 @@ When("I ask the AI to suggest a solution for that ticket") do
   click_button "💡 Suggest solution"
 end
 
-When("I run AI estimation analysis on that sprint") do
-  visit sprint_path(@sprint)
-  click_button "📊 AI Estimation"
-end
-
-When("I view that sprint") do
-  visit sprint_path(@sprint)
-end
-
-When("I load the AI sprint analysis directly") do
-  visit tools_ai_sprint_analysis_path(sprint_id: @sprint.id)
+When("I run AI estimation analysis on that project") do
+  visit dashboard_project_path(@project)
+  click_button "🤖 Run AI estimation analysis"
 end
 
 When("I visit the AI reports page") do
@@ -92,10 +79,6 @@ end
 
 Then("the ticket should be reassigned to its owner") do
   expect(@ticket.reload.assignee_id).to eq(@owner.id)
-end
-
-Then("I should see the live AI sprint analysis frame") do
-  expect(page).to have_css("turbo-frame#ai_sprint_analysis")
 end
 
 Then("the AI review should be marked failed") do

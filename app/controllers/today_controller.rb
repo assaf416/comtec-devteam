@@ -6,7 +6,7 @@ class TodayController < ApplicationController
     # ── Active tickets assigned to me ────────────────────────────────────────
     @my_active_tickets = current_user.assigned_tickets
                            .where.not(status: %i[done closed])
-                           .includes(:project, :sprint)
+                           .includes(:project)
                            .order(priority: :desc, updated_at: :desc)
 
     # Tickets I touched today (updated, commented, or status changed)
@@ -78,21 +78,6 @@ class TodayController < ApplicationController
 
     @jenkins_url = ENV.fetch("JENKINS_URL", "http://localhost:8080")
     @gitea_url   = ENV.fetch("GITEA_URL",   "http://localhost:3000")
-
-    # ── Active sprints (my projects first, else org-wide) ──────────────────────
-    @active_sprints = Sprint.active.where(project_id: my_project_ids)
-                            .includes(:project).order(:end_date).to_a
-    @active_sprints = Sprint.active.includes(:project).order(:end_date).to_a if @active_sprints.empty?
-
-    # Preload per-sprint ticket status counts in one query to avoid N+1.
-    sprint_ids = @active_sprints.map(&:id)
-    raw_counts = Ticket.where(sprint_id: sprint_ids)
-                       .group(:sprint_id, :status)
-                       .count
-    # Build a hash: sprint_id => { status_int => count }
-    @sprint_ticket_counts = raw_counts.each_with_object(Hash.new { |h, k| h[k] = {} }) do |((sid, st), cnt), h|
-      h[sid][st] = cnt
-    end
 
     # ── Review queue: PRs awaiting review + my own open PRs ─────────────────────
     @review_queue = PullRequest.where(status: %i[open review])

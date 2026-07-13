@@ -5,7 +5,9 @@
     <h1 class="fw-bold"><%= @project.name %> — Tickets</h1>
   </div>
   <div class="level-right">
-    <%= link_to t("buttons.new_ticket"), new_project_ticket_path(@project), class: "btn btn-primary" %>
+    <% if GithubService.github_url?(@project.repo_url) %>
+      <%= button_to "🔄 Sync GitHub issues", sync_issues_project_path(@project), method: :post, class: "btn btn-primary" %>
+    <% end %>
   </div>
 </div>
 

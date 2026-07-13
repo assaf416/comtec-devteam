@@ -5,7 +5,6 @@ RSpec.describe Ticket, type: :model do
 
   # ── Associations ──────────────────────────────────────────────────────────
   it { is_expected.to belong_to(:project) }
-  it { is_expected.to belong_to(:sprint).optional }
   it { is_expected.to belong_to(:assignee).optional }
   it { is_expected.to belong_to(:owner).optional }
   it { is_expected.to belong_to(:estimated_by).optional }

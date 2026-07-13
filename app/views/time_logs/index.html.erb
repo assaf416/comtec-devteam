@@ -1,0 +1,94 @@
+<% content_for :title, t("time_logs.title") %>
+
+<div class="level mb-3">
+  <div class="level-left"><h1 class="fw-bold">⏱️ <%= t("time_logs.title") %></h1></div>
+  <div class="level-right">
+    <span class="badge bg-primary fs-6"><%= t("time_logs.week_total") %>: <%= @week_total %>h</span>
+  </div>
+</div>
+
+<div class="row">
+  <%# ── Log form ─────────────────────────────────────────────────────────── %>
+  <div class="col-lg-5">
+    <div class="card p-3 mb-3">
+      <h2 class="fs-6 fw-bold mb-3"><%= t("time_logs.new_entry") %></h2>
+      <%= form_with model: @time_log, url: time_logs_path, method: :post do |f| %>
+        <% if @time_log.errors.any? %>
+          <div class="alert alert-danger fs-7"><%= @time_log.errors.full_messages.to_sentence %></div>
+        <% end %>
+        <div class="mb-2">
+          <%= f.label :project_id, t("time_logs.project"), class: "form-label fs-7 fw-semibold" %>
+          <%= f.collection_select :project_id, @projects, :id, :name, {}, class: "form-select form-select-sm" %>
+        </div>
+        <div class="mb-2">
+          <%= f.label :spent_on, t("time_logs.date"), class: "form-label fs-7 fw-semibold" %>
+          <%= f.date_field :spent_on, class: "form-control form-control-sm" %>
+        </div>
+        <div class="mb-2">
+          <%= f.label :hours, t("time_logs.hours"), class: "form-label fs-7 fw-semibold" %>
+          <%= f.number_field :hours, step: 0.25, min: 0, class: "form-control form-control-sm" %>
+        </div>
+        <div class="mb-3">
+          <%= f.label :note, t("time_logs.note"), class: "form-label fs-7 fw-semibold" %>
+          <%= f.text_area :note, rows: 2, class: "form-control form-control-sm" %>
+        </div>
+        <%= f.submit t("time_logs.log_button"), class: "btn btn-primary btn-sm" %>
+      <% end %>
+    </div>
+
+    <%# This week's per-project summary %>
+    <div class="card p-3 mb-3">
+      <h2 class="fs-6 fw-bold mb-2"><%= t("time_logs.this_week") %></h2>
+      <% if @week_by_project.any? %>
+        <table class="table table-sm fs-7 mb-0">
+          <tbody>
+            <% @week_by_project.each do |name, hours| %>
+              <tr><td><%= name %></td><td class="text-end num"><%= hours %>h</td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-muted fs-7 mb-0"><%= t("time_logs.no_entries_week") %></p>
+      <% end %>
+    </div>
+  </div>
+
+  <%# ── Recent entries ───────────────────────────────────────────────────── %>
+  <div class="col-lg-7">
+    <div class="card p-3">
+      <h2 class="fs-6 fw-bold mb-3"><%= t("time_logs.recent") %></h2>
+      <% if @time_logs.any? %>
+        <table class="table table-hover fs-7 align-middle mb-0">
+          <thead>
+            <tr>
+              <th><%= t("time_logs.date") %></th>
+              <th><%= t("time_logs.project") %></th>
+              <th><%= t("time_logs.ticket") %></th>
+              <th class="text-end"><%= t("time_logs.hours") %></th>
+              <th><%= t("time_logs.note") %></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @time_logs.each do |log| %>
+              <tr>
+                <td class="text-muted"><%= log.spent_on.strftime("%d %b") %></td>
+                <td><%= log.project.name %></td>
+                <td><%= log.ticket ? link_to("T-#{log.ticket.id}", ticket_path(log.ticket)) : "—" %></td>
+                <td class="text-end num fw-semibold"><%= log.hours %>h</td>
+                <td class="text-muted"><%= log.note.to_s.truncate(50) %></td>
+                <td class="text-end">
+                  <%= button_to "✕", time_log_path(log), method: :delete,
+                        class: "btn btn-sm btn-outline-danger py-0",
+                        form: { data: { turbo_confirm: t("time_logs.confirm_delete") } } %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-muted mb-0"><%= t("time_logs.no_entries") %></p>
+      <% end %>
+    </div>
+  </div>
+</div>

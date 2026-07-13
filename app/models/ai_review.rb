@@ -3,7 +3,7 @@
 # Every service in Ai:: persists exactly one AiReview so the result is auditable,
 # linkable from the UI (AI Reports / Recent Review Results / Recent Test Reviews),
 # and replayable. The `reviewable` polymorphic association ties a run back to the
-# Ticket / Sprint / Project it analysed.
+# Ticket / Project it analysed.
 class AiReview < ApplicationRecord
   belongs_to :reviewable, polymorphic: true, optional: true
   belongs_to :user, optional: true
@@ -14,7 +14,6 @@ class AiReview < ApplicationRecord
     code_review:         1,   # diff review (Go / Ruby / C# / Node + lint + best practice)
     test_review:         2,   # cucumber test review & missing-coverage suggestions
     estimation_analysis: 3,   # estimated vs actual delivery time
-    sprint_analysis:     4,   # sprint health based on ticket progress
     solution_suggestion: 5,   # read a ticket and suggest an approach
     bug_fix:             6,   # propose a fix for a bug ticket
     task_breakdown:      7,   # break a story into estimated tasks
@@ -49,7 +48,6 @@ class AiReview < ApplicationRecord
   def title
     case reviewable
     when Ticket  then "T-#{reviewable.id} · #{reviewable.title}"
-    when Sprint  then reviewable.name
     when Project then reviewable.name
     else kind.to_s.humanize
     end

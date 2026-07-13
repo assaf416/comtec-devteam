@@ -23,7 +23,7 @@ RSpec.describe "Notifications → Open ticket", type: :request do
     expect(ticket.kind).to eq("story")
     expect(ticket.description).to include("Customer reported slow PDF export")
     expect(n.reload.read_at).to be_present
-    expect(response).to redirect_to(edit_ticket_path(ticket))
+    expect(response).to redirect_to(ticket_path(ticket))
   end
 
   it "creates a high-priority bug with reproduction from an exception notification" do

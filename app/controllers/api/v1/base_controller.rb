@@ -41,11 +41,12 @@ module Api
             repo_url: ticket.project.repo_url,
             default_branch: ticket.project.default_branch
           },
-          sprint: ticket.sprint && { id: ticket.sprint_id, name: ticket.sprint.name },
           assignee: ticket.assignee && { id: ticket.assignee_id, name: ticket.assignee.display_name },
           owner:    ticket.owner    && { id: ticket.owner_id,    name: ticket.owner.display_name },
           estimated_by: ticket.estimated_by && { id: ticket.estimated_by_id, name: ticket.estimated_by.display_name },
           branch_name: ticket.branch_name,
+          github_issue_number: ticket.github_issue_number,
+          github_url:          ticket.github_url,
           created_at: ticket.created_at,
           updated_at: ticket.updated_at
         }

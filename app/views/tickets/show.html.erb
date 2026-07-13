@@ -20,16 +20,14 @@
           <div class="d-flex flex-wrap gap-1 mt-2"><%= render "tickets/progress_badges", ticket: @ticket %></div>
         </div>
         <div class="d-flex gap-2 flex-shrink-0">
-          <% if @ticket.approved? %>
-            <span class="badge bg-success align-self-center" title="Approved <%= @ticket.approved_at.strftime('%d %b %Y') %>">✓ Approved</span>
+          <% if @ticket.github_url.present? %>
+            <%= link_to "↗ View on GitHub", @ticket.github_url, target: "_blank", rel: "noopener noreferrer", class: "btn btn-primary btn-sm" %>
+            <% if @ticket.github_issue_number %>
+              <span class="badge bg-light text-dark border align-self-center">issue #<%= @ticket.github_issue_number %></span>
+            <% end %>
           <% else %>
-            <%= button_to "✓ Approve", approve_ticket_path(@ticket), method: :patch, class: "btn btn-success btn-sm" %>
+            <span class="badge bg-light text-dark border align-self-center">local ticket</span>
           <% end %>
-          <%= link_to "📝 Edit specs", edit_ticket_path(@ticket, section: "specs"), class: "btn btn-secondary btn-sm" %>
-          <%= link_to edit_ticket_path(@ticket, section: "estimation"), class: "btn btn-outline-secondary btn-sm" do %>
-            📊 <%= @ticket.estimated? ? "Edit estimation (#{@ticket.story_points || "—"} pts)" : "Estimate" %>
-          <% end %>
-          <%= link_to t("common.delete"), ticket_path(@ticket), data: { turbo_method: :delete, turbo_confirm: t("common.confirm_delete") }, class: "btn btn-outline-danger btn-sm" %>
         </div>
       </div>
 
@@ -244,10 +242,6 @@
           <tr>
             <th class="text-muted fw-semibold">Reporter / Owner</th>
             <td><span class="d-inline-flex align-items-center gap-1"><%= user_avatar(@ticket.owner, size: 22) if @ticket.owner %><%= @ticket.owner&.display_name || "—" %></span></td>
-          </tr>
-          <tr>
-            <th class="text-muted fw-semibold">Sprint</th>
-            <td><%= @ticket.sprint ? link_to(@ticket.sprint.name, sprint_path(@ticket.sprint)) : "—" %></td>
           </tr>
           <tr>
             <th class="text-muted fw-semibold">Milestone</th>

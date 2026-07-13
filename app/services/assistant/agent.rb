@@ -60,11 +60,10 @@ module Assistant
     end
 
     def report
-      sprints = Sprint.active.count
       open_t  = Ticket.where.not(status: %i[done closed]).count
       open_pr = PullRequest.where(status: %i[open review]).count
       deploys = Deployment.where(created_at: 7.days.ago..).count
-      "Delivery snapshot:\n  • #{sprints} active sprint(s)\n  • #{open_t} open tickets\n  • #{open_pr} PRs awaiting review\n  • #{deploys} deployments in the last 7 days"
+      "Delivery snapshot:\n  • #{open_t} open tickets\n  • #{open_pr} PRs awaiting review\n  • #{deploys} deployments in the last 7 days"
     end
 
     def servers

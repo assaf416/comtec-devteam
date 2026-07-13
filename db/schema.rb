@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_12_100003) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -70,7 +70,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
     t.datetime "created_at", null: false
     t.string "llm_model"
     t.bigint "project_id"
-    t.bigint "sprint_id"
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -293,7 +292,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
     t.integer "doc_type"
     t.boolean "is_template", default: false, null: false
     t.integer "project_id", null: false
-    t.bigint "sprint_id"
     t.text "summary"
     t.integer "template_id"
     t.string "title"
@@ -302,7 +300,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
     t.index ["author_id"], name: "index_documents_on_author_id"
     t.index ["is_template"], name: "index_documents_on_is_template"
     t.index ["project_id"], name: "index_documents_on_project_id"
-    t.index ["sprint_id"], name: "index_documents_on_sprint_id"
     t.index ["template_id"], name: "index_documents_on_template_id"
   end
 
@@ -347,13 +344,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
     t.integer "project_id"
     t.string "recording_url"
     t.datetime "scheduled_at"
-    t.integer "sprint_id"
     t.integer "status"
     t.string "title"
     t.datetime "updated_at", null: false
     t.index ["organizer_id"], name: "index_meetings_on_organizer_id"
     t.index ["project_id"], name: "index_meetings_on_project_id"
-    t.index ["sprint_id"], name: "index_meetings_on_sprint_id"
   end
 
   create_table "milestones", force: :cascade do |t|
@@ -446,21 +441,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
     t.index ["ip_address"], name: "index_server_heartbeats_on_ip_address"
   end
 
-  create_table "sprints", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.date "end_date"
-    t.text "goals"
-    t.string "name"
-    t.integer "project_id", null: false
-    t.date "start_date"
-    t.integer "status"
-    t.text "things_that_went_right"
-    t.text "things_to_improve"
-    t.datetime "updated_at", null: false
-    t.integer "velocity"
-    t.index ["project_id"], name: "index_sprints_on_project_id"
-  end
-
   create_table "taggings", force: :cascade do |t|
     t.string "context", limit: 128
     t.datetime "created_at", precision: nil
@@ -541,6 +521,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
     t.text "description"
     t.decimal "dev_estimate_hours", precision: 6, scale: 2
     t.integer "estimated_by_id"
+    t.integer "github_issue_number"
+    t.string "github_state"
+    t.datetime "github_synced_at"
+    t.string "github_url"
     t.text "how_to_reproduce"
     t.integer "kind", default: 0, null: false
     t.integer "latest_ci_run_id"
@@ -551,7 +535,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
     t.string "pr_url"
     t.integer "priority"
     t.integer "project_id", null: false
-    t.integer "sprint_id"
     t.integer "status"
     t.integer "story_points"
     t.integer "tasks_count", default: 0
@@ -567,8 +550,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
     t.index ["level"], name: "index_tickets_on_level"
     t.index ["milestone_id"], name: "index_tickets_on_milestone_id"
     t.index ["owner_id"], name: "index_tickets_on_owner_id"
+    t.index ["project_id", "github_issue_number"], name: "index_tickets_on_project_and_github_issue", unique: true, where: "github_issue_number IS NOT NULL"
     t.index ["project_id"], name: "index_tickets_on_project_id"
-    t.index ["sprint_id"], name: "index_tickets_on_sprint_id"
+  end
+
+  create_table "time_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.decimal "hours", precision: 6, scale: 2, default: "0.0", null: false
+    t.text "note"
+    t.integer "project_id", null: false
+    t.date "spent_on", null: false
+    t.integer "ticket_id"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["project_id", "spent_on"], name: "index_time_logs_on_project_id_and_spent_on"
+    t.index ["project_id"], name: "index_time_logs_on_project_id"
+    t.index ["ticket_id"], name: "index_time_logs_on_ticket_id"
+    t.index ["user_id", "spent_on"], name: "index_time_logs_on_user_id_and_spent_on"
+    t.index ["user_id"], name: "index_time_logs_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -576,6 +575,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
+    t.string "github_login"
     t.string "name"
     t.string "preferred_language"
     t.datetime "remember_created_at"
@@ -585,6 +585,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
     t.datetime "updated_at", null: false
     t.index ["api_token"], name: "index_users_on_api_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["github_login"], name: "index_users_on_github_login"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
@@ -620,14 +621,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
   add_foreign_key "meeting_attendees", "meetings"
   add_foreign_key "meeting_attendees", "users"
   add_foreign_key "meetings", "projects"
-  add_foreign_key "meetings", "sprints"
   add_foreign_key "meetings", "users", column: "organizer_id"
   add_foreign_key "milestones", "projects"
   add_foreign_key "project_memberships", "projects"
   add_foreign_key "project_memberships", "users"
   add_foreign_key "pull_requests", "projects"
   add_foreign_key "pull_requests", "tickets"
-  add_foreign_key "sprints", "projects"
   add_foreign_key "taggings", "tags"
   add_foreign_key "tasks", "tickets"
   add_foreign_key "test_results", "ci_runs"
@@ -635,8 +634,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_063000) do
   add_foreign_key "ticket_watchers", "users"
   add_foreign_key "tickets", "milestones"
   add_foreign_key "tickets", "projects"
-  add_foreign_key "tickets", "sprints"
   add_foreign_key "tickets", "users", column: "assignee_id"
   add_foreign_key "tickets", "users", column: "estimated_by_id"
   add_foreign_key "tickets", "users", column: "owner_id"
+  add_foreign_key "time_logs", "projects"
+  add_foreign_key "time_logs", "tickets"
+  add_foreign_key "time_logs", "users"
 end

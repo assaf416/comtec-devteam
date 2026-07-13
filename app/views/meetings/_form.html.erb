@@ -54,16 +54,6 @@
     <div class=""><%= f.text_area :agenda, class: "textarea", rows: 4, placeholder: "Meeting agenda items..." %></div>
   </div>
 
-  <div class="mb-3">
-    <%= f.label :sprint_id, "Sprint (optional)", class: "label" %>
-    <div class="">
-      <div class="select w-100">
-        <%= f.select :sprint_id,
-              Sprint.active.order(:name).map { |s| ["#{s.project.name} — #{s.name}", s.id] },
-              { include_blank: "— No Sprint —", selected: params[:sprint_id] || meeting.sprint_id } %>
-      </div>
-    </div>
-  </div>
 
   <div class="mb-3">
     <%= f.label :jitsi_room, "Jitsi Room Name (leave blank to auto-generate)", class: "label" %>
