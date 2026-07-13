@@ -52,6 +52,7 @@ Rails.application.routes.draw do
   # ── Cucumber feature-file editor (dark console + Gherkin highlighting) ───────
   get  "cucumber_tests/edit",   to: "cucumber_tests#edit",   as: :edit_cucumber_test
   post "cucumber_tests/review", to: "cucumber_tests#review", as: :review_cucumber_test
+  post "cucumber_tests/deploy", to: "cucumber_tests#deploy", as: :deploy_cucumber_test
 
 
   # ── Server / remote-machine monitoring (heartbeats) ─────────────────────────
