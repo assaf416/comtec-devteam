@@ -159,7 +159,7 @@ module Api
           email:      user.email,
           role:       user.role,
           phone:      user.phone,
-          avatar_url: (user.avatar.attached? ? rails_blob_url(user.avatar) : nil),
+          avatar_url: (user.avatar.attached? ? rails_blob_path(user.avatar) : nil),
           created_at: user.created_at,
           updated_at: user.updated_at
         }
@@ -199,7 +199,7 @@ module Api
             id:   attachment.uploaded_by_id,
             name: attachment.uploaded_by.display_name
           },
-          download_url: attachment.file.attached? ? rails_blob_url(attachment.file) : nil,
+          download_url: attachment.file.attached? ? rails_blob_path(attachment.file) : nil,
           created_at:   attachment.created_at,
           updated_at:   attachment.updated_at
         }

@@ -81,3 +81,8 @@ When("אני מעלה דרך ה-API את המסמך {string} לפרויקט {str
   file    = Rack::Test::UploadedFile.new(fixture_file(filename), "text/plain")
   api_call(:post, "/api/v1/attachments", { project_id: project.id, file: file })
 end
+
+Then("קישור ההורדה בתגובה הוא נתיב יחסי") do
+  expect(@api_json["download_url"]).to be_present
+  expect(@api_json["download_url"]).to start_with("/")
+end
