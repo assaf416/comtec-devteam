@@ -1,61 +1,62 @@
-Feature: AI Agent services backed by the local on-prem LLM
-  As a development team running an on-prem Ollama machine
-  I want AI-assisted reviews and analyses inside DevTeam Hub
-  So the team gets fast feedback without sending code to a SaaS provider
+# language: he
+תכונה: שירותי סוכן AI מבוססי מודל LLM מקומי (on-prem)
+  כצוות פיתוח המריץ מכונת Ollama מקומית
+  אני רוצה סקירות וניתוחים בסיוע AI בתוך DevTeam Hub
+  כדי שהצוות יקבל משוב מהיר בלי לשלוח קוד לספק SaaS
 
-  Background:
-    Given I am logged in as a team lead
-    And the local AI model is available
+  רקע:
+    בהינתן אני מחובר כראש צוות
+    וגם מודל ה-AI המקומי זמין
 
-  Scenario: Verify story telling — a well-written ticket passes
-    Given an AI project "Acme" with a ticket "Add SSO login"
-    And the AI model will return verdict "pass"
-    When I run the AI readiness check on that ticket
-    Then I should see "Pass"
-    And an AI review of kind "ticket_quality" should exist
+  תרחיש: בדיקת איכות סיפור — כרטיס כתוב היטב עובר
+    בהינתן פרויקט AI בשם "Acme" עם כרטיס "Add SSO login"
+    וגם מודל ה-AI יחזיר פסיקה "pass"
+    כאשר אני מריץ בדיקת מוכנות AI על הכרטיס הזה
+    אז אני אמור לראות "Pass"
+    וגם אמורה להתקיים סקירת AI מסוג "ticket_quality"
 
-  Scenario: Verify story telling — a poor ticket is reassigned to its owner
-    Given an AI project "Acme" with a ticket "fix stuff" owned by "Olive Owner" and assigned to "Adam Assignee"
-    And the AI model will return verdict "needs_work"
-    When I run the AI readiness check on that ticket
-    Then the ticket should be reassigned to its owner
-    And an AI review of kind "ticket_quality" should exist
+  תרחיש: בדיקת איכות סיפור — כרטיס גרוע מוחזר לבעליו
+    בהינתן פרויקט AI בשם "Acme" עם כרטיס "fix stuff" בבעלות "Olive Owner" ומשויך ל"Adam Assignee"
+    וגם מודל ה-AI יחזיר פסיקה "needs_work"
+    כאשר אני מריץ בדיקת מוכנות AI על הכרטיס הזה
+    אז הכרטיס אמור להיות משויך מחדש לבעליו
+    וגם אמורה להתקיים סקירת AI מסוג "ticket_quality"
 
-  Scenario: Code review of a diff across our stack
-    Given an AI project "Acme" with a ticket "Add SSO login"
-    When I submit a code review for that ticket in "go"
-    Then I should see the AI review result
-    And an AI review of kind "code_review" should exist
+  תרחיש: סקירת קוד של diff לאורך המחסנית שלנו
+    בהינתן פרויקט AI בשם "Acme" עם כרטיס "Add SSO login"
+    כאשר אני שולח סקירת קוד עבור הכרטיס הזה בשפה "go"
+    אז אני אמור לראות את תוצאת סקירת ה-AI
+    וגם אמורה להתקיים סקירת AI מסוג "code_review"
 
-  Scenario: Review cucumber tests and suggest missing coverage
-    Given an AI project "Acme" with a ticket "Add SSO login"
-    When I submit a cucumber test review for that ticket
-    Then I should see the AI review result
-    And an AI review of kind "test_review" should exist
+  תרחיש: סקירת בדיקות cucumber והצעת כיסוי חסר
+    בהינתן פרויקט AI בשם "Acme" עם כרטיס "Add SSO login"
+    כאשר אני שולח סקירת בדיקות cucumber עבור הכרטיס הזה
+    אז אני אמור לראות את תוצאת סקירת ה-AI
+    וגם אמורה להתקיים סקירת AI מסוג "test_review"
 
-  Scenario: Suggest a solution for a ticket
-    Given an AI project "Acme" with a ticket "Add SSO login"
-    When I ask the AI to suggest a solution for that ticket
-    Then I should see the AI review result
-    And an AI review of kind "solution_suggestion" should exist
+  תרחיש: הצעת פתרון לכרטיס
+    בהינתן פרויקט AI בשם "Acme" עם כרטיס "Add SSO login"
+    כאשר אני מבקש מה-AI להציע פתרון עבור הכרטיס הזה
+    אז אני אמור לראות את תוצאת סקירת ה-AI
+    וגם אמורה להתקיים סקירת AI מסוג "solution_suggestion"
 
-  Scenario: Track estimation vs actual delivery time for a project
-    Given an AI project "Acme" with a ticket "Add SSO login"
-    And that project has a ticket estimated 8 hours that actually took "10h"
-    When I run AI estimation analysis on that project
-    Then I should see the AI review result
-    And an AI review of kind "estimation_analysis" should exist
+  תרחיש: מעקב אחר אומדן מול זמן אספקה בפועל לפרויקט
+    בהינתן פרויקט AI בשם "Acme" עם כרטיס "Add SSO login"
+    וגם לאותו פרויקט יש כרטיס שהוערך ב-8 שעות ובפועל לקח "10h"
+    כאשר אני מריץ ניתוח אומדני AI על אותו פרויקט
+    אז אני אמור לראות את תוצאת סקירת ה-AI
+    וגם אמורה להתקיים סקירת AI מסוג "estimation_analysis"
 
-  Scenario: The AI Reports dashboard lists recent runs
-    Given an AI project "Acme" with a ticket "Add SSO login"
-    And the AI model will return verdict "pass"
-    When I run the AI readiness check on that ticket
-    And I visit the AI reports page
-    Then I should see "Ticket quality"
+  תרחיש: לוח דוחות ה-AI מציג ריצות אחרונות
+    בהינתן פרויקט AI בשם "Acme" עם כרטיס "Add SSO login"
+    וגם מודל ה-AI יחזיר פסיקה "pass"
+    כאשר אני מריץ בדיקת מוכנות AI על הכרטיס הזה
+    וגם אני מבקר בדף דוחות ה-AI
+    אז אני אמור לראות "Ticket quality"
 
-  Scenario: Graceful handling when the LLM machine is offline
-    Given an AI project "Acme" with a ticket "Add SSO login"
-    And the local AI model is offline
-    When I ask the AI to suggest a solution for that ticket
-    Then the AI review should be marked failed
-    And an AI review of kind "solution_suggestion" should exist
+  תרחיש: טיפול חינני כאשר מכונת ה-LLM לא מקוונת
+    בהינתן פרויקט AI בשם "Acme" עם כרטיס "Add SSO login"
+    וגם מודל ה-AI המקומי לא מקוון
+    כאשר אני מבקש מה-AI להציע פתרון עבור הכרטיס הזה
+    אז סקירת ה-AI אמורה להיות מסומנת כנכשלה
+    וגם אמורה להתקיים סקירת AI מסוג "solution_suggestion"

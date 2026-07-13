@@ -14,6 +14,7 @@ class Project < ApplicationRecord
   has_many :activities, dependent: :destroy
   has_many :ai_reviews, as: :reviewable, dependent: :destroy
   has_many :chat_rooms, dependent: :nullify
+  has_many :attachments, dependent: :destroy
 
   validates :name, presence: true
 

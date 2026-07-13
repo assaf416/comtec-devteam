@@ -24,6 +24,14 @@ class TodayController < ApplicationController
                          .order(updated_at: :desc)
                          .limit(10)
 
+    # Files I most recently opened (last 5), newest first
+    @recent_attachments = AttachmentView.where(user: current_user)
+                            .includes(attachment: [ :project, { file_attachment: :blob } ])
+                            .order(viewed_at: :desc)
+                            .limit(5)
+                            .map(&:attachment)
+                            .compact
+
     # ── CI Runs I triggered today ─────────────────────────────────────────────
     @my_ci_runs_today = CiRun.where(triggered_by: current_user, started_at: today)
                           .or(CiRun.where(triggered_by: current_user, created_at: today))
@@ -93,6 +101,7 @@ class TodayController < ApplicationController
       ci_runs_today:     @my_ci_runs_today.size,
       deployments_today: @my_deployments_today.size,
       docs_changed:      @documents_today.size,
+      recent_files:      @recent_attachments.size,
       milestones_today:  @milestones_due_today.size + @milestones_overdue.size
     }
   end

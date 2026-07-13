@@ -12,6 +12,7 @@ Rails.application.routes.draw do
       end
       resources :deployments, only: %i[index show create update]
       resources :projects, only: %i[index show]
+      resources :attachments, only: %i[index show create]
       post "checkout", to: "checkout#create"
 
       # Logs — Loki proxy
@@ -27,6 +28,9 @@ Rails.application.routes.draw do
 
   # Top-level documents overview (across all projects)
   get "documents", to: "all_documents#index", as: :all_documents
+
+  # File repository (Attachments) — browse/search/show/download/delete across projects
+  resources :attachments, only: %i[index show destroy]
 
   get "admin/users"
   get "admin/client_accounts"
@@ -186,6 +190,8 @@ Rails.application.routes.draw do
         get  :raw
       end
     end
+    # Project-scoped file upload + listing
+    resources :attachments, only: %i[index new create]
     resources :branches, only: [ :index, :show ], shallow: true
     resources :pull_requests, only: [ :index, :show ], shallow: true do
       member do

@@ -1,0 +1,2 @@
+Meeting notes: discuss the payment gateway integration and rollout plan.
+Action items: prepare spec, estimate tasks, schedule review.

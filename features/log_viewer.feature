@@ -1,38 +1,39 @@
-Feature: Log Viewer
-  As a developer running multiple on-prem applications
-  I want a readable, highlighted view of the central logs
-  So I can watch activity and spot errors and exceptions quickly
+# language: he
+תכונה: מציג לוגים
+  כמפתח המריץ מספר יישומים on-prem
+  אני רוצה תצוגה קריאה ומודגשת של הלוגים המרכזיים
+  כדי שאוכל לעקוב אחר פעילות ולזהות שגיאות וחריגות במהירות
 
-  Background:
-    Given I am logged in as a team lead
+  רקע:
+    בהינתן אני מחובר כראש צוות
 
-  Scenario: View the log viewer with filters
-    When I visit the log viewer
-    Then I should see "Log Viewer"
-    And I should see the log filters
-    And I should see "GET /tickets 200 in 32ms"
+  תרחיש: צפייה במציג הלוגים עם מסננים
+    כאשר אני מבקר במציג הלוגים
+    אז אני אמור לראות "Log Viewer"
+    וגם אני אמור לראות את מסנני הלוגים
+    וגם אני אמור לראות "GET /tickets 200 in 32ms"
 
-  Scenario: Errors and exceptions are highlighted
-    When I visit the log viewer
-    Then error lines should be highlighted
-    And exception lines should be highlighted
-    And the error count should be shown
+  תרחיש: שגיאות וחריגות מודגשות
+    כאשר אני מבקר במציג הלוגים
+    אז שורות שגיאה אמורות להיות מודגשות
+    וגם שורות חריגה אמורות להיות מודגשות
+    וגם ספירת השגיאות אמורה להיות מוצגת
 
-  Scenario: Filter the logs by level
-    When I view the logs filtered by level "error"
-    Then error lines should be highlighted
-    And I should not see "GET /tickets 200 in 32ms"
+  תרחיש: סינון הלוגים לפי רמה
+    כאשר אני צופה בלוגים מסוננים לפי רמה "error"
+    אז שורות שגיאה אמורות להיות מודגשות
+    וגם אני לא אמור לראות "GET /tickets 200 in 32ms"
 
-  Scenario: The live tail endpoint returns rendered log lines
-    When I open the live log tail
-    Then I should see "Payment gateway timeout after 30s"
+  תרחיש: נקודת הקצה של המעקב החי מחזירה שורות לוג מרונדרות
+    כאשר אני פותח את מעקב הלוגים החי
+    אז אני אמור לראות "Payment gateway timeout after 30s"
 
-  Scenario: Empty state when there are no matching entries
-    Given the log store has no entries
-    When I visit the log viewer
-    Then I should see "No log entries for the selected filters."
+  תרחיש: מצב ריק כאשר אין רשומות תואמות
+    בהינתן מאגר הלוגים ריק מרשומות
+    כאשר אני מבקר במציג הלוגים
+    אז אני אמור לראות "No log entries for the selected filters."
 
-  Scenario: Graceful handling when Loki is unreachable
-    Given the log store is unreachable
-    When I visit the log viewer
-    Then I should see "Loki unreachable"
+  תרחיש: טיפול חינני כאשר Loki אינו נגיש
+    בהינתן מאגר הלוגים אינו נגיש
+    כאשר אני מבקר במציג הלוגים
+    אז אני אמור לראות "Loki unreachable"

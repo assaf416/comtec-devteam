@@ -52,6 +52,11 @@ gem "lograge"
 # Markdown rendering for documents
 gem "redcarpet"
 
+# Attachment text extraction (search indexing of uploaded files)
+gem "pdf-reader" # PDF text
+gem "docx"       # Word .docx text
+gem "roo"        # Excel .xlsx/.xls spreadsheets
+
 # iCalendar export for meetings
 gem "icalendar"
 

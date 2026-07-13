@@ -1,0 +1,30 @@
+<% content_for :title, t("attachments.upload") %>
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="fw-bold mb-0">⬆️ <%= t("attachments.upload_to", project: @project.name) %></h1>
+  <%= link_to t("attachments.back"), project_attachments_path(@project),
+        class: "btn btn-outline-secondary" %>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <%= form_with url: project_attachments_path(@project), method: :post,
+          local: true, html: { multipart: true } do |f| %>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold"><%= t("attachments.files_label") %></label>
+        <%= file_field_tag "attachment[files][]", multiple: true, class: "form-control" %>
+        <div class="form-text"><%= t("attachments.files_hint") %></div>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label "attachment[title]", t("attachments.title_label"), class: "form-label fw-semibold" %>
+        <%= text_field_tag "attachment[title]", nil, class: "form-control",
+              placeholder: t("attachments.title_placeholder") %>
+        <div class="form-text"><%= t("attachments.title_hint") %></div>
+      </div>
+
+      <%= f.submit t("attachments.upload"), class: "btn btn-primary" %>
+    <% end %>
+  </div>
+</div>

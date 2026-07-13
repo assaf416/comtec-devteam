@@ -1,0 +1,19 @@
+{
+  "stories": [
+    {
+      "id": "S1",
+      "type": "story",
+      "name": "File Management (Attachments)",
+      "description": "A first-class file repository. Attachments (Active Storage) belong to a Project and optionally link to a Ticket/Customer. Quick multi-file upload from the UI, a token-authenticated API upload endpoint for the AI agent, a background job that extracts each file's text (PDF/Word/Excel/md/html/txt/csv) into a searchable field, file-type icons in the UI, and a Today-page card listing the 5 files the user most recently opened.",
+      "cucumber_test": "Feature: File Management (Attachments)\n  As a team member\n  I want to upload, browse, and search files attached to a project\n  So that requirement docs, screenshots, and PDFs live in one searchable place\n\n  Background:\n    Given I am logged in as a developer\n    And a project \"Apollo\" exists\n\n  Scenario: Upload a file and see it listed with a type icon\n    When I upload the file \"requirements.pdf\" to project \"Apollo\"\n    Then I should see \"requirements.pdf\" in the project file list\n    And it should be shown with the PDF file-type icon\n\n  Scenario: Uploaded file content becomes searchable\n    Given an attachment \"spec.md\" with extracted text \"payment gateway\" exists in project \"Apollo\"\n    When I search files for \"payment gateway\"\n    Then I should see \"spec.md\" in the results\n\n  Scenario: Opening a file lists it under recently opened on Today\n    Given an attachment \"diagram.png\" exists in project \"Apollo\"\n    When I open the attachment \"diagram.png\"\n    And I visit the Today page\n    Then I should see \"diagram.png\" under recently opened files\n\n  Scenario: Upload a file via the API\n    Given I have an API token\n    When I POST the file \"notes.txt\" to the attachments API for project \"Apollo\"\n    Then the API response status should be 201\n    And an attachment \"notes.txt\" should exist in project \"Apollo\"",
+      "feature_file": "features/file_management.feature",
+      "github_issue": 3,
+      "status": "completed",
+      "started_at": "2026-07-13T06:59:37Z",
+      "completed_at": "2026-07-13T07:30:54Z",
+      "last_tested_at": "2026-07-13T07:30:54Z",
+      "code_generation_seconds": 1150,
+      "test_generation_seconds": 727
+    }
+  ]
+}

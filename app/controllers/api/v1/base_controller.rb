@@ -152,6 +152,32 @@ module Api
         }
       end
 
+      def render_attachment(attachment)
+        {
+          id:                attachment.id,
+          title:             attachment.title,
+          filename:          attachment.filename,
+          content_type:      attachment.content_type,
+          byte_size:         attachment.byte_size,
+          extraction_status: attachment.extraction_status,
+          project: {
+            id:   attachment.project_id,
+            name: attachment.project.name
+          },
+          attachable: attachment.attachable_type && {
+            type: attachment.attachable_type,
+            id:   attachment.attachable_id
+          },
+          uploaded_by: attachment.uploaded_by && {
+            id:   attachment.uploaded_by_id,
+            name: attachment.uploaded_by.display_name
+          },
+          download_url: attachment.file.attached? ? rails_blob_url(attachment.file) : nil,
+          created_at:   attachment.created_at,
+          updated_at:   attachment.updated_at
+        }
+      end
+
       def normalized_env_vars(rows)
         Array(rows).filter_map do |row|
           key = row[:key].presence || row["key"].presence
