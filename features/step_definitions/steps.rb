@@ -34,6 +34,11 @@ Given("אני בדף כרטיסי הפרויקט של {string}") do |project_nam
   visit project_tickets_path(@project)
 end
 
+When("אני מבקר בדף הפרויקט {string}") do |project_name|
+  @project = Project.find_by!(name: project_name)
+  visit project_path(@project)
+end
+
 When("אני מבקר בדף רשימת הלקוחות") do
   visit customers_path
 end

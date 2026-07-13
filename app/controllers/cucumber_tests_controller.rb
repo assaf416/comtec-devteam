@@ -20,7 +20,7 @@ class CucumberTestsController < ApplicationController
   def set_context
     @pull_request = PullRequest.find_by(id: params[:pull_request_id])
     @ticket  = @pull_request&.ticket || Ticket.find_by(id: params[:ticket_id])
-    @project = @ticket&.project || @pull_request&.project
+    @project = @ticket&.project || @pull_request&.project || Project.find_by(id: params[:project_id])
     @path    = params[:path].to_s
   end
 

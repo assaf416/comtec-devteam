@@ -13,6 +13,7 @@
   <div class="level-right">
     <%= link_to "💬 Chat with AI", project_ai_chats_path(@project), class: "btn btn-primary btn-sm" %>
     <%= link_to "📊 Dashboard", dashboard_project_path(@project), class: "btn btn-primary btn-sm is-light" %>
+    <%= link_to "🧪 #{t('common.actions.create_test')}", edit_cucumber_test_path(project_id: @project.id), class: "btn btn-secondary btn-sm is-light" %>
     <%= link_to t("common.actions.edit"), edit_project_path(@project), class: "btn btn-secondary btn-sm is-warning" %>
     <% if @project.repo_url.present? %>
       <%= link_to "Repository ↗", @project.repo_url, target: "_blank", rel: "noopener noreferrer", class: "btn btn-secondary btn-sm is-light" %>
