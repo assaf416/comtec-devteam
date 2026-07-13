@@ -39,20 +39,12 @@ Feature: AI Agent services backed by the local on-prem LLM
     Then I should see the AI review result
     And an AI review of kind "solution_suggestion" should exist
 
-  Scenario: Track estimation vs actual delivery time for a sprint
-    Given an AI project "Acme" with an active sprint "Sprint 1"
-    And the sprint has a ticket estimated 8 hours that actually took "10h"
-    When I run AI estimation analysis on that sprint
+  Scenario: Track estimation vs actual delivery time for a project
+    Given an AI project "Acme" with a ticket "Add SSO login"
+    And that project has a ticket estimated 8 hours that actually took "10h"
+    When I run AI estimation analysis on that project
     Then I should see the AI review result
     And an AI review of kind "estimation_analysis" should exist
-
-  Scenario: Live sprint analysis is embedded on the sprint page
-    Given an AI project "Acme" with an active sprint "Sprint 1"
-    When I view that sprint
-    Then I should see the live AI sprint analysis frame
-    When I load the AI sprint analysis directly
-    Then I should see "AI Sprint Analysis"
-    And an AI review of kind "sprint_analysis" should exist
 
   Scenario: The AI Reports dashboard lists recent runs
     Given an AI project "Acme" with a ticket "Add SSO login"

@@ -6,9 +6,6 @@
     <div class="d-flex align-items-center gap-2 mb-1">
       <%= status_tag(@meeting.status) %>
       <span class="badge bg-secondary fs-8"><%= t("meetings.types.#{@meeting.meeting_type}") %></span>
-      <% if @meeting.sprint %>
-        <%= link_to @meeting.sprint.name, sprint_path(@meeting.sprint), class: "badge bg-info text-dark text-decoration-none fs-8" %>
-      <% end %>
     </div>
     <h1 class="fw-bold mb-0"><%= @meeting.title %></h1>
     <p class="text-muted fs-7 mb-0">
@@ -122,9 +119,6 @@
         <tr><th>Room</th><td><code class="fs-8"><%= @meeting.jitsi_room %></code></td></tr>
         <% if @meeting.project %>
           <tr><th>Project</th><td><%= link_to @meeting.project.name, @meeting.project %></td></tr>
-        <% end %>
-        <% if @meeting.sprint %>
-          <tr><th>Sprint</th><td><%= link_to @meeting.sprint.name, sprint_path(@meeting.sprint) %></td></tr>
         <% end %>
         <tr><th>Created</th><td><%= @meeting.created_at.strftime('%d %b %Y') %></td></tr>
       </table>

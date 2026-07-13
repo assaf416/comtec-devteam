@@ -49,11 +49,20 @@ RSpec.describe "Projects", type: :request do
         expect(response.body).not_to include("T-#{done_ticket.id}")
       end
 
-      it "exposes a quick status-change action per ticket" do
+      it "links each ticket through to its detail page" do
         get project_path(project)
-        expect(response.body).to include(update_status_ticket_path(open_ticket, status: "done"))
-        expect(response.body).to include(move_to_sprint_ticket_path(open_ticket, target: "backlog"))
+        expect(response.body).to include(ticket_path(open_ticket))
       end
+    end
+  end
+
+  describe "POST /projects/:id/sync_issues" do
+    it "runs a GitHub issue sync and redirects back to the project" do
+      allow_any_instance_of(GithubIssueSyncService).to receive(:call)
+        .and_return(GithubIssueSyncService::Result.new(imported: 2, updated: 1, removed: 0, skipped: 0, error: nil))
+      post sync_issues_project_path(project)
+      expect(response).to redirect_to(project_path(project))
+      expect(flash[:notice]).to include("2 new")
     end
   end
 
@@ -93,32 +102,6 @@ RSpec.describe "Projects", type: :request do
       get new_chat_room_path(project_id: project.id)
       expect(response).to have_http_status(:success)
       expect(response.body).to match(/<option selected="selected" value="#{project.id}"/)
-    end
-  end
-
-  # ── Sprints list on the project page ──────────────────────────────────────
-  describe "project sprints list" do
-    it "lists the project's sprints with estimated and actual totals" do
-      sprint = create(:sprint, project: project, name: "Sprint Alpha")
-      create(:ticket, project: project, sprint: sprint, dev_estimate_hours: 8, actual_hours: "6h")
-      get project_path(project)
-      expect(response.body).to include('id="sprints"')
-      expect(response.body).to include("Sprint Alpha")
-      expect(response.body).to include("Estimated")
-      expect(response.body).to include("Actual")
-    end
-
-    it "offers a 'Set as active' button for non-current sprints" do
-      planning = create(:sprint, project: project, name: "Sprint Planning", status: :planning)
-      get project_path(project)
-      expect(response.body).to include("Set as active")
-      expect(response.body).to include(activate_sprint_path(planning))
-    end
-
-    it "shows ★ Active instead of the button for the current sprint" do
-      create(:sprint, project: project, name: "Sprint Live", status: :active)
-      get project_path(project)
-      expect(response.body).to include("★ Active")
     end
   end
 

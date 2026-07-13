@@ -94,36 +94,6 @@ class ReportsController < ApplicationController
     @recent_results = results.sort_by { |r| -(r.created_at.to_i) }.first(30)
   end
 
-  def sprint_velocity
-    sprints_scope = Sprint.includes(:project, :tickets)
-
-    @total_sprints     = sprints_scope.count
-    @active_sprints    = sprints_scope.active.count
-    @completed_sprints = sprints_scope.completed.count
-
-    completed = sprints_scope.completed.order(end_date: :asc)
-
-    @velocity_by_sprint = completed.each_with_object({}) do |sprint, memo|
-      sprint_velocity = sprint.velocity.presence || sprint.tickets.where(status: %i[done closed]).count
-      memo["#{sprint.project.name} · #{sprint.name}"] = sprint_velocity
-    end
-
-    @project_average_velocity = Project.includes(:sprints).each_with_object({}) do |project, memo|
-      values = project.sprints.completed.pluck(:velocity).compact
-      next if values.empty?
-
-      memo[project.name] = (values.sum.to_f / values.size).round(1)
-    end
-
-    @sprint_completion = completed.each_with_object({}) do |sprint, memo|
-      total = sprint.tickets.count
-      done  = sprint.tickets.where(status: %i[done closed]).count
-      memo["#{sprint.project.name} · #{sprint.name}"] = percentage(done, total)
-    end
-
-    @recent_sprints = sprints_scope.order(created_at: :desc).limit(25)
-  end
-
   def estimation_accuracy
     scoped_tickets = Ticket.includes(:project, :estimated_by, :assignee)
                          .where(status: %i[done closed])

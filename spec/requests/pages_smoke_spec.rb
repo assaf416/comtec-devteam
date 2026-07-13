@@ -16,7 +16,6 @@ RSpec.describe "Page smoke tests", type: :request do
       "all tickets"      => "/tickets",
       "my tickets"       => "/tickets/mine",
       "backlog tickets"  => "/tickets/backlog",
-      "current sprint"   => "/tickets/current_sprint",
       "late tickets"     => "/tickets/late",
       "all documents"    => "/documents",
       "projects"         => "/projects",
@@ -27,7 +26,6 @@ RSpec.describe "Page smoke tests", type: :request do
       "report: ci"          => "/reports/ci_summary",
       "report: deployments" => "/reports/deployment_summary",
       "report: coverage"    => "/reports/test_coverage",
-      "report: velocity"    => "/reports/sprint_velocity",
       "report: estimation"  => "/reports/estimation_accuracy"
     }.each do |label, path|
       it "GET #{label} (#{path}) succeeds" do
@@ -43,8 +41,7 @@ RSpec.describe "Page smoke tests", type: :request do
     before { sign_in user }
 
     it "shows a meeting" do
-      sprint  = create(:sprint, project: project)
-      meeting = create(:meeting, project: project, sprint: sprint, scheduled_at: 1.day.from_now)
+      meeting = create(:meeting, project: project, scheduled_at: 1.day.from_now)
       get meeting_path(meeting)
       expect(response).to have_http_status(:success)
     end

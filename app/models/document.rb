@@ -1,6 +1,5 @@
 class Document < ApplicationRecord
   belongs_to :project
-  belongs_to :sprint, optional: true
   belongs_to :author, class_name: "User", optional: true
   belongs_to :template, class_name: "Document", optional: true
   has_many :generated_documents, class_name: "Document", foreign_key: :template_id, dependent: :nullify

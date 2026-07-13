@@ -18,56 +18,19 @@ RSpec.describe "Api::V1 client integrations", type: :request do
     end
   end
 
-  describe "POST /api/v1/tickets" do
-    let(:project) { create(:project, repo_url: "http://gitea.local/devteam/platform") }
+  describe "GET /api/v1/tickets" do
+    let(:project) { create(:project) }
 
-    it "creates a ticket for client tools" do
-      expect do
-        post "/api/v1/tickets",
-             params: {
-               ticket: {
-                 project_id: project.id,
-                 title: "Extension-created ticket",
-                 description: "Created from VS Code",
-                 status: "open",
-                 priority: "high",
-                 kind: "story"
-               }
-             },
-             headers: headers,
-             as: :json
-      end.to change(Ticket, :count).by(1)
+    it "lists tickets (read-only mirror of GitHub issues) with github fields" do
+      ticket = create(:ticket, project: project, github_issue_number: 7,
+                      github_url: "https://github.com/acme/widget/issues/7")
+      get "/api/v1/tickets", headers: headers, as: :json
 
-      expect(response).to have_http_status(:created)
+      expect(response).to have_http_status(:ok)
       body = JSON.parse(response.body)
-      expect(body["title"]).to eq("Extension-created ticket")
-      expect(body.dig("owner", "id")).to eq(user.id)
-    end
-  end
-
-  describe "PATCH /api/v1/tickets/:id" do
-    let(:ticket) { create(:ticket, status: :open, priority: :medium) }
-
-    it "updates an existing ticket" do
-      patch "/api/v1/tickets/#{ticket.id}",
-            params: { ticket: { status: "in_progress", priority: "critical" } },
-            headers: headers,
-            as: :json
-
-      expect(response).to have_http_status(:ok)
-      expect(ticket.reload.status).to eq("in_progress")
-      expect(ticket.priority).to eq("critical")
-    end
-
-    it "persists branch_name (used by the devteam CLI `ticket open`)" do
-      patch "/api/v1/tickets/#{ticket.id}",
-            params: { ticket: { branch_name: "feature/t-#{ticket.id}-cli" } },
-            headers: headers,
-            as: :json
-
-      expect(response).to have_http_status(:ok)
-      expect(ticket.reload.branch_name).to eq("feature/t-#{ticket.id}-cli")
-      expect(response.parsed_body["branch_name"]).to eq("feature/t-#{ticket.id}-cli")
+      row  = body.find { |t| t["id"] == ticket.id }
+      expect(row["github_issue_number"]).to eq(7)
+      expect(row["github_url"]).to eq("https://github.com/acme/widget/issues/7")
     end
   end
 

@@ -1,8 +1,7 @@
-# A "Chat with AI" conversation — context-aware over a project/sprint.
+# A "Chat with AI" conversation — context-aware over a project.
 class AiChatSession < ApplicationRecord
   belongs_to :user
   belongs_to :project, optional: true
-  belongs_to :sprint,  optional: true
 
   has_many :ai_chat_messages, -> { order(:created_at) }, dependent: :destroy
 

@@ -13,14 +13,12 @@
           <th>Project</th>
           <th>Tech stack</th>
           <th class="text-center">Open tickets</th>
-          <th>Current sprint</th>
           <th class="text-center">CI (7d)</th>
           <th class="text-end"></th>
         </tr>
       </thead>
       <tbody>
         <% @projects.each do |project| %>
-          <% active_sprint = project.sprints.active.first %>
           <% passed = project.ci_runs.passed.where(created_at: 7.days.ago..Time.current).count %>
           <% failing = project.ci_runs.failed.where(created_at: 1.day.ago..Time.current).any? %>
           <tr style="cursor:pointer;" onclick="window.location='<%= project_path(project) %>'">
@@ -31,14 +29,6 @@
             </td>
             <td class="fs-7 text-muted"><%= project.tech_stack %></td>
             <td class="text-center"><%= project.tickets.where.not(status: [ :done, :closed ]).count %></td>
-            <td class="fs-7">
-              <% if active_sprint %>
-                <%= active_sprint.name.truncate(28) %>
-                <span class="text-muted">· <%= active_sprint.progress_percent %>%</span>
-              <% else %>
-                <span class="text-muted">—</span>
-              <% end %>
-            </td>
             <td class="text-center">
               <% if failing %>
                 <span class="badge bg-danger">⚠ Failing</span>

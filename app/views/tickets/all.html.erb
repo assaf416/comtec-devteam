@@ -66,9 +66,8 @@
           <th><%= t('table_headers.priority') %></th>
           <th><%= t('table_headers.assignee') %></th>
           <th><%= t('table_headers.owner') %></th>
-          <th><%= t('table_headers.sprint') %></th>
           <th>Progress</th>
-          <th class="text-end"></th>
+          <th class="text-end">GitHub</th>
         </tr>
       </thead>
       <tbody>
@@ -81,18 +80,12 @@
             <td><%= priority_tag(ticket.priority) %></td>
             <td><span class="d-inline-flex align-items-center gap-1"><%= user_avatar(ticket.assignee, size: 20) if ticket.assignee %><%= ticket.assignee&.display_name || "—" %></span></td>
             <td><span class="d-inline-flex align-items-center gap-1"><%= user_avatar(ticket.owner, size: 20) if ticket.owner %><%= ticket.owner&.display_name || "—" %></span></td>
-            <td><%= ticket.sprint&.name || "—" %></td>
             <td><%= render "tickets/progress_cell", ticket: ticket %></td>
             <td class="text-end" onclick="event.stopPropagation();" style="cursor:default;">
-              <%= actions_dropdown do |d| %>
-                <% unless ticket.approved? %>
-                  <% d.button_action "Approve ticket", approve_ticket_path(ticket), icon: '✓' %>
-                  <% d.divider %>
-                <% end %>
-                <% d.button_action t('tickets.move.current_sprint'), move_to_sprint_ticket_path(ticket, target: 'current'), icon: '🏃' %>
-                <% d.button_action t('tickets.move.next_sprint'),    move_to_sprint_ticket_path(ticket, target: 'next'),    icon: '⏭️' %>
-                <% d.divider %>
-                <% d.button_action t('tickets.move.backlog'),        move_to_sprint_ticket_path(ticket, target: 'backlog'), icon: '📥' %>
+              <% if ticket.github_url.present? %>
+                <%= link_to "\##{ticket.github_issue_number}", ticket.github_url, target: "_blank", rel: "noopener noreferrer", class: "badge bg-light text-dark border text-decoration-none" %>
+              <% else %>
+                —
               <% end %>
             </td>
           </tr>

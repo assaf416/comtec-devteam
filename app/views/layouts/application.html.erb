@@ -79,19 +79,6 @@
           <%= link_to "🇮🇱", url_for(locale: :he), class: "btn btn-sm btn-link text-white px-1" %>
           <%= link_to "🇺🇸", url_for(locale: :en), class: "btn btn-sm btn-link text-white px-1" %>
 
-          <%# Agile ceremonies menu (reachable on every page) %>
-          <details class="topbar-menu">
-            <summary class="topbar-panel-toggle" title="Agile ceremonies">📅 Ceremonies</summary>
-            <div class="ceremony-menu">
-              <div class="ceremony-menu-label">Agile ceremonies</div>
-              <%= link_to "🗣️ Daily Standup",       daily_meeting_path,          class: "ceremony-item" %>
-              <%= link_to "📋 Sprint Planning",      ceremony_path("planning"),   class: "ceremony-item" %>
-              <%= link_to "🔍 Backlog Refinement",   ceremony_path("refinement"), class: "ceremony-item" %>
-              <%= link_to "🎬 Sprint Review / Demo", ceremony_path("review"),     class: "ceremony-item" %>
-              <%= link_to "🔁 Retrospective",        retro_meeting_path,          class: "ceremony-item" %>
-            </div>
-          </details>
-
           <%# Find & contact a teammate (call over Jitsi or send a message) %>
           <div class="topbar-contact" data-controller="quick-contact"
                data-action="click@window->quick-contact#close">

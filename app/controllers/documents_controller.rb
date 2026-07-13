@@ -111,6 +111,6 @@ class DocumentsController < ApplicationController
   end
 
   def document_params
-    params.require(:document).permit(:title, :content, :doc_type, :summary, :version_number, :tag_list, :is_template, :template_id, :sprint_id)
+    params.require(:document).permit(:title, :content, :doc_type, :summary, :version_number, :tag_list, :is_template, :template_id)
   end
 end

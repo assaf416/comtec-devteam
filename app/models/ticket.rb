@@ -1,6 +1,5 @@
 class Ticket < ApplicationRecord
   belongs_to :project
-  belongs_to :sprint, optional: true
   belongs_to :assignee, class_name: "User", optional: true
   belongs_to :owner, class_name: "User", optional: true
   belongs_to :estimated_by, class_name: "User", optional: true
@@ -15,6 +14,7 @@ class Ticket < ApplicationRecord
   has_many :test_results, through: :ci_runs
   has_many :ai_reviews, as: :reviewable, dependent: :destroy
   has_many :tasks, dependent: :destroy
+  has_many :time_logs, dependent: :nullify
 
   has_many_attached :attachments
 

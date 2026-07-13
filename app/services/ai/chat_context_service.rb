@@ -1,11 +1,10 @@
 module Ai
   # Builds the system prompt for the Chat with AI page from the current state of
-  # a project/sprint: tickets, tasks, recent team messages, documents, and recent
+  # a project: tickets, tasks, recent team messages, documents, and recent
   # code changes (PR diffs). Sizes are capped to keep the prompt manageable.
   class ChatContextService
-    def initialize(project: nil, sprint: nil)
-      @project = project || sprint&.project
-      @sprint  = sprint  || @project&.sprints&.active&.first
+    def initialize(project: nil)
+      @project = project
     end
 
     def system_prompt
@@ -26,7 +25,6 @@ module Ai
 
       [
         project_section,
-        sprint_section,
         team_performance_section,
         tickets_section,
         documents_section,
@@ -45,13 +43,6 @@ module Ai
         Tech stack: #{@project.tech_stack}
         Description: #{@project.description.to_s.truncate(400)}
       TXT
-    end
-
-    def sprint_section
-      return "Active sprint: none." unless @sprint
-
-      "Active sprint: #{@sprint.name} (#{@sprint.status}, #{@sprint.progress_percent}% done, " \
-        "#{@sprint.days_remaining} days remaining). Goal: #{@sprint.goals.to_s.truncate(200)}"
     end
 
     # Per-developer delivery + estimation metrics so the assistant can answer
@@ -81,8 +72,7 @@ module Ai
     end
 
     def tickets_section
-      scope   = @sprint ? @sprint.tickets : @project.tickets
-      tickets = scope.includes(:assignee).order(updated_at: :desc).limit(25)
+      tickets = @project.tickets.includes(:assignee).order(updated_at: :desc).limit(25)
       return nil if tickets.empty?
 
       lines = tickets.map do |t|

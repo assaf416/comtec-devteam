@@ -12,15 +12,12 @@ RSpec.describe "DevOps screens", type: :request do
                             cpu: 30, mem: 40, disk: 50, error_count: 0, recorded_at: Time.current)
   end
 
-  # ── Today: active sprints + review queue ────────────────────────────────────
+  # ── Today: review queue ─────────────────────────────────────────────────────
   describe "GET /today" do
-    it "shows an active-sprints table and the review queue" do
-      create(:sprint, project: project, status: :active, name: "Sprint Live", start_date: Date.today, end_date: 7.days.from_now)
+    it "shows the review queue" do
       create(:pull_request, project: project, ticket: ticket, pr_number: 4, title: "Queued PR", status: :review)
       get today_path
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("Active sprints")
-      expect(response.body).to include("Sprint Live")
       expect(response.body).to include("Review queue")
       expect(response.body).to include("Queued PR")
     end

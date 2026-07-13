@@ -9,8 +9,8 @@ RSpec.describe "AiChats", type: :request do
     it "renders the project-scoped chat page with recommendations" do
       get project_ai_chats_path(project)
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("Chat with AI")
-      expect(response.body).to include("Generate a specification")
+      expect(response.body).to include("צ'אט עם סוכן")
+      expect(response.body).to include("הצע פתרון ל-issue")
       expect(response.body).to include('data-controller="ai-chat"')
     end
   end
@@ -45,7 +45,7 @@ RSpec.describe "AiChats", type: :request do
       allow_any_instance_of(Ai::OllamaClient).to receive(:converse)
         .and_raise(Ai::OllamaClient::Error, "connection refused")
       post message_ai_chat_path(session), params: { message: "hi" }
-      expect(session.ai_chat_messages.last.content).to match(/unavailable/i)
+      expect(session.ai_chat_messages.last.content).to include("אינו זמין")
     end
 
     it "does not leak another user's session" do

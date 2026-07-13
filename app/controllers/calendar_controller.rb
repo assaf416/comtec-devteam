@@ -52,27 +52,6 @@ class CalendarController < ApplicationController
       }
     end
 
-    # ── Sprints ────────────────────────────────────────────────────────────
-    sprints = Sprint.includes(:project).where(project_id: project_ids)
-
-    sprints.each do |s|
-      next unless s.start_date.present? && s.end_date.present?
-      next if range_start && s.end_date < range_start.to_date
-      next if range_end   && s.start_date > range_end.to_date
-
-      events << {
-        id:    "sprint-#{s.id}",
-        title: "⚡ #{s.name}",
-        start: s.start_date.iso8601,
-        end:   (s.end_date + 1.day).iso8601,
-        allDay: true,
-        url:   sprint_path(s),
-        color: "#38c96d",
-        display: "background",
-        extendedProps: { type: "sprint", project: s.project.name }
-      }
-    end
-
     render json: events
   end
 end

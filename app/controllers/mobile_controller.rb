@@ -102,7 +102,7 @@ class MobileController < ApplicationController
 
   # ── Projects ──────────────────────────────────────────────────────────────
   def projects
-    @projects = Project.includes(:tickets, :sprints)
+    @projects = Project.includes(:tickets)
                        .order(updated_at: :desc)
   end
 
@@ -143,25 +143,12 @@ class MobileController < ApplicationController
     @project = Project.find(params[:id])
     @tickets = @project.tickets.includes(:assignee, :owner)
                        .order(priority: :desc, updated_at: :desc).limit(20)
-    @sprints = @project.sprints.order(start_date: :desc).limit(10)
     @pull_requests = @project.pull_requests.order(updated_at: :desc).limit(10)
     @members  = @project.members.order(:name)
     @notes    = @project.documents.order(updated_at: :desc).limit(10)
     # Project has no direct comments; surface the latest discussion from its tickets.
     @comments = Comment.where(commentable_type: "Ticket", commentable_id: @project.ticket_ids)
                        .includes(:author).order(created_at: :desc).limit(10)
-  end
-
-  # ── Sprint show ─────────────────────────────────────────────────────────────
-  def sprint
-    @sprint  = Sprint.find(params[:id])
-    @project = @sprint.project
-    @tickets = @sprint.tickets.includes(:assignee, :owner)
-                      .order(priority: :desc, updated_at: :desc)
-    @pull_requests = @sprint.pull_requests.includes(:project).order(updated_at: :desc).limit(10)
-    @members  = @sprint.participants
-    @notes    = @sprint.documents.order(updated_at: :desc).limit(10)
-    @comments = @sprint.comments.includes(:author).order(created_at: :desc).limit(20)
   end
 
   # ── Ticket show ─────────────────────────────────────────────────────────────

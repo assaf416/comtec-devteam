@@ -1,8 +1,8 @@
 module Ai
   # Service #4 — track developers' estimation accuracy: estimated vs actual
-  # delivery time. Works on a Project or a Sprint (anything that responds to
-  # #tickets). The heavy lifting (the data) is computed in Ruby; the LLM turns it
-  # into insight and coaching.
+  # delivery time. Works on a Project (anything that responds to #tickets). The
+  # heavy lifting (the data) is computed in Ruby; the LLM turns it into insight
+  # and coaching.
   class EstimationAnalysisService < BaseService
     KIND = :estimation_analysis
 
@@ -68,7 +68,6 @@ module Ai
 
     def reviewable_label
       case reviewable
-      when Sprint  then "sprint \"#{reviewable.name}\""
       when Project then "project \"#{reviewable.name}\""
       else "the selected work"
       end

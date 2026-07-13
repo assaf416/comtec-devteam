@@ -17,8 +17,4 @@
         class: "btn #{action_name == 'backlog_list' ? 'btn-primary' : 'btn-outline-secondary'}" do %>
     📥 <%= t('sidebar.tickets.backlog') %>
   <% end %>
-  <%= link_to current_sprint_tickets_path,
-        class: "btn #{action_name == 'current_sprint' ? 'btn-primary' : 'btn-outline-secondary'}" do %>
-    🏃 <%= t('sidebar.tickets.current_sprint') %>
-  <% end %>
 </div>

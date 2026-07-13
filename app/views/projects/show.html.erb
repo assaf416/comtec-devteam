@@ -14,7 +14,6 @@
     <%= link_to "💬 Chat with AI", project_ai_chats_path(@project), class: "btn btn-primary btn-sm" %>
     <%= link_to "📊 Dashboard", dashboard_project_path(@project), class: "btn btn-primary btn-sm is-light" %>
     <%= link_to t("common.actions.edit"), edit_project_path(@project), class: "btn btn-secondary btn-sm is-warning" %>
-    <%= link_to t("sprints.new_sprint"), new_project_sprint_path(@project), class: "btn btn-primary btn-sm" %>
     <% if @project.repo_url.present? %>
       <%= link_to "Repository ↗", @project.repo_url, target: "_blank", rel: "noopener noreferrer", class: "btn btn-secondary btn-sm is-light" %>
     <% end %>
@@ -51,54 +50,6 @@
   </div>
 </div>
 
-<%# ─── Sprints ─────────────────────────────────────────────────────────── %>
-<div class="card p-3 mb-3" id="sprints">
-  <div class="level mb-3">
-    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🏃 Sprints</h3></div>
-    <div class="level-right">
-      <%= link_to "All sprints →", project_sprints_path(@project), class: "fs-7 text-muted me-2" %>
-      <%= link_to "+ New sprint", new_project_sprint_path(@project), class: "btn btn-sm btn-primary" %>
-    </div>
-  </div>
-  <% project_sprints = @project.sprints.includes(:tickets).order(start_date: :desc) %>
-  <% if project_sprints.any? %>
-    <table class="table table-hover w-100 fs-7 align-middle mb-0">
-      <thead>
-        <tr><th>Sprint</th><th>Status</th><th>Dates</th><th>Progress</th><th class="text-end">Estimated</th><th class="text-end">Actual</th><th></th></tr>
-      </thead>
-      <tbody>
-        <% project_sprints.each do |sprint| %>
-          <tr style="cursor:pointer;" onclick="window.location='<%= sprint_path(sprint) %>'">
-            <td class="fw-semibold">
-              <%= sprint.name %>
-              <% if sprint.current? %><span class="badge bg-success ms-1">★ Current</span><% end %>
-            </td>
-            <td><span class="badge bg-light text-dark border"><%= sprint.status.humanize %></span></td>
-            <td class="text-muted"><%= sprint.start_date.strftime("%d %b") %> – <%= sprint.end_date.strftime("%d %b %Y") %></td>
-            <td style="min-width:120px;">
-              <div class="progress" style="height:6px;"><div class="progress-bar bg-success" style="width:<%= sprint.progress_percent %>%"></div></div>
-              <span class="fs-8 text-muted"><%= sprint.progress_percent %>%</span>
-            </td>
-            <td class="text-end num"><%= sprint.total_estimated_hours %>h</td>
-            <td class="text-end num"><%= sprint.total_actual_hours %>h</td>
-            <td class="text-end" onclick="event.stopPropagation();">
-              <% if sprint.current? %>
-                <span class="badge bg-success">★ Active</span>
-              <% else %>
-                <%= button_to "Set as active", activate_sprint_path(sprint), method: :patch,
-                      class: "btn btn-outline-success btn-sm py-0",
-                      form: { data: { turbo_confirm: "Make \"#{sprint.name}\" the active sprint for #{@project.name}?" } } %>
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <p class="text-muted fs-7 mb-0">No sprints yet. <%= link_to "Create the first one", new_project_sprint_path(@project) %>.</p>
-  <% end %>
-</div>
-
 <%# ─── Tickets ─────────────────────────────────────────────────────────── %>
 <%
   task_total    = @project.tickets.sum(:tasks_count)
@@ -109,7 +60,10 @@
 <div class="card p-3 mb-3" id="tickets">
   <div class="level mb-3">
     <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🎫 Tickets</h3></div>
-    <div class="level-right">
+    <div class="level-right d-flex align-items-center gap-2">
+      <% if GithubService.github_url?(@project.repo_url) %>
+        <%= button_to "🔄 Sync GitHub issues", sync_issues_project_path(@project), method: :post, class: "btn btn-sm btn-primary" %>
+      <% end %>
       <%= link_to "View All →", project_tickets_path(@project), class: "fs-7 text-muted" %>
     </div>
   </div>
@@ -151,7 +105,7 @@
           <th>Progress</th>
           <th>Assignee</th>
           <th>Updated</th>
-          <th class="text-end"></th>
+          <th class="text-end">GitHub</th>
         </tr>
       </thead>
       <tbody>
@@ -165,17 +119,10 @@
             <td><span class="d-inline-flex align-items-center gap-1"><%= user_avatar(ticket.assignee, size: 20) if ticket.assignee %><%= ticket.assignee&.display_name || '—' %></span></td>
             <td><%= ticket.updated_at.strftime('%d/%m') %></td>
             <td class="text-end">
-              <%= actions_dropdown do |d| %>
-                <% unless ticket.approved? %>
-                  <% d.button_action "Approve ticket", approve_ticket_path(ticket), icon: "✓" %>
-                  <% d.divider %>
-                <% end %>
-                <% Ticket.statuses.keys.each do |st| %>
-                  <% next if st == ticket.status || st == "backlog" %>
-                  <% d.button_action "Mark #{t("tickets.statuses.#{st}")}", update_status_ticket_path(ticket, status: st), icon: "→" %>
-                <% end %>
-                <% d.divider %>
-                <% d.button_action "Move to backlog", move_to_sprint_ticket_path(ticket, target: "backlog"), icon: "📥" %>
+              <% if ticket.github_url.present? %>
+                <%= link_to "\##{ticket.github_issue_number}", ticket.github_url, target: "_blank", rel: "noopener noreferrer", class: "badge bg-light text-dark border text-decoration-none" %>
+              <% else %>
+                —
               <% end %>
             </td>
           </tr>

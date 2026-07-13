@@ -7,7 +7,6 @@ RSpec.describe Project, type: :model do
 
   describe 'associations' do
     it { should have_many(:tickets) }
-    it { should have_many(:sprints) }
     it { should have_many(:ci_runs) }
     it { should have_many(:documents) }
     it { should have_many(:deployments) }

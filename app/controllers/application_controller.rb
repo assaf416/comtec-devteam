@@ -29,12 +29,6 @@ class ApplicationController < ActionController::Base
     latest_ci_ids = CiRun.select("MAX(id) as id").group(:project_id).map(&:id)
     @sidebar_latest_ci = CiRun.where(id: latest_ci_ids).index_by(&:project_id)
 
-    # Current sprint for sidebar (first active sprint across user's projects)
-    @sidebar_current_sprint = Sprint.current
-                                    .joins(:project)
-                                    .merge(current_user.member_projects)
-                                    .first
-
     # Team members for sidebar presence list
     @sidebar_team_members = User.order(:name)
 

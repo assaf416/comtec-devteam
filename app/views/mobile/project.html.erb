@@ -33,25 +33,6 @@
   </div>
 </div>
 
-<%# ── Sprints ─────────────────────────────────────────────────────────────── %>
-<p class="mobile-section-title">🏃 Sprints</p>
-<% if @sprints.any? %>
-  <div class="box p-0" style="overflow:hidden;">
-    <% @sprints.each do |sprint| %>
-      <%= link_to mobile_sprint_path(sprint), class: "ticket-item px-3" do %>
-        <span class="ticket-dot <%= sprint.active? ? 'dot-low' : 'dot-default' %>"></span>
-        <div style="flex:1;overflow:hidden;">
-          <div class="ticket-title"><%= sprint.name.truncate(38) %></div>
-          <div class="mobile-card-meta"><%= sprint.progress_percent %>% done · <%= sprint.tickets.size %> tickets</div>
-        </div>
-        <span class="tag is-rounded is-small <%= sprint.active? ? 'is-success is-light' : 'is-light' %>"><%= sprint.status.humanize %></span>
-      <% end %>
-    <% end %>
-  </div>
-<% else %>
-  <p style="color:#a0aec0;font-size:0.82rem;">No sprints.</p>
-<% end %>
-
 <%# ── Members ─────────────────────────────────────────────────────────────── %>
 <p class="mobile-section-title">👥 Members</p>
 <%= render "mobile/members", members: @members %>

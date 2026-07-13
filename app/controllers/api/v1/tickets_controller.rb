@@ -1,7 +1,10 @@
 module Api
   module V1
     class TicketsController < BaseController
-      before_action :set_ticket, only: %i[show update]
+      before_action :set_ticket, only: %i[show]
+
+      # Tickets mirror GitHub issues and are read-only here; author/edit them on
+      # GitHub, then sync (POST /projects/:id/sync_issues or `rake github:sync`).
 
       # GET /api/v1/tickets
       # ?status=open&project_id=1&assignee=me
@@ -20,40 +23,6 @@ module Api
       # GET /api/v1/tickets/:id
       def show
         render json: render_ticket(@ticket)
-      end
-
-      # POST /api/v1/tickets
-      def create
-        attrs = params.require(:ticket).permit(
-          :project_id, :title, :description, :status, :priority,
-          :kind, :level, :how_to_reproduce, :assignee_id,
-          :owner_id, :dev_estimate_hours, :tester_estimate_hours, :actual_hours
-        )
-
-        ticket = Ticket.new(attrs)
-        ticket.owner ||= current_api_user
-
-        if ticket.save
-          render json: render_ticket(ticket), status: :created
-        else
-          render json: { errors: ticket.errors.full_messages }, status: :unprocessable_entity
-        end
-      end
-
-      # PATCH /api/v1/tickets/:id
-      def update
-        allowed = %w[
-          title description status priority kind level how_to_reproduce test_plan
-          assignee_id owner_id sprint_id milestone_id pr_number pr_url branch_name
-          story_points actual_velocity dev_estimate_hours tester_estimate_hours actual_hours
-        ]
-        attrs   = params.require(:ticket).permit(*allowed)
-
-        if @ticket.update(attrs)
-          render json: render_ticket(@ticket)
-        else
-          render json: { errors: @ticket.errors.full_messages }, status: :unprocessable_entity
-        end
       end
 
       private

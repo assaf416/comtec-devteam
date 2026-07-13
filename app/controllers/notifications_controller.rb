@@ -69,7 +69,7 @@ class NotificationsController < ApplicationController
       owner:            current_user
     )
     @notification.mark_read!
-    redirect_to edit_ticket_path(ticket), notice: "Ticket created from the notification — review and complete it."
+    redirect_to ticket_path(ticket), notice: "Ticket created from the notification."
   end
 
   private
