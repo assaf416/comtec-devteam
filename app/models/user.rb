@@ -5,7 +5,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   enum :role, { developer: 0, team_lead: 1, project_manager: 2, admin: 3, qa: 4 }, default: :developer
-  enum :preferred_language, { en: "en", he: "he" }, prefix: :lang
+  enum :preferred_language, { en: "en", he: "he" }, prefix: :lang, default: "he"
 
   has_one_attached :avatar
 
