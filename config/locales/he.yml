@@ -285,6 +285,17 @@ he:
     no_preview: "אין תצוגה מקדימה לסוג קובץ זה."
     extracted_text: "טקסט שחולץ (ניתן לחיפוש)"
     no_extracted_text: "עדיין אין טקסט שחולץ."
+  projects:
+    sections:
+      tickets: "כרטיסים"
+      channels: "ערוצים"
+      ci_runs: "ריצות CI"
+      deployments: "פריסות"
+      pull_requests: "בקשות משיכה"
+      documents: "מסמכים"
+      recent_comments: "תגובות אחרונות"
+      members: "חברי צוות"
+      add_member: "הוספת חבר צוות"
   common:
     search: "חיפוש"
     status: "סטטוס"
