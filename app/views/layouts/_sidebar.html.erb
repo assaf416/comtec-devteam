@@ -42,6 +42,16 @@
     <span class="nav-icon">⏱️</span> <%= t('nav.time_logging') %>
   <% end %>
 
+  <%= link_to notes_path,
+        class: "sidebar-nav-item #{controller_name == 'notes' ? 'is-active' : ''}" do %>
+    <span class="nav-icon">📝</span> <%= t('nav.notes') %>
+  <% end %>
+
+  <%= link_to todo_lists_path,
+        class: "sidebar-nav-item #{controller_name == 'todo_lists' || controller_name == 'todo_items' ? 'is-active' : ''}" do %>
+    <span class="nav-icon">✅</span> <%= t('nav.todos') %>
+  <% end %>
+
   <%# AI Agent — only inside a project (chat is scoped to the project's repo/tickets) %>
   <% if current_project %>
     <%= link_to project_ai_chats_path(current_project),
