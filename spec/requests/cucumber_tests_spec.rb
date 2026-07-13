@@ -14,7 +14,8 @@ RSpec.describe "CucumberTests", type: :request do
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Cucumber Test Editor")
       expect(response.body).to include('data-controller="gherkin-editor"')
-      expect(response.body).to include("Feature:")
+      expect(response.body).to include("# language: he") # Hebrew starter template
+      expect(response.body).to include("תכונה:")
     end
 
     it "loads the file content from the project's Gitea repo when available" do
