@@ -298,6 +298,7 @@ he:
       save: "שמור"
       join: "הצטרף"
       mark_read: "סמן כנקרא"
+      create_test: "צור בדיקה"
       resolve: "סמן כפתור"
       remove: "הסר"
       view_log: "צפה בלוג"

@@ -273,6 +273,7 @@ en:
       save: "Save"
       join: "Join"
       mark_read: "Mark as Read"
+      create_test: "Create Test"
       resolve: "Resolve"
       remove: "Remove"
       view_log: "View Log"
