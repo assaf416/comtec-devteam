@@ -296,6 +296,17 @@ he:
       recent_comments: "תגובות אחרונות"
       members: "חברי צוות"
       add_member: "הוספת חבר צוות"
+  project_report:
+    title: "דוח בדיקות"
+    no_runs: "אין ריצות CI עדיין."
+    total_tests: "סך הבדיקות"
+    passed: "עברו"
+    failed: "נכשלו"
+    skipped: "דולגו"
+    build: "בנייה"
+    branch: "ענף"
+    status: "סטטוס"
+    when: "מתי"
   common:
     search: "חיפוש"
     status: "סטטוס"

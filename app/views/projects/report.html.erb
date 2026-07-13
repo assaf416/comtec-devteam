@@ -1,0 +1,79 @@
+<% content_for :title, "#{@project.name} — #{t('project_report.title')}" %>
+
+<div class="level mb-4">
+  <div class="level-left">
+    <h1 class="fw-bold">📊 <%= @project.name %> — <%= t("project_report.title") %></h1>
+  </div>
+  <div class="level-right">
+    <%= link_to "← #{@project.name}", project_path(@project), class: "btn btn-outline-secondary btn-sm" %>
+  </div>
+</div>
+
+<%
+  runs    = @test_summary.to_a
+  results = runs.flat_map(&:test_results)
+  total   = results.sum { |r| r.total.to_i }
+  passed  = results.sum { |r| r.passed.to_i }
+  failed  = results.sum { |r| r.failed.to_i }
+  skipped = results.sum { |r| r.skipped.to_i }
+%>
+
+<div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+  <div class="col">
+    <div class="card p-3 text-center">
+      <p class="text-uppercase text-muted fw-bold small mb-1"><%= t("project_report.total_tests") %></p>
+      <p class="fw-bold fs-3 mb-0"><%= total %></p>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card p-3 text-center <%= 'bg-success-subtle' if passed.positive? %>">
+      <p class="text-uppercase text-muted fw-bold small mb-1"><%= t("project_report.passed") %></p>
+      <p class="fw-bold fs-3 mb-0 text-success"><%= passed %></p>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card p-3 text-center <%= 'bg-danger-subtle' if failed.positive? %>">
+      <p class="text-uppercase text-muted fw-bold small mb-1"><%= t("project_report.failed") %></p>
+      <p class="fw-bold fs-3 mb-0 text-danger"><%= failed %></p>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card p-3 text-center">
+      <p class="text-uppercase text-muted fw-bold small mb-1"><%= t("project_report.skipped") %></p>
+      <p class="fw-bold fs-3 mb-0 text-muted"><%= skipped %></p>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3">
+  <% if runs.empty? %>
+    <p class="text-muted mb-0"><%= t("project_report.no_runs") %></p>
+  <% else %>
+    <table class="table table-striped align-middle mb-0">
+      <thead>
+        <tr>
+          <th><%= t("project_report.build") %></th>
+          <th><%= t("project_report.branch") %></th>
+          <th><%= t("project_report.status") %></th>
+          <th class="text-success"><%= t("project_report.passed") %></th>
+          <th class="text-danger"><%= t("project_report.failed") %></th>
+          <th class="text-muted"><%= t("project_report.skipped") %></th>
+          <th><%= t("project_report.when") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% runs.sort_by { |r| -r.created_at.to_i }.each do |run| %>
+          <tr>
+            <td><%= link_to "##{run.build_number}", ci_run_path(run), class: "fw-bold text-primary" %></td>
+            <td><code class="fs-7"><%= run.branch_name %></code></td>
+            <td><%= status_tag(run.status) %></td>
+            <td class="text-success"><%= run.test_results.sum { |r| r.passed.to_i } %></td>
+            <td class="text-danger"><%= run.test_results.sum { |r| r.failed.to_i } %></td>
+            <td class="text-muted"><%= run.test_results.sum { |r| r.skipped.to_i } %></td>
+            <td class="text-muted fs-7"><%= l(run.created_at, format: :short) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>
