@@ -271,6 +271,17 @@ en:
       recent_comments: "Recent Comments"
       members: "Members"
       add_member: "Add a member"
+  project_report:
+    title: "Test Report"
+    no_runs: "No CI runs yet."
+    total_tests: "Total tests"
+    passed: "Passed"
+    failed: "Failed"
+    skipped: "Skipped"
+    build: "Build"
+    branch: "Branch"
+    status: "Status"
+    when: "When"
   common:
     search: "Search"
     status: "Status"
