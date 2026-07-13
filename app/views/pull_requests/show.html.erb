@@ -6,6 +6,11 @@
 <style>
   .pr-file-item:hover { background: #f3f4f6; }
   .pr-file-item.active-file { background: #e6efff; }
+  /* Bootstrap grid columns are flex items with min-width:auto, so a wide,
+     non-wrapping code <pre> stretches the column and breaks the layout.
+     min-width:0 lets the column shrink and the code viewer scroll instead. */
+  .pr-layout > [class*="col-"],
+  .pr-files-grid > [class*="col-"] { min-width: 0; }
 </style>
 
 <div class="d-flex align-items-start justify-content-between mb-3">
@@ -67,7 +72,7 @@
   </div>
 <% end %>
 
-<div class="row g-3">
+<div class="row g-3 pr-layout">
 
   <%# ── Left column ───────────────────────────────────────────── %>
   <div class="col-lg-8">
@@ -80,7 +85,7 @@
         <span class="badge bg-secondary"><%= files.size %></span>
       </div>
       <% if files.any? %>
-        <div class="row g-0">
+        <div class="row g-0 pr-files-grid">
           <%# file list %>
           <div class="col-md-4 border-end" style="max-height:540px;overflow:auto;">
             <% files.each_with_index do |f, i| %>
