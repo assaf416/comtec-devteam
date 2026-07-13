@@ -23,7 +23,7 @@
 </div>
 
 <%# ── Summary cards ──────────────────────────────────────────────────────── %>
-<div class="row mb-5">
+<div class="row row-cols-2 row-cols-md-3 row-cols-xxl-6 g-3 mb-5">
   <div class="col">
     <%= link_to "#section-tickets", class: "card p-3 mb-3 text-center p-3 #{@summary[:active_tickets] > 0 ? 'bg-warning-subtle' : ''}" do %>
       <p class="text-uppercase text-muted fw-bold small"><%= t("today.active_tickets") %></p>
@@ -66,8 +66,8 @@
 
 <div class="row">
 
-  <%# ── LEFT COLUMN ────────────────────────────────────────────────────────── %>
-  <div class="col-7">
+  <%# ── LEFT COLUMN (stacks to single column below xxl / on laptops) ────────── %>
+  <div class="col-12 col-xxl-7">
 
     <%# Active Tickets -%>
     <div id="section-tickets" class="card p-3 mb-4">
@@ -207,7 +207,7 @@
   </div><%# /left column %>
 
   <%# ── RIGHT COLUMN ───────────────────────────────────────────────────────── %>
-  <div class="col">
+  <div class="col-12 col-xxl">
 
     <%# Meetings today -%>
     <div id="section-meetings" class="card p-3 mb-4">
