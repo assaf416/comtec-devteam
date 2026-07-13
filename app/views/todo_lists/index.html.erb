@@ -1,0 +1,65 @@
+<% content_for :title, t("todos.title") %>
+
+<div class="level mb-3">
+  <div class="level-left"><h1 class="fw-bold">✅ <%= t("todos.title") %></h1></div>
+</div>
+
+<%# ── Quick create a list ────────────────────────────────────────────────── %>
+<div class="card p-3 mb-4">
+  <%= form_with model: @todo_list, url: todo_lists_path, method: :post do |f| %>
+    <div class="d-flex gap-2">
+      <%= f.text_field :title, class: "form-control", placeholder: t("todos.new_list_placeholder"), required: true %>
+      <%= f.submit t("todos.add_list"), class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>
+
+<% if @todo_lists.any? %>
+  <div class="row g-3">
+    <% @todo_lists.each do |list| %>
+      <% p = list.progress %>
+      <div class="col-md-6">
+        <div class="card p-3 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="fs-6 fw-bold mb-0"><%= list.title %></h2>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-light text-dark border"><%= p[:done] %>/<%= p[:total] %></span>
+              <%= button_to "🗑️", todo_list_path(list), method: :delete,
+                    class: "btn btn-sm btn-outline-danger py-0",
+                    form: { data: { turbo_confirm: t("todos.confirm_delete_list") } } %>
+            </div>
+          </div>
+
+          <div class="progress mb-3" style="height:6px;">
+            <div class="progress-bar bg-success" style="width:<%= p[:percent] %>%"></div>
+          </div>
+
+          <ul class="list-unstyled mb-3">
+            <% list.todo_items.each do |item| %>
+              <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                  <%= button_to (item.done? ? "☑" : "☐"), toggle_todo_list_todo_item_path(list, item), method: :patch,
+                        class: "btn btn-sm btn-link p-0 fs-5 text-decoration-none", title: t("todos.toggle") %>
+                  <span class="<%= 'text-muted text-decoration-line-through' if item.done? %>"><%= item.content %></span>
+                </div>
+                <%= button_to "✕", todo_list_todo_item_path(list, item), method: :delete,
+                      class: "btn btn-sm btn-outline-danger py-0" %>
+              </li>
+            <% end %>
+            <% if list.todo_items.empty? %><li class="text-muted fs-7 py-1"><%= t("todos.no_items") %></li><% end %>
+          </ul>
+
+          <%= form_with url: todo_list_todo_items_path(list), method: :post do |f| %>
+            <div class="d-flex gap-2">
+              <%= f.text_field "todo_item[content]", class: "form-control form-control-sm",
+                    placeholder: t("todos.new_item_placeholder"), required: true %>
+              <%= f.submit t("todos.add_item"), class: "btn btn-sm btn-secondary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="card p-4 text-center text-muted"><p class="mb-0"><%= t("todos.empty") %></p></div>
+<% end %>

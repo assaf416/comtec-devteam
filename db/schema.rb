@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_12_100003) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_13_100002) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -362,6 +362,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_12_100003) do
     t.index ["project_id"], name: "index_milestones_on_project_id"
   end
 
+  create_table "notes", force: :cascade do |t|
+    t.boolean "archived", default: false, null: false
+    t.text "body"
+    t.datetime "created_at", null: false
+    t.boolean "pinned", default: false, null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id", "archived", "pinned"], name: "index_notes_on_user_id_and_archived_and_pinned"
+    t.index ["user_id"], name: "index_notes_on_user_id"
+  end
+
   create_table "notifications", force: :cascade do |t|
     t.text "backtrace"
     t.datetime "created_at", null: false
@@ -570,6 +582,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_12_100003) do
     t.index ["user_id"], name: "index_time_logs_on_user_id"
   end
 
+  create_table "todo_items", force: :cascade do |t|
+    t.string "content", null: false
+    t.datetime "created_at", null: false
+    t.boolean "done", default: false, null: false
+    t.integer "position", default: 0, null: false
+    t.integer "todo_list_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["todo_list_id", "position"], name: "index_todo_items_on_todo_list_id_and_position"
+    t.index ["todo_list_id"], name: "index_todo_items_on_todo_list_id"
+  end
+
+  create_table "todo_lists", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_todo_lists_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "api_token"
     t.datetime "created_at", null: false
@@ -623,6 +654,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_12_100003) do
   add_foreign_key "meetings", "projects"
   add_foreign_key "meetings", "users", column: "organizer_id"
   add_foreign_key "milestones", "projects"
+  add_foreign_key "notes", "users"
   add_foreign_key "project_memberships", "projects"
   add_foreign_key "project_memberships", "users"
   add_foreign_key "pull_requests", "projects"
@@ -640,4 +672,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_12_100003) do
   add_foreign_key "time_logs", "projects"
   add_foreign_key "time_logs", "tickets"
   add_foreign_key "time_logs", "users"
+  add_foreign_key "todo_items", "todo_lists"
+  add_foreign_key "todo_lists", "users"
 end

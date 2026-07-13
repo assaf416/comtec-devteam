@@ -10,6 +10,8 @@ class User < ApplicationRecord
   has_one_attached :avatar
 
   has_many :time_logs, dependent: :destroy
+  has_many :notes, dependent: :destroy
+  has_many :todo_lists, dependent: :destroy
   has_many :assigned_tickets, class_name: "Ticket", foreign_key: :assignee_id
   has_many :estimated_tickets, class_name: "Ticket", foreign_key: :estimated_by_id
   has_many :triggered_ci_runs, class_name: "CiRun", foreign_key: :triggered_by_id

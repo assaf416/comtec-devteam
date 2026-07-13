@@ -129,6 +129,21 @@ Rails.application.routes.draw do
 
   # Time logging (רישום שעות)
   resources :time_logs, only: %i[index create destroy]
+
+  # Personal notes (פתקים)
+  resources :notes, only: %i[index create update destroy] do
+    member do
+      patch :toggle_pin
+      patch :toggle_archive
+    end
+  end
+
+  # Personal to-do lists (משימות)
+  resources :todo_lists, only: %i[index create update destroy] do
+    resources :todo_items, only: %i[create update destroy] do
+      member { patch :toggle }
+    end
+  end
   get "calendar",  to: "calendar#index",  as: :calendar
 
   # ── Ticket views (cross-project) ────────────────────────────────────────
