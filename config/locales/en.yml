@@ -260,6 +260,17 @@ en:
     no_preview: "No inline preview for this file type."
     extracted_text: "Extracted Text (searchable)"
     no_extracted_text: "No extracted text yet."
+  projects:
+    sections:
+      tickets: "Tickets"
+      channels: "Channels"
+      ci_runs: "CI Runs"
+      deployments: "Deployments"
+      pull_requests: "Pull Requests"
+      documents: "Documents"
+      recent_comments: "Recent Comments"
+      members: "Members"
+      add_member: "Add a member"
   common:
     search: "Search"
     status: "Status"

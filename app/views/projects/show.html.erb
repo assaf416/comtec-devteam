@@ -60,7 +60,7 @@
 %>
 <div class="card p-3 mb-3" id="tickets">
   <div class="level mb-3">
-    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🎫 Tickets</h3></div>
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🎫 <%= t("projects.sections.tickets") %></h3></div>
     <div class="level-right d-flex align-items-center gap-2">
       <%= link_to "➕ New Ticket", new_project_ticket_path(@project), class: "btn btn-sm btn-success" %>
       <% if GithubService.github_url?(@project.repo_url) %>
@@ -139,7 +139,7 @@
 <%# ─── Channels (project chat) ──────────────────────────────────────────── %>
 <div class="card p-3 mb-3" id="channels">
   <div class="level mb-3">
-    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">💬 Channels</h3></div>
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">💬 <%= t("projects.sections.channels") %></h3></div>
     <div class="level-right">
       <%= link_to "➕ New channel", new_chat_room_path(project_id: @project.id), class: "btn btn-sm btn-outline-primary" %>
     </div>
@@ -164,7 +164,7 @@
 <%# ─── CI Runs ─────────────────────────────────────────────────────────── %>
 <div class="card p-3 mb-3">
   <div class="level mb-3">
-    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">⚙️ CI Runs</h3></div>
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">⚙️ <%= t("projects.sections.ci_runs") %></h3></div>
     <div class="level-right">
       <%= link_to "View All →", project_ci_runs_path(@project), class: "fs-7 text-muted" %>
     </div>
@@ -200,7 +200,7 @@
 <%# ─── Deployments / Versions ─────────────────────────────────────────── %>
 <div class="card p-3 mb-3">
   <div class="level mb-3">
-    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🚀 Deployments</h3></div>
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🚀 <%= t("projects.sections.deployments") %></h3></div>
     <div class="level-right">
       <%= link_to "View All →", project_deployments_path(@project), class: "fs-7 text-muted" %>
     </div>
@@ -236,7 +236,7 @@
 <%# ─── Pull Requests ───────────────────────────────────────────────────── %>
 <div class="card p-3 mb-3">
   <div class="level mb-3">
-    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🔀 Pull Requests</h3></div>
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🔀 <%= t("projects.sections.pull_requests") %></h3></div>
     <div class="level-right">
       <%= link_to "View All →", project_pull_requests_path(@project), class: "fs-7 text-muted" %>
     </div>
@@ -272,7 +272,7 @@
 <%# ─── Documents ───────────────────────────────────────────────────────── %>
 <div class="card p-3 mb-3">
   <div class="level mb-3">
-    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">📁 Documents</h3></div>
+    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">📁 <%= t("projects.sections.documents") %></h3></div>
     <div class="level-right">
       <%= link_to "View All →", project_documents_path(@project), class: "fs-7 text-muted" %>
     </div>
@@ -303,7 +303,7 @@
 <div class="card p-3 mb-3">
   <div class="level mb-3">
     <div class="level-left">
-      <h3 class="fw-bold fs-5 mb-0">💬 Recent Comments</h3>
+      <h3 class="fw-bold fs-5 mb-0">💬 <%= t("projects.sections.recent_comments") %></h3>
     </div>
     <div class="level-right fs-7 text-muted">across all tickets</div>
   </div>
@@ -338,7 +338,7 @@
 <div id="members" class="card p-3 mb-3 mt-5">
   <div class="level mb-3">
     <div class="level-left">
-      <h3 class="fw-bold fs-5 mb-0">👥 Members (<%= @project.project_memberships.count %>)</h3>
+      <h3 class="fw-bold fs-5 mb-0">👥 <%= t("projects.sections.members") %> (<%= @project.project_memberships.count %>)</h3>
     </div>
   </div>
 
@@ -392,7 +392,7 @@
     <% non_members = User.order(:name).where.not(id: @project.members.select(:id)) %>
     <% if non_members.any? %>
       <hr>
-      <h4 class="fw-bold fs-6 mb-3">Add a member</h4>
+      <h4 class="fw-bold fs-6 mb-3"><%= t("projects.sections.add_member") %></h4>
       <%= form_with url: project_project_memberships_path(@project), method: :post,
             local: true do |f| %>
         <div class="d-flex gap-2 align-items-end is-grouped-multiline">
