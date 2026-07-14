@@ -71,6 +71,15 @@ html[dir="rtl"] {
         text-align: right;
     }
 
+    // Bulma pins header cells to `.table th:not([align])` (specificity 0,2,1),
+    // which beats the rule above (0,1,2) and leaves Hebrew column titles
+    // left-aligned while the data cells sit on the right. Realign headers to
+    // the right with a higher-specificity RTL rule so titles match their data.
+    .table th,
+    .table thead th {
+        text-align: right;
+    }
+
     // RTL: align action dropdown to the left
     .dropdown.text-end {
         text-align: start !important;
