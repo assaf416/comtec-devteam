@@ -30,5 +30,8 @@ module DevTeam
 
     # Active Storage – store documents locally
     config.active_storage.service = :local
+
+    # Use ImageMagick (mini_magick) for variants — libvips is not installed here.
+    config.active_storage.variant_processor = :mini_magick
   end
 end
