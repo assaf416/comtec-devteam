@@ -35,7 +35,9 @@ Rails.application.routes.draw do
   # File repository (Attachments) — browse/search/show/download/delete across projects
   resources :attachments, only: %i[index show destroy]
 
-  get "admin/users"
+  get   "admin/users"
+  patch "admin/users/:id/block",   to: "admin#block_user",   as: :admin_block_user
+  patch "admin/users/:id/unblock", to: "admin#unblock_user", as: :admin_unblock_user
   get "admin/client_accounts"
   get "admin/settings"
   get "reports/ci_summary"

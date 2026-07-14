@@ -433,6 +433,24 @@ en:
     admin:
       users: "Users"
       clients: "Clients"
+  admin:
+    not_authorized: "You are not authorized to access that page."
+    users_page:
+      title: "Users"
+      col_user: "User"
+      col_email: "Email"
+      col_role: "Role"
+      col_status: "Status"
+      col_actions: "Actions"
+      status_active: "Active"
+      status_blocked: "Blocked"
+      you: "You"
+      block: "Block"
+      unblock: "Unblock"
+      block_confirm: "Block %{name}? They will no longer be able to sign in."
+      blocked_notice: "%{name} has been blocked."
+      unblocked_notice: "%{name} has been unblocked."
+      cannot_block_self: "You cannot block your own account."
   mobile:
     nav:
       today: "Today"

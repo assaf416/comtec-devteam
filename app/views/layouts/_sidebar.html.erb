@@ -113,9 +113,11 @@
     <span class="nav-icon">🏢</span> <%= t('nav.customers') %>
   <% end %>
 
-  <%= link_to admin_users_path,
-        class: "sidebar-nav-item #{controller_path == 'admin/users' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">👥</span> <%= t('nav.users') %>
+  <% if current_user.admin? %>
+    <%= link_to admin_users_path,
+          class: "sidebar-nav-item #{controller_path == 'admin/users' ? 'is-active' : ''}" do %>
+      <span class="nav-icon">👥</span> <%= t('nav.users') %>
+    <% end %>
   <% end %>
 
   <%# ── User footer ──────────────────────────────────────────────────── %>

@@ -29,6 +29,21 @@
       "last_tested_at": "2026-07-14T10:32:38Z",
       "code_generation_seconds": null,
       "test_generation_seconds": null
+    },
+    {
+      "id": "S3",
+      "type": "story",
+      "name": "Admin user management with blocking",
+      "description": "Admin users (role=admin) get an admin-only Users management page (sidebar link shown only to admins) with a table of all users (name, email, role, status) and a block/unblock control. A blocked user cannot sign in (Devise active_for_authentication?), reversible by an admin. Admins cannot block themselves; non-admins are redirected away from the page.",
+      "cucumber_test": "# language: he\nתכונה: ניהול וחסימת משתמשים על ידי מנהל\n  תרחיש: מנהל רואה את טבלת המשתמשים\n    בהינתן אני מחובר כמנהל\n    וגם קיים משתמש בשם \"דנה\"\n    כאשר אני מבקר בעמוד ניהול המשתמשים\n    אז אני אמור לראות \"דנה\"\n\n  תרחיש: מנהל חוסם משתמש\n    בהינתן אני מחובר כמנהל\n    וגם קיים משתמש בשם \"דנה\"\n    כאשר אני מבקר בעמוד ניהול המשתמשים\n    וגם אני חוסם את המשתמש \"דנה\"\n    אז המשתמש \"דנה\" אמור להיות חסום\n\n  תרחיש: משתמש חסום אינו יכול להתחבר\n    בהינתן קיים משתמש חסום עם דוא\"ל \"blocked@example.com\" וסיסמה \"password123\"\n    כאשר אני מנסה להתחבר עם \"blocked@example.com\" ו-\"password123\"\n    אז אני לא אמור להיות מחובר\n\n  תרחיש: משתמש שאינו מנהל אינו רשאי לגשת\n    בהינתן אני מחובר כמפתח\n    כאשר אני מנסה לגשת לעמוד ניהול המשתמשים\n    אז לא אמורה להיות מוצגת לי טבלת המשתמשים",
+      "feature_file": "features/admin_user_management.feature",
+      "github_issue": 38,
+      "status": "completed",
+      "started_at": "2026-07-14T11:00:00Z",
+      "completed_at": "2026-07-14T11:24:04Z",
+      "last_tested_at": "2026-07-14T11:24:04Z",
+      "code_generation_seconds": null,
+      "test_generation_seconds": null
     }
   ]
 }
