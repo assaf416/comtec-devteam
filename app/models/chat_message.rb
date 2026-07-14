@@ -4,6 +4,10 @@ class ChatMessage < ApplicationRecord
 
   has_many_attached :files
 
+  # Set to true to skip Turbo broadcasts (e.g. bulk seeding), where rendering the
+  # message partial has no live subscribers and no request context.
+  cattr_accessor :skip_broadcasts, default: false
+
   validate :body_or_files_present
 
   scope :recent, -> { order(created_at: :asc) }
@@ -32,6 +36,8 @@ class ChatMessage < ApplicationRecord
   end
 
   def broadcast_new_message
+    return if skip_broadcasts
+
     broadcast_append_to(
       chat_room,
       target:  "chatMessages",

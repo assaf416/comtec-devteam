@@ -57,8 +57,13 @@
     <span class="nav-icon">✅</span> <%= t('nav.todos') %>
   <% end %>
 
-  <%# AI Agent — only inside a project (chat is scoped to the project's repo/tickets) %>
+  <%# Project chat + AI Agent — only inside a project %>
   <% if current_project %>
+    <%= link_to project_chat_path(current_project),
+          class: "sidebar-nav-item #{controller_name == 'project_chats' ? 'is-active' : ''}" do %>
+      <span class="nav-icon">💬</span> <%= t('nav.project_chat') %>
+    <% end %>
+
     <%= link_to project_ai_chats_path(current_project),
           class: "sidebar-nav-item #{controller_name == 'ai_chats' ? 'is-active' : ''}" do %>
       <span class="nav-icon">🤖</span> <%= t('nav.ai_agent') %>

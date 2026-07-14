@@ -61,6 +61,11 @@ Rails.application.configure do
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
 
+  # Run jobs inline in development. Solid Queue only has its own database in
+  # production; dev has no queue tables, so enqueuing (e.g. Active Storage's
+  # avatar analyze/variant jobs) would otherwise fail.
+  config.active_job.queue_adapter = :inline
+
   # Highlight code that triggered redirect in logs.
   config.action_dispatch.verbose_redirect_logs = true
 
