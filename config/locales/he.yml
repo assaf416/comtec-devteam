@@ -457,6 +457,24 @@ he:
     admin:
       users: "משתמשים"
       clients: "לקוחות"
+  admin:
+    not_authorized: "אין לך הרשאה לגשת לעמוד הזה."
+    users_page:
+      title: "ניהול משתמשים"
+      col_user: "משתמש"
+      col_email: "דוא\"ל"
+      col_role: "תפקיד"
+      col_status: "סטטוס"
+      col_actions: "פעולות"
+      status_active: "פעיל"
+      status_blocked: "חסום"
+      you: "אתה"
+      block: "חסום"
+      unblock: "שחרר"
+      block_confirm: "לחסום את %{name}? הוא לא יוכל להתחבר."
+      blocked_notice: "%{name} נחסם."
+      unblocked_notice: "החסימה של %{name} הוסרה."
+      cannot_block_self: "אי אפשר לחסום את המשתמש שלך."
   mobile:
     nav:
       today: "היום"

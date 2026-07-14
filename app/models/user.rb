@@ -44,6 +44,16 @@ class User < ApplicationRecord
     role == "admin"
   end
 
+  # Devise: a blocked user cannot sign in (and is signed out on next request).
+  # Blocking is reversible by an admin.
+  def active_for_authentication?
+    super && !blocked?
+  end
+
+  def inactive_message
+    blocked? ? :blocked : super
+  end
+
   def display_name
     name.presence || email.split("@").first
   end
