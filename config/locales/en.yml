@@ -39,6 +39,7 @@ en:
     notes: "Notes"
     todos: "To-Do"
     ai_agent: "AI Agent"
+    project_chat: "Project Chat"
     github_code: "Code"
     github_prs: "Pull Requests"
     github_build: "Latest Build"

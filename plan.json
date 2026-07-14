@@ -14,6 +14,21 @@
       "last_tested_at": "2026-07-13T07:30:54Z",
       "code_generation_seconds": 1150,
       "test_generation_seconds": 727
+    },
+    {
+      "id": "S2",
+      "type": "story",
+      "name": "Per-project Chat page from the sidebar",
+      "description": "When viewing a project, a \"Project Chat\" link appears in the sidebar and opens /projects/:id/chat — a per-project chat page where the team can talk about the project, attach images and files, and switch between the project's channels. Reuses the existing ChatMessage attachments and Turbo broadcasting. The seed generates a Hebrew demo conversation for every project including one image (architecture.png) and one file (meeting-notes.txt) attachment.",
+      "cucumber_test": "# language: he\nתכונה: ערוץ צ'אט פרויקט מהסרגל הצדי\n  כחבר צוות בפרויקט\n  אני רוצה קישור \"צ'אט פרויקט\" בסרגל בתוך פרויקט\n  כדי לשוחח ולצרף תמונות וקבצים בהקשר הפרויקט\n\n  רקע:\n    בהינתן אני מחובר כמפתח\n    וגם קיים פרויקט בשם \"אפולו\"\n    וגם קיים ערוץ צ'אט \"אפולו-כללי\" בפרויקט \"אפולו\"\n\n  תרחיש: הקישור מופיע בסרגל בעמוד הפרויקט\n    כאשר אני מבקר בעמוד הפרויקט \"אפולו\"\n    אז אני אמור לראות \"Project Chat\"\n\n  תרחיש: שליחת הודעה עם קובץ מעמוד צ'אט הפרויקט\n    כאשר אני עובר לצ'אט הפרויקט \"אפולו\"\n    וגם אני שולח בצ'אט את ההודעה \"שלום צוות\" עם הקובץ \"notes.txt\"\n    אז אני אמור לראות \"שלום צוות\"\n    וגם אני אמור לראות \"notes.txt\"",
+      "feature_file": "features/project_chat_sidebar.feature",
+      "github_issue": 34,
+      "status": "completed",
+      "started_at": "2026-07-14T10:15:00Z",
+      "completed_at": "2026-07-14T10:32:38Z",
+      "last_tested_at": "2026-07-14T10:32:38Z",
+      "code_generation_seconds": null,
+      "test_generation_seconds": null
     }
   ]
 }
