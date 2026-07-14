@@ -67,11 +67,14 @@ users = users_data.map do |attrs|
     u.name     = attrs[:name]
     u.role     = attrs[:role]
     u.password = "password123"
-    u.preferred_language = :en
+    u.preferred_language = :he
   end
 end
 
-puts "  ✓ #{users.size} internal users"
+# All users default to Hebrew — enforce on reseed for pre-existing records too.
+users.each { |u| u.update!(preferred_language: :he) unless u.lang_he? }
+
+puts "  ✓ #{users.size} internal users (default language: Hebrew)"
 
 # Attach face photo avatars to users
 ActiveStorage::Current.url_options = { host: "localhost", port: 3000 }
@@ -275,6 +278,83 @@ chat_rooms_data.each do |attrs|
 end
 
 puts "  ✓ #{chat_rooms_data.size} chat rooms"
+
+# ─────────────────────────────────────────────────────────────────
+# Demo project chat conversations — so the per-project Chat page has
+# something to look at, including one image and one file attachment.
+# ─────────────────────────────────────────────────────────────────
+require "tempfile"
+
+# Draw a small architecture-diagram PNG with ImageMagick. PNG (unlike SVG) is
+# served inline by Active Storage, so it renders as an image in the chat.
+# Returns a Tempfile, or nil if ImageMagick isn't available.
+def project_chat_diagram_png(title)
+  file = Tempfile.new([ "chat-diagram", ".png" ])
+  file.close
+  system(
+    "convert", "-size", "360x200", "xc:#eef4fb",
+    "-fill", "#4a90d9", "-draw", "roundrectangle 20,40 140,92 8,8",
+    "-fill", "#20c997", "-draw", "roundrectangle 220,40 340,92 8,8",
+    "-fill", "#7b68ee", "-draw", "roundrectangle 120,130 240,182 8,8",
+    "-gravity", "NorthWest", "-fill", "#ffffff", "-pointsize", "12",
+    "-annotate", "+58+62", "Frontend",
+    "-annotate", "+264+62", "API",
+    "-annotate", "+150+152", "Database",
+    "-gravity", "North", "-fill", "#333333", "-pointsize", "13",
+    "-annotate", "+0+8", title,
+    file.path,
+    exception: true
+  )
+  file
+rescue StandardError => e
+  puts "    ⚠ Could not generate chat diagram (#{e.message}) — skipping image"
+  nil
+end
+
+ChatMessage.skip_broadcasts = true
+projects.each do |project|
+  room = project.chat_rooms.active.order(:created_at, :id).first
+  next unless room
+  next if room.chat_messages.exists?  # idempotent — don't duplicate on re-seed
+
+  members = project.members.to_a
+  members = users.first(4) if members.empty?
+  who     = ->(i) { members[i % members.size] }
+
+  ticket = Ticket.where(project: project).order(:id).first
+  ref    = ticket ? "#T-#{ticket.id}" : "הכרטיס הראשון"
+
+  scripted = [
+    { user: who.(0), body: "בוקר טוב לכולם 👋 נתחיל את השבוע עם סנכרון קצר על #{project.name}.",              at: 2.days.ago.change(hour: 9, min: 0) },
+    { user: who.(1), body: "אני על #{ref} — מקווה לסיים היום את הפיתוח ולהעביר ל-review.",                     at: 2.days.ago.change(hour: 9, min: 12) },
+    { user: who.(0), body: "מצרף את דיאגרמת הארכיטקטורה שדיברנו עליה 👇",                                        at: 2.days.ago.change(hour: 10, min: 5), image: true },
+    { user: who.(2), body: "תודה! אני מוסיף את סיכום הפגישה כקובץ להורדה.",                                       at: 1.day.ago.change(hour: 11, min: 20), file: true },
+    { user: who.(1), body: "פתחתי PR — מוזמנים להסתכל כשמתפנה 🙏",                                               at: 1.day.ago.change(hour: 15, min: 30) },
+    { user: who.(3), body: "עברתי על ה-QA, נראה טוב. יש הערה קטנה על edge case שאעלה בכרטיס.",                   at: Time.current.change(hour: 8, min: 45) },
+    { user: who.(0), body: "מצוין, ממשיכים 🚀",                                                                   at: Time.current.change(hour: 9, min: 5) }
+  ]
+
+  scripted.each do |m|
+    msg = room.chat_messages.build(user: m[:user], body: m[:body], created_at: m[:at])
+    if m[:image]
+      png = project_chat_diagram_png("#{project.name} — Architecture")
+      msg.files.attach(io: File.open(png.path), filename: "architecture.png", content_type: "image/png") if png
+    elsif m[:file]
+      notes = "Meeting notes — #{project.name}\n\n" \
+              "- החלטה: להתקדם לפי התכנון הנוכחי\n" \
+              "- אחראי פיתוח: #{who.(1).display_name}\n" \
+              "- יעד: סוף השבוע\n"
+      msg.files.attach(
+        io:           StringIO.new(notes),
+        filename:     "meeting-notes.txt",
+        content_type: "text/plain"
+      )
+    end
+    msg.save!
+  end
+end
+ChatMessage.skip_broadcasts = false
+puts "  ✓ demo chat conversations seeded for #{projects.size} projects"
 
 # ─────────────────────────────────────────────────────────────────
 # Tickets / Stories

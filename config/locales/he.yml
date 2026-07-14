@@ -64,6 +64,7 @@ he:
     notes: "פתקים"
     todos: "משימות"
     ai_agent: "סוכן AI"
+    project_chat: "צ'אט פרויקט"
     github_code: "הצגת קוד"
     github_prs: "הצגת PR"
     github_build: "תוצאות הבילד האחרון"

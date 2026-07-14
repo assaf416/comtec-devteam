@@ -8,7 +8,7 @@
         <span class="badge bg-warning text-dark"><i class="bi bi-file-earmark-code me-1"></i>Template</span>
       <% end %>
       <% if @document.template %>
-        <span class="badge bg-light text-muted border">From: <%= link_to @document.template.title, @document.template, class: "text-muted" %></span>
+        <span class="badge bg-light text-muted border">From: <%= link_to @document.template.title, @document.template, class: "text-muted", target: "_blank", rel: "noopener" %></span>
       <% end %>
     </div>
     <p class="text-muted mb-0 small">

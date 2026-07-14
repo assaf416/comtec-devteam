@@ -1,0 +1,79 @@
+<% content_for :page_title do %><%= @project.name %> · <%= t('nav.project_chat') %><% end %>
+
+<div class="chat-layout" data-controller="chat">
+
+  <%= turbo_stream_from @chat_room %>
+
+  <%# ── Channel header + switcher ───────────────────────────────────────── %>
+  <div class="chat-header">
+    <span style="font-size:1.1rem;color:#aaa;">#</span>
+    <span class="chat-room-name"><%= @chat_room.name %></span>
+    <% if @chat_room.description.present? %>
+      <span style="color:#ccc;margin:0 0.4rem;">|</span>
+      <span class="chat-room-desc"><%= @chat_room.description %></span>
+    <% end %>
+    <%= link_to @project.name, project_path(@project),
+          class: "badge bg-info text-dark is-light ms-auto" %>
+  </div>
+
+  <div class="chat-channel-tabs d-flex flex-wrap gap-2 px-3 py-2 border-bottom">
+    <% @rooms.each do |room| %>
+      <%= link_to project_chat_path(@project, channel: room.id),
+            class: "btn btn-sm #{room.id == @chat_room.id ? 'btn-primary' : 'btn-light border'}" do %>
+        # <%= room.name %>
+      <% end %>
+    <% end %>
+    <%= link_to "➕ New channel", new_chat_room_path(project_id: @project.id),
+          class: "btn btn-sm btn-outline-secondary" %>
+  </div>
+
+  <%# ── Messages list ───────────────────────────────────────────────────── %>
+  <turbo-frame id="chat-messages-<%= @chat_room.id %>">
+    <div class="chat-messages" id="chatMessages" data-chat-target="messages">
+
+      <% prev_user_id = nil %>
+      <% prev_date    = nil %>
+
+      <% @messages.each do |msg| %>
+        <%
+          is_continuation = (msg.user_id == prev_user_id)
+          msg_date        = msg.created_at.to_date
+        %>
+
+        <% if msg_date != prev_date %>
+          <div class="chat-day-divider">
+            <hr>
+            <span><%= msg_date == Date.today ? "Today" : msg_date.strftime("%B %-d, %Y") %></span>
+            <hr>
+          </div>
+          <% prev_user_id = nil %>
+          <% is_continuation = false %>
+        <% end %>
+
+        <%= render "chat_messages/message", message: msg, is_continuation: is_continuation %>
+
+        <%
+          prev_user_id = msg.user_id
+          prev_date    = msg_date
+        %>
+      <% end %>
+
+      <% if @messages.empty? %>
+        <div style="text-align:center;padding:3rem 1rem;color:#bbb;">
+          <div style="font-size:2.5rem;margin-bottom:0.5rem;">#</div>
+          <strong style="color:#aaa;">This is the beginning of #<%= @chat_room.name %></strong>
+          <p style="font-size:0.85rem;margin-top:0.5rem;">
+            Send a message to talk about <%= @project.name %> — attach images and files too.<br>
+            Link tickets with <code>#T-123</code>, CI runs with <code>#CI-456</code>, deployments with <code>#D-789</code>
+          </p>
+        </div>
+      <% end %>
+
+      <div id="chatBottom"></div>
+    </div>
+  </turbo-frame>
+
+  <%# ── Compose area (shared with global chat) ──────────────────────────── %>
+  <%= render "chat_rooms/compose", chat_room: @chat_room %>
+
+</div>

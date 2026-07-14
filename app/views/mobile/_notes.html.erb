@@ -2,7 +2,7 @@
 <% if notes.present? && notes.any? %>
   <div class="box p-0" style="overflow:hidden;">
     <% notes.each do |note| %>
-      <%= link_to document_path(note), class: "ticket-item px-3" do %>
+      <%= link_to document_path(note), class: "ticket-item px-3", target: "_blank", rel: "noopener" do %>
         <span style="font-size:1.1rem;flex-shrink:0;">📄</span>
         <div style="flex:1;overflow:hidden;">
           <div class="ticket-title"><%= note.title.to_s.truncate(44) %></div>

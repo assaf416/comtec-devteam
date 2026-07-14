@@ -308,7 +308,7 @@
       <% @recent_documents.each do |doc| %>
         <div class="col-4 mb-2">
           <div class="p-2" style="border:1px solid #eee;border-radius:6px;">
-            <p class="fw-semibold fs-7 mb-1"><%= link_to doc.title.truncate(40), document_path(doc) %></p>
+            <p class="fw-semibold fs-7 mb-1"><%= link_to doc.title.truncate(40), document_path(doc), target: "_blank", rel: "noopener" %></p>
             <p class="text-muted fs-7 mb-0">
               <span class="badge bg-light text-dark is-small"><%= doc.doc_type.humanize.gsub("_", " ") %></span>
               <span class="ms-1"><%= doc.updated_at.strftime('%d/%m/%Y') %></span>

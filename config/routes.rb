@@ -175,6 +175,8 @@ Rails.application.routes.draw do
   end
 
   resources :projects do
+    # Team chat scoped to the project — talk about the project, share files/images.
+    resource :chat, only: %i[show], controller: "project_chats"
     # Chat with AI — scoped to the project (code context = the project's repo)
     resources :ai_chats, only: %i[index create show], shallow: true do
       member do
