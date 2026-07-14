@@ -37,7 +37,7 @@
             <div class="level-left">
               <div>
                 <p class="fw-bold fs-6 mb-0">
-                  <%= link_to doc.title, document_path(doc) %>
+                  <%= link_to doc.title, document_path(doc), target: "_blank", rel: "noopener" %>
                   <% if doc.template %>
                     <span class="badge bg-light text-muted border ms-1 fw-normal" style="font-size:.7em">
                       <i class="bi bi-copy me-1"></i>From template

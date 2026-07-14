@@ -30,7 +30,7 @@
         <div class="card p-3 mb-3 p-4" style="height:100%;">
           <div class="d-flex justify-content-between is-align-items-start mb-2">
             <div style="flex:1;">
-              <%= link_to doc.title, customer_portal_document_path(doc), class: "fw-semibold fs-6" %>
+              <%= link_to doc.title, customer_portal_document_path(doc), class: "fw-semibold fs-6", target: "_blank", rel: "noopener" %>
             </div>
             <div class="ms-2">
               <span class="badge bg-info text-dark is-light is-small"><%= doc.doc_type.to_s.humanize %></span>

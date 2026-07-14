@@ -175,7 +175,7 @@
         <% @documents_today.each do |doc| %>
           <div class="d-flex justify-content-between py-1" style="border-bottom: 1px solid #f5f5f5;">
             <div>
-              <%= link_to doc.title, document_path(doc) %>
+              <%= link_to doc.title, document_path(doc), target: "_blank", rel: "noopener" %>
               <span class="badge bg-light text-dark is-small ms-1"><%= doc.project.name %></span>
               <span class="badge bg-info text-dark is-light is-small ms-1"><%= doc.doc_type.to_s.humanize %></span>
             </div>
