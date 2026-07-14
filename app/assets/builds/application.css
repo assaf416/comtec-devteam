@@ -11908,6 +11908,10 @@ html[dir=rtl] td,
 html[dir=rtl] th {
   text-align: right;
 }
+html[dir=rtl] .table th,
+html[dir=rtl] .table thead th {
+  text-align: right;
+}
 html[dir=rtl] .dropdown.text-end {
   text-align: start !important;
 }
@@ -12591,6 +12595,34 @@ body {
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+}
+.chat-msg .chat-msg-body .chat-msg-attachments .chat-attach-img {
+  max-width: 260px;
+  max-height: 200px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  display: block;
+}
+.chat-msg .chat-msg-body .chat-msg-attachments .chat-attach-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #1f2937;
+  text-decoration: none;
+  max-width: 260px;
+}
+.chat-msg .chat-msg-body .chat-msg-attachments .chat-attach-file .chat-attach-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-msg .chat-msg-body .chat-msg-attachments .chat-attach-file:hover {
+  background: #e2e8f0;
 }
 
 .chat-ref {
