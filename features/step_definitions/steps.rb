@@ -337,6 +337,10 @@ When("אני לוחץ על כפתור ה-Run של {string}") do |feature_path|
   within(:xpath, "//tr[contains(., '#{feature_path}')]") { click_button "Run" }
 end
 
+When("אני לוחץ על {string} ליד {string}") do |link_text, feature_path|
+  within(:xpath, "//tr[contains(., '#{feature_path}')]") { click_link link_text }
+end
+
 Then("נוצרה הרצה חדשה עבור {string} עם סטטוס {string} או {string}") do |feature_path, status_a, status_b|
   status_map = { "עבר" => "passed", "נכשל" => "failed" }
   run = TestStudioRun.where(feature_path: feature_path).order(:id).last
