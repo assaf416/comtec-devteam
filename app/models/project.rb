@@ -24,12 +24,12 @@ class Project < ApplicationRecord
 
   # Standard documents auto-created for every new project
   DEFAULT_DOCUMENTS = [
-    { doc_type: :risk_management, title: "Risk Management",
-      content: "# Risk Management\n\n## Risks\n\n| Risk | Likelihood | Impact | Mitigation |\n|------|-----------|--------|------------|\n| TBD  | -          | -      | -          |\n" },
-    { doc_type: :user_story,      title: "Product Backlog",
-      content: "# Product Backlog\n\n## Epics\n\n_List epics here._\n\n## Stories\n\n_List user stories here._\n" },
-    { doc_type: :test_coverage,   title: "Test Plan",
-      content: "# Test Plan\n\n## Scope\n\n_Describe what will be tested._\n\n## Test Cases\n\n| ID | Description | Steps | Expected | Status |\n|----|-------------|-------|----------|--------|\n" }
+    { doc_type: :risk_management, title: "ניהול סיכונים",
+      content: "# ניהול סיכונים\n\n## סיכונים\n\n| סיכון | סבירות | השפעה | פתרון |\n|------|-----------|--------|------------|\n| טרם הוגדר | -          | -      | -          |\n" },
+    { doc_type: :user_story,      title: "בקלוג מוצר",
+      content: "# בקלוג מוצר\n\n## אפיקים (Epics)\n\n_רשימת אפיקים כאן._\n\n## סיפורי משתמש\n\n_רשימת סיפורי משתמש כאן._\n" },
+    { doc_type: :test_coverage,   title: "תוכנית בדיקות",
+      content: "# תוכנית בדיקות\n\n## היקף\n\n_תיאור מה ייבדק._\n\n## מקרי בדיקה\n\n| מזהה | תיאור | שלבים | תוצאה צפויה | סטטוס |\n|----|-------------|-------|----------|--------|\n" }
   ].freeze
 
   private

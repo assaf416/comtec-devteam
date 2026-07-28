@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>איפה מריצים את Qwen3.6 — מפת ספקים + עוזר פיתוח לצוות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&family=Heebo:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a1120;
+    --panel: #101a2e;
+    --panel-alt: #142339;
+    --grid: #1e2f4d;
+    --grid-soft: #16233b;
+    --text: #e8edf6;
+    --muted: #7f92b8;
+    --muted-dim: #55658a;
+    --cyan: #49d3e8;
+    --cyan-dim: rgba(73,211,232,0.14);
+    --amber: #f2a93b;
+    --amber-dim: rgba(242,169,59,0.14);
+    --green: #3fd08a;
+    --green-dim: rgba(63,208,138,0.14);
+    --red: #f2735b;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% -10%, #14213c 0%, transparent 45%),
+      radial-gradient(circle at 100% 10%, #101c33 0%, transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Heebo', sans-serif;
+    font-weight:400;
+    line-height:1.65;
+  }
+
+  /* blueprint grid background */
+  .grid-bg{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    background-image:
+      linear-gradient(var(--grid-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-soft) 1px, transparent 1px);
+    background-size:44px 44px;
+    opacity:0.5;
+    pointer-events:none;
+  }
+
+  .wrap{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:0 28px 120px;}
+
+  [dir="ltr"], .ltr{ direction:ltr; unicode-bidi:isolate; font-family:'IBM Plex Mono', monospace; }
+
+  /* ---------- HERO ---------- */
+  header.hero{
+    padding:74px 0 56px;
+    border-bottom:1px solid var(--grid);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    direction:ltr;
+    text-align:right;
+    font-size:13px;
+    letter-spacing:0.14em;
+    color:var(--cyan);
+    text-transform:uppercase;
+    margin-bottom:22px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:flex-end;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+
+  h1{
+    font-family:'Rubik', sans-serif;
+    font-weight:900;
+    font-size:clamp(34px, 5.4vw, 60px);
+    line-height:1.12;
+    margin:0 0 22px;
+    letter-spacing:-0.01em;
+  }
+  h1 .accent{color:var(--cyan);}
+
+  .lede{
+    font-size:19px;
+    color:var(--muted);
+    max-width:680px;
+    margin:0 0 34px;
+  }
+
+  .stat-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .stat-chip{
+    background:var(--panel);
+    border:1px solid var(--grid);
+    border-radius:10px;
+    padding:14px 18px;
+    min-width:150px;
+  }
+  .stat-chip .num{
+    font-family:'IBM Plex Mono', monospace;
+    direction:ltr;
+    display:block;
+    font-size:22px;
+    font-weight:600;
+    color:var(--cyan);
+  }
+  .stat-chip .lbl{
+    font-size:13px;
+    color:var(--muted-dim);
+    margin-top:4px;
+    display:block;
+  }
+
+  /* ---------- SECTION SCAFFOLDING ---------- */
+  section{padding:70px 0;border-bottom:1px solid var(--grid);}
+  section:last-of-type{border-bottom:none;}
+
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:16px;
+    margin-bottom:12px;
+    justify-content:flex-end;
+  }
+  .section-tag{
+    font-family:'IBM Plex Mono', monospace;
+    direction:ltr;
+    font-size:13px;
+    color:var(--muted-dim);
+    border:1px solid var(--grid);
+    border-radius:6px;
+    padding:3px 9px;
+  }
+  h2{
+    font-family:'Rubik', sans-serif;
+    font-weight:700;
+    font-size:clamp(24px, 3.2vw, 34px);
+    margin:0;
+  }
+  .section-sub{
+    color:var(--muted);
+    max-width:640px;
+    margin:0 0 40px auto;
+    text-align:right;
+    font-size:16px;
+  }
+
+  /* ---------- ARCHITECTURE DIAGRAMS ---------- */
+  .paths{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:28px;
+  }
+  @media(max-width:860px){ .paths{grid-template-columns:1fr;} }
+
+  .path-card{
+    background:var(--panel);
+    border:1px solid var(--grid);
+    border-radius:14px;
+    padding:26px 26px 20px;
+  }
+  .path-card .path-title{
+    font-family:'Rubik', sans-serif;
+    font-weight:700;
+    font-size:19px;
+    margin:0 0 4px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .path-card.a .path-title{color:var(--amber);}
+  .path-card.b .path-title{color:var(--cyan);}
+  .path-card .path-desc{
+    color:var(--muted);
+    font-size:14.5px;
+    margin:0 0 18px;
+  }
+  .path-card svg{width:100%;height:auto;display:block;}
+
+  .path-foot{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    direction:ltr;
+    font-size:13px;
+    color:var(--muted-dim);
+    border-top:1px dashed var(--grid);
+    padding-top:14px;
+    margin-top:6px;
+  }
+
+  /* ---------- VENDOR CARDS ---------- */
+  .cat-block{margin-bottom:44px;}
+  .cat-block:last-child{margin-bottom:0;}
+  .cat-label{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    justify-content:flex-end;
+    margin-bottom:16px;
+  }
+  .cat-swatch{width:11px;height:11px;border-radius:3px;}
+  .cat-name{font-family:'Rubik',sans-serif;font-weight:700;font-size:16px;}
+  .cat-note{font-size:13.5px;color:var(--muted-dim);margin-inline-end:8px;}
+
+  .vendor-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(260px,1fr));
+    gap:16px;
+  }
+  .vcard{
+    background:var(--panel);
+    border:1px solid var(--grid);
+    border-radius:12px;
+    padding:20px 20px 18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .vcard::before{
+    content:"";
+    position:absolute; top:0; right:0; bottom:0;
+    width:3px;
+  }
+  .vcard.api::before{background:var(--amber);}
+  .vcard.market::before{background:var(--green);}
+  .vcard.dedicated::before{background:var(--cyan);}
+
+  .vcard h3{
+    font-family:'Rubik', sans-serif;
+    font-size:18px;
+    margin:0 0 6px;
+  }
+  .vprice{
+    font-family:'IBM Plex Mono', monospace;
+    direction:ltr;
+    text-align:right;
+    font-size:15px;
+    font-weight:600;
+    margin:0 0 10px;
+  }
+  .vcard.api .vprice{color:var(--amber);}
+  .vcard.market .vprice{color:var(--green);}
+  .vcard.dedicated .vprice{color:var(--cyan);}
+  .vnote{font-size:14px;color:var(--muted);margin:0;}
+  .vnote b{color:var(--text);font-weight:500;}
+
+  /* ---------- CHARTS ---------- */
+  .chart-card{
+    background:var(--panel);
+    border:1px solid var(--grid);
+    border-radius:14px;
+    padding:28px 30px 20px;
+  }
+  .chart-card svg{width:100%;height:auto;display:block;}
+  .chart-caption{
+    font-size:13.5px;
+    color:var(--muted-dim);
+    margin-top:14px;
+    text-align:right;
+  }
+  .legend{
+    display:flex;
+    gap:22px;
+    justify-content:flex-end;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+    font-size:13.5px;
+    color:var(--muted);
+  }
+  .legend span{display:inline-flex;align-items:center;gap:7px;}
+  .legend i{width:16px;height:3px;border-radius:2px;display:inline-block;}
+
+  /* ---------- RECOMMENDATION TABLE ---------- */
+  table.reco{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--panel);
+    border:1px solid var(--grid);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  table.reco th, table.reco td{
+    padding:16px 18px;
+    text-align:right;
+    border-bottom:1px solid var(--grid);
+    font-size:15px;
+    vertical-align:top;
+  }
+  table.reco th{
+    font-family:'Rubik',sans-serif;
+    font-size:13px;
+    letter-spacing:0.04em;
+    color:var(--muted-dim);
+    background:var(--panel-alt);
+    font-weight:700;
+  }
+  table.reco tr:last-child td{border-bottom:none;}
+  table.reco td.pick{
+    font-family:'Rubik',sans-serif;
+    font-weight:700;
+    color:var(--cyan);
+    white-space:nowrap;
+  }
+
+  footer{
+    padding:40px 0 10px;
+    color:var(--muted-dim);
+    font-size:13px;
+    text-align:right;
+  }
+  footer .ltr-inline{direction:ltr;display:inline-block;}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>INFRA COMPARISON · Qwen3.6</div>
+    <h1>איפה מריצים <span class="accent">Qwen3.6</span>?<br>מפת ספקים ל-API יציב</h1>
+    <p class="lede">השוואה חזותית בין ענן מנוהל, שוק GPU שעתי ושרתים ייעודיים — ובהמשך הדף, שלושה פתרונות מלאים לעוזר פיתוח לצוות של 5 מפתחים.</p>
+    <div class="stat-row">
+      <div class="stat-chip"><span class="num ltr">27B / 35B‑A3B</span><span class="lbl">גדלי המודל</span></div>
+      <div class="stat-chip"><span class="num ltr">262K–1M</span><span class="lbl">חלון הקשר (טוקנים)</span></div>
+      <div class="stat-chip"><span class="num ltr">$0.15 – $2,110</span><span class="lbl">טווח עלות חודשית</span></div>
+      <div class="stat-chip"><span class="num ltr">7</span><span class="lbl">ספקים בהשוואה</span></div>
+      <div class="stat-chip" style="border-color:var(--amber);"><span class="num ltr" style="color:var(--amber);">5 × 9hr</span><span class="lbl">עוזר פיתוח לצוות — חדש</span></div>
+    </div>
+  </header>
+
+  <!-- ================= ARCHITECTURE PATHS ================= -->
+  <section id="paths">
+    <div class="section-head"><span class="section-tag">01 / ARCHITECTURE</span><h2>שתי דרכים להריץ API יציב</h2></div>
+    <p class="section-sub">אין ״הפתרון הנכון״ אחד — יש שתי ארכיטקטורות שונות, וכל אחת מתאימה לפרופיל שימוש אחר.</p>
+
+    <div class="paths">
+      <!-- Path A: Managed API -->
+      <div class="path-card a">
+        <div class="path-title">מסלול A — API מנוהל<span class="ltr" style="font-size:12px;color:var(--muted-dim);font-weight:400;">PAY‑PER‑TOKEN</span></div>
+        <p class="path-desc">אתה לא מריץ שום שרת. שולחים בקשה, משלמים על טוקנים.</p>
+        <svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowA" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--amber)"/>
+            </marker>
+          </defs>
+          <!-- connector -->
+          <line x1="260" y1="58" x2="260" y2="94" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#arrowA)"/>
+          <line x1="260" y1="132" x2="260" y2="168" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#arrowA)"/>
+          <line x1="260" y1="206" x2="260" y2="242" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#arrowA)"/>
+
+          <!-- box 1: developer -->
+          <rect x="150" y="10" width="220" height="48" rx="8" fill="var(--panel-alt)" stroke="var(--grid)"/>
+          <text x="260" y="39" text-anchor="middle" fill="var(--text)" font-family="Heebo" font-size="15" font-weight="500">מפתחים / אפליקציה</text>
+
+          <!-- box 2: gateway -->
+          <rect x="120" y="94" width="280" height="38" rx="8" fill="var(--panel-alt)" stroke="var(--grid)"/>
+          <text x="260" y="118" text-anchor="middle" fill="var(--muted)" font-family="Heebo" font-size="13.5">מפתחות API + הגבלת קצב (שלכם)</text>
+
+          <!-- box 3: provider -->
+          <rect x="90" y="168" width="340" height="38" rx="8" fill="var(--amber-dim)" stroke="var(--amber)"/>
+          <text x="260" y="192" text-anchor="middle" fill="var(--amber)" font-family="'IBM Plex Mono'" font-size="13.5" font-weight="600">Fireworks · Together · DeepInfra</text>
+
+          <!-- box 4: model -->
+          <rect x="150" y="242" width="220" height="46" rx="8" fill="var(--panel)" stroke="var(--amber)" stroke-width="1.4"/>
+          <text x="260" y="270" text-anchor="middle" fill="var(--text)" font-family="Heebo" font-size="14.5" font-weight="500">Qwen3.6 — מתארח מראש</text>
+        </svg>
+        <div class="path-foot"><span>SETUP: MINUTES</span><span>COST: $0.15–3.00 / 1M TOK</span></div>
+      </div>
+
+      <!-- Path B: Self-hosted -->
+      <div class="path-card b">
+        <div class="path-title">מסלול B — אירוח עצמי<span class="ltr" style="font-size:12px;color:var(--muted-dim);font-weight:400;">FIXED MONTHLY GPU</span></div>
+        <p class="path-desc">שוכרים GPU, מריצים vLLM, המודל והנתונים אצלכם.</p>
+        <svg viewBox="0 0 520 340" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowB" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--cyan)"/>
+            </marker>
+          </defs>
+          <line x1="260" y1="58" x2="260" y2="94" stroke="var(--cyan)" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#arrowB)"/>
+          <line x1="260" y1="132" x2="260" y2="168" stroke="var(--cyan)" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#arrowB)"/>
+          <line x1="260" y1="206" x2="260" y2="242" stroke="var(--cyan)" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#arrowB)"/>
+          <line x1="260" y1="280" x2="260" y2="300" stroke="var(--cyan)" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#arrowB)"/>
+
+          <rect x="150" y="10" width="220" height="48" rx="8" fill="var(--panel-alt)" stroke="var(--grid)"/>
+          <text x="260" y="39" text-anchor="middle" fill="var(--text)" font-family="Heebo" font-size="15" font-weight="500">מפתחים / אפליקציה</text>
+
+          <rect x="120" y="94" width="280" height="38" rx="8" fill="var(--panel-alt)" stroke="var(--grid)"/>
+          <text x="260" y="118" text-anchor="middle" fill="var(--muted)" font-family="Heebo" font-size="13.5">שער API עצמי (nginx / Caddy)</text>
+
+          <rect x="130" y="168" width="260" height="38" rx="8" fill="var(--cyan-dim)" stroke="var(--cyan)"/>
+          <text x="260" y="192" text-anchor="middle" fill="var(--cyan)" font-family="'IBM Plex Mono'" font-size="13.5" font-weight="600">vLLM / llama.cpp server</text>
+
+          <rect x="90" y="242" width="340" height="38" rx="8" fill="var(--panel-alt)" stroke="var(--grid)"/>
+          <text x="260" y="266" text-anchor="middle" fill="var(--muted)" font-family="Heebo" font-size="13.5">GPU: RunPod · Vast.ai · Hetzner · DO</text>
+
+          <rect x="150" y="300" width="220" height="0" rx="8" fill="none"/>
+          <text x="260" y="320" text-anchor="middle" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="12">Qwen3.6 weights, local</text>
+        </svg>
+        <div class="path-foot"><span>SETUP: HOURS</span><span>COST: $200–2,100 / MONTH</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VENDOR CARDS ================= -->
+  <section id="vendors">
+    <div class="section-head"><span class="section-tag">02 / VENDORS</span><h2>כל הספקים, לפי קטגוריה</h2></div>
+    <p class="section-sub">שבעה ספקים, שלוש קטגוריות. הצבע הימני של כל כרטיס מסמן את הקטגוריה שלו.</p>
+
+    <div class="cat-block">
+      <div class="cat-label"><span class="cat-note">תשלום לפי טוקן, אין שרת לתחזק</span><span class="cat-name">API מנוהל</span><span class="cat-swatch" style="background:var(--amber)"></span></div>
+      <div class="vendor-grid">
+        <div class="vcard api">
+          <h3>DeepInfra</h3>
+          <p class="vprice">$0.15 <span style="color:var(--muted-dim);font-weight:400;">/ 1M tok</span></p>
+          <p class="vnote">הזול ביותר בקטגוריה עבור <b>Qwen3.6 35B‑A3B</b>. ללא מינימום תשלום.</p>
+        </div>
+        <div class="vcard api">
+          <h3>Fireworks AI</h3>
+          <p class="vprice">$0.90 <span style="color:var(--muted-dim);font-weight:400;">/ 1M tok (flat)</span></p>
+          <p class="vnote">גם גרסת <b>Qwen3.6 Plus</b> ב־$0.50 קלט / $3.00 פלט. כלים ותמיכה ב‑reasoning.</p>
+        </div>
+        <div class="vcard api">
+          <h3>Together AI</h3>
+          <p class="vprice">$0.50 / $3.00 <span style="color:var(--muted-dim);font-weight:400;">קלט/פלט</span></p>
+          <p class="vnote"><b>Qwen3.6 Plus</b>, פלטפורמה רחבה + LoRA fine‑tuning על המשפחה.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cat-block">
+      <div class="cat-label"><span class="cat-note">חיוב שעתי, מכבים כשלא צריך</span><span class="cat-name">שוק GPU</span><span class="cat-swatch" style="background:var(--green)"></span></div>
+      <div class="vendor-grid">
+        <div class="vcard market">
+          <h3>RunPod</h3>
+          <p class="vprice">$0.27 – $2.89 <span class="ltr" style="color:var(--muted-dim);font-weight:400;">/hr</span></p>
+          <p class="vnote">A5000 עד H100. חיוב לשנייה, ללא עלות בזמן השבתה — הכי גמיש להתחלה.</p>
+        </div>
+        <div class="vcard market">
+          <h3>Vast.ai</h3>
+          <p class="vprice">$0.29 – $0.50 <span class="ltr" style="color:var(--muted-dim);font-weight:400;">/hr</span></p>
+          <p class="vnote">שוק פתוח של מארחים פרטיים. המחיר הזול ביותר בשוק, אך אמינות משתנה לפי המארח.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cat-block">
+      <div class="cat-label"><span class="cat-note">מחיר חודשי קבוע, חומרה שמורה</span><span class="cat-name">שרתים ייעודיים</span><span class="cat-swatch" style="background:var(--cyan)"></span></div>
+      <div class="vendor-grid">
+        <div class="vcard dedicated">
+          <h3>Hetzner</h3>
+          <p class="vprice">€889 <span style="color:var(--muted-dim);font-weight:400;">/ חודש</span></p>
+          <p class="vnote">שרת GEX131 עם RTX PRO 6000 Blackwell (96GB). אין ענן — זה שרת פיזי קבוע, תואם GDPR.</p>
+        </div>
+        <div class="vcard dedicated">
+          <h3>DigitalOcean</h3>
+          <p class="vprice">$0.76 – $7.99 <span class="ltr" style="color:var(--muted-dim);font-weight:400;">/hr</span></p>
+          <p class="vnote"><b>אזהרה:</b> חיוב ממשיך גם ב"כיבוי" — רק השמדת ה‑Droplet עוצרת את החיוב.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GPU COST CHART ================= -->
+  <section id="chart-gpu">
+    <div class="section-head"><span class="section-tag">03 / MONTHLY COST</span><h2>עלות חודשית ל‑GPU רץ 24/7</h2></div>
+    <p class="section-sub">כל האפשרויות המתאימות ל‑Qwen3.6 (27B / 35B‑A3B), ממוינות מהזול ליקר — בהרצה רציפה של חודש שלם.</p>
+
+    <div class="chart-card">
+      <div class="legend">
+        <span><i style="background:var(--green)"></i>שוק GPU (RunPod / Vast.ai)</span>
+        <span><i style="background:var(--cyan)"></i>ייעודי (Hetzner / DigitalOcean)</span>
+      </div>
+      <svg viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg">
+        <!-- gridlines -->
+        <g stroke="var(--grid)" stroke-width="1">
+          <line x1="360" y1="10" x2="360" y2="410"/>
+          <line x1="500" y1="10" x2="500" y2="410" stroke-dasharray="3 5"/>
+          <line x1="640" y1="10" x2="640" y2="410" stroke-dasharray="3 5"/>
+          <line x1="780" y1="10" x2="780" y2="410" stroke-dasharray="3 5"/>
+        </g>
+        <text x="360" y="428" text-anchor="middle" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$0</text>
+        <text x="500" y="428" text-anchor="middle" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$700</text>
+        <text x="640" y="428" text-anchor="middle" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$1,400</text>
+        <text x="780" y="428" text-anchor="middle" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$2,100</text>
+
+        <!-- bars: x-scale ~ 0.2 px per $, base x=360, bars grow to the left (RTL feel) -->
+        <!-- RTX A5000 197 -->
+        <text x="345" y="30" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="13">RTX A5000 · RunPod</text>
+        <rect x="321" y="16" width="39" height="20" rx="4" fill="var(--green)"/>
+        <text x="316" y="30" text-anchor="end" fill="var(--green)" font-family="'IBM Plex Mono'" font-size="12" class="ltr">$197</text>
+
+        <!-- RTX 4090 RunPod 248 -->
+        <text x="345" y="72" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="13">RTX 4090 · RunPod</text>
+        <rect x="311" y="58" width="49" height="20" rx="4" fill="var(--green)"/>
+        <text x="306" y="72" text-anchor="end" fill="var(--green)" font-family="'IBM Plex Mono'" font-size="12" class="ltr">$248</text>
+
+        <!-- RTX 4090 Vast.ai 285 -->
+        <text x="345" y="114" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="13">RTX 4090 · Vast.ai</text>
+        <rect x="303" y="100" width="57" height="20" rx="4" fill="var(--green)"/>
+        <text x="298" y="114" text-anchor="end" fill="var(--green)" font-family="'IBM Plex Mono'" font-size="12" class="ltr">$285</text>
+
+        <!-- A6000 RunPod 358 -->
+        <text x="345" y="156" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="13">A6000 · RunPod</text>
+        <rect x="288" y="142" width="72" height="20" rx="4" fill="var(--green)"/>
+        <text x="283" y="156" text-anchor="end" fill="var(--green)" font-family="'IBM Plex Mono'" font-size="12" class="ltr">$358</text>
+
+        <!-- Hetzner GEX131 ~960 -->
+        <text x="345" y="198" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="13">GEX131 · Hetzner</text>
+        <rect x="168" y="184" width="192" height="20" rx="4" fill="var(--cyan)"/>
+        <text x="163" y="198" text-anchor="end" fill="var(--cyan)" font-family="'IBM Plex Mono'" font-size="12" class="ltr">≈$960 (€889)</text>
+
+        <!-- A100 80GB RunPod 1015 -->
+        <text x="345" y="240" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="13">A100 80GB · RunPod</text>
+        <rect x="157" y="226" width="203" height="20" rx="4" fill="var(--green)"/>
+        <text x="152" y="240" text-anchor="end" fill="var(--green)" font-family="'IBM Plex Mono'" font-size="12" class="ltr">$1,015</text>
+
+        <!-- DO H100 reserved from 1394 -->
+        <text x="345" y="282" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="13">H100 (שמור) · DigitalOcean</text>
+        <rect x="82" y="268" width="278" height="20" rx="4" fill="var(--cyan)"/>
+        <text x="77" y="282" text-anchor="end" fill="var(--cyan)" font-family="'IBM Plex Mono'" font-size="12" class="ltr">$1,394+</text>
+
+        <!-- H100 PCIe RunPod 2110 -->
+        <text x="345" y="324" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="13">H100 PCIe · RunPod</text>
+        <rect x="24" y="310" width="336" height="20" rx="4" fill="var(--green)"/>
+        <text x="19" y="324" text-anchor="end" fill="var(--green)" font-family="'IBM Plex Mono'" font-size="12" class="ltr">$2,110</text>
+      </svg>
+      <p class="chart-caption">מבוסס על מחירי on‑demand נכון לאמצע 2026 · Hetzner מוצג במרה משוערת (€1 ≈ $1.08) · שוק ה‑GPU תנודתי, בדקו מחיר עדכני לפני התחייבות.</p>
+    </div>
+  </section>
+
+  <!-- ================= CROSSOVER CHART ================= -->
+  <section id="chart-crossover">
+    <div class="section-head"><span class="section-tag">04 / BREAK‑EVEN</span><h2>מתי אירוח עצמי משתלם יותר מ‑API?</h2></div>
+    <p class="section-sub">ככל שנפח הטוקנים החודשי גדל, עלות ה‑API עולה בקו ישר — בעוד עלות ה‑GPU העצמי נשארת קבועה.</p>
+
+    <div class="chart-card">
+      <div class="legend">
+        <span><i style="background:var(--cyan)"></i>אירוח עצמי · RTX 4090 24/7 (~$250/חודש)</span>
+        <span><i style="background:var(--amber)"></i>API יקר יחסית (~$1.5/1M, בלנד קלט+פלט)</span>
+        <span><i style="background:var(--green)"></i>DeepInfra (~$0.15/1M)</span>
+      </div>
+      <svg viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg">
+        <!-- axes -->
+        <line x1="80" y1="20" x2="80" y2="340" stroke="var(--grid)" stroke-width="1.4"/>
+        <line x1="80" y1="340" x2="880" y2="340" stroke="var(--grid)" stroke-width="1.4"/>
+        <!-- y gridlines -->
+        <g stroke="var(--grid-soft)" stroke-width="1">
+          <line x1="80" y1="270" x2="880" y2="270"/>
+          <line x1="80" y1="200" x2="880" y2="200"/>
+          <line x1="80" y1="130" x2="880" y2="130"/>
+          <line x1="80" y1="60" x2="880" y2="60"/>
+        </g>
+        <text x="70" y="344" text-anchor="end" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$0</text>
+        <text x="70" y="274" text-anchor="end" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$125</text>
+        <text x="70" y="204" text-anchor="end" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$250</text>
+        <text x="70" y="134" text-anchor="end" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$375</text>
+        <text x="70" y="64" text-anchor="end" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$450</text>
+
+        <text x="80" y="362" text-anchor="start" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">0M</text>
+        <text x="380" y="362" text-anchor="middle" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">100M</text>
+        <text x="620" y="362" text-anchor="middle" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">200M</text>
+        <text x="880" y="362" text-anchor="end" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">300M</text>
+        <text x="480" y="378" text-anchor="middle" fill="var(--muted-dim)" font-family="Heebo" font-size="12">טוקנים לחודש (מיליון)</text>
+
+        <!-- self-host flat line -->
+        <line x1="80" y1="190" x2="880" y2="190" stroke="var(--cyan)" stroke-width="2.5"/>
+
+        <!-- deepinfra cheap line, near-flat -->
+        <path d="M80,340 L880,313" stroke="var(--green)" stroke-width="2.5" fill="none"/>
+
+        <!-- pricier API line, crosses self-host around 165M -->
+        <path d="M80,340 L880,70" stroke="var(--amber)" stroke-width="2.5" fill="none"/>
+
+        <!-- breakeven marker -->
+        <circle cx="520" cy="190" r="6" fill="var(--bg)" stroke="var(--amber)" stroke-width="2.5"/>
+        <line x1="520" y1="190" x2="520" y2="340" stroke="var(--amber)" stroke-width="1" stroke-dasharray="3 4"/>
+        <text x="530" y="205" fill="var(--amber)" font-family="'IBM Plex Mono'" font-size="12" font-weight="600">breakeven ≈ 165M/חודש</text>
+      </svg>
+      <p class="chart-caption">תרשים להמחשה, לא מדידה מדויקת. במחיר של DeepInfra, ה‑API כמעט תמיד זול יותר מ‑GPU קבוע. במחירי ה‑API היקרים יותר (Fireworks/Together בלנד), נקודת האיזון מגיעה בסביבות 150–170 מיליון טוקן בחודש.</p>
+    </div>
+  </section>
+
+  <!-- ================= TEAM ASSISTANT BRIEF ================= -->
+  <section id="team-brief">
+    <div class="section-head"><span class="section-tag">05 / NEW USE CASE</span><h2>עוזר פיתוח ל‑5 מפתחים</h2></div>
+    <p class="section-sub">לא עוד "הרצת מודל מקומי" — עכשיו מדובר בעוזר שקורא קוד מ‑GitHub, כותב בדיקות Cucumber בעברית, ועושה code review על חמישה סטאקים שונים, כולל COBOL/AS400 הוותיק.</p>
+    <div class="vendor-grid">
+      <div class="vcard dedicated"><h3 style="font-size:15px;">5 סטאקים</h3><p class="vnote">Node · .NET 4.6 · .NET Core (C# חדש) · <b>COBOL / AS400</b> · Rails</p></div>
+      <div class="vcard api"><h3 style="font-size:15px;">פלט</h3><p class="vnote">בדיקות <b>Cucumber בעברית</b> + הערות code review על כל PR</p></div>
+      <div class="vcard market"><h3 style="font-size:15px;">זמן ריצה</h3><p class="vnote">9 שעות ביום, ימים א׳–ה׳ · <span class="ltr">≈195 שעות/חודש</span></p></div>
+      <div class="vcard dedicated"><h3 style="font-size:15px;">חיבור</h3><p class="vnote">קריאה וכתיבה ל‑GitHub (כולל Enterprise Server אם רלוונטי)</p></div>
+    </div>
+  </section>
+
+  <!-- ================= GITHUB WIRING DIAGRAM ================= -->
+  <section id="github-wiring">
+    <div class="section-head"><span class="section-tag">06 / WIRING</span><h2>איך זה מתחבר ל‑GitHub</h2></div>
+    <p class="section-sub">אותה שרשרת עובדת מול כל אחד משלושת הפתרונות למטה — רק ה‑LLM בקצה מתחלף.</p>
+    <div class="chart-card">
+      <svg viewBox="0 0 700 560" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowW" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--cyan)"/>
+          </marker>
+        </defs>
+        <g stroke="var(--cyan)" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#arrowW)">
+          <line x1="350" y1="66" x2="350" y2="100"/>
+          <line x1="350" y1="150" x2="350" y2="184"/>
+          <line x1="350" y1="234" x2="350" y2="268"/>
+          <line x1="350" y1="318" x2="350" y2="352"/>
+          <line x1="350" y1="402" x2="350" y2="436"/>
+        </g>
+
+        <rect x="190" y="10" width="320" height="56" rx="9" fill="var(--panel-alt)" stroke="var(--grid)"/>
+        <text x="350" y="34" text-anchor="middle" fill="var(--text)" font-family="Heebo" font-weight="500" font-size="15">5 מפתחים</text>
+        <text x="350" y="54" text-anchor="middle" fill="var(--muted)" font-family="Heebo" font-size="12.5">פותחים PR / דוחפים קוד</text>
+
+        <rect x="160" y="100" width="380" height="50" rx="9" fill="var(--panel-alt)" stroke="var(--grid)"/>
+        <text x="350" y="130" text-anchor="middle" fill="var(--text)" font-family="'IBM Plex Mono'" font-size="14" font-weight="500">GitHub / GitHub Enterprise Server</text>
+
+        <rect x="140" y="184" width="420" height="50" rx="9" fill="var(--cyan-dim)" stroke="var(--cyan)"/>
+        <text x="350" y="214" text-anchor="middle" fill="var(--cyan)" font-family="'IBM Plex Mono'" font-size="14" font-weight="600">GitHub MCP Server (רשמי, חינמי)</text>
+
+        <rect x="170" y="268" width="360" height="50" rx="9" fill="var(--panel-alt)" stroke="var(--grid)"/>
+        <text x="350" y="298" text-anchor="middle" fill="var(--text)" font-family="Heebo" font-size="14">סוכן: Claude Code · Cline · GitHub Action</text>
+
+        <rect x="190" y="352" width="320" height="50" rx="9" fill="var(--amber-dim)" stroke="var(--amber)"/>
+        <text x="350" y="382" text-anchor="middle" fill="var(--amber)" font-family="'IBM Plex Mono'" font-size="14" font-weight="600">LLM — פתרון 1 / 2 / 3 למטה</text>
+
+        <rect x="130" y="436" width="440" height="70" rx="9" fill="var(--panel)" stroke="var(--grid)" stroke-width="1.4"/>
+        <text x="350" y="464" text-anchor="middle" fill="var(--text)" font-family="Heebo" font-size="14" font-weight="500">הערות code review על ה‑PR</text>
+        <text x="350" y="486" text-anchor="middle" fill="var(--text)" font-family="Heebo" font-size="14" font-weight="500">קבצי .feature — Cucumber בעברית</text>
+      </svg>
+      <p class="chart-caption">אם קוד ה‑COBOL/AS400 לא יושב היום ב‑Git אלא ישירות במערכת — צריך קודם לשקף אותו לריפו, אחרת ה‑MCP הזה לא "רואה" אותו.</p>
+    </div>
+  </section>
+
+  <!-- ================= THREE SOLUTIONS COST CHART ================= -->
+  <section id="chart-solutions">
+    <div class="section-head"><span class="section-tag">07 / THREE SOLUTIONS</span><h2>עלות חודשית — שלושה פתרונות</h2></div>
+    <p class="section-sub">לצוות של 5 מפתחים, כולל אוטומציה של code review וייצור בדיקות על כל PR.</p>
+    <div class="chart-card">
+      <div class="legend">
+        <span><i style="background:var(--amber)"></i>מנוהל פרימיום (Claude Code)</span>
+        <span><i style="background:var(--green)"></i>מנוהל שווה‑ערך (GLM‑5.2)</span>
+        <span><i style="background:var(--cyan)"></i>אירוח עצמי מתוזמן</span>
+      </div>
+      <svg viewBox="0 0 900 240" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="var(--grid)" stroke-width="1">
+          <line x1="360" y1="10" x2="360" y2="210"/>
+          <line x1="180" y1="10" x2="180" y2="210" stroke-dasharray="3 5"/>
+        </g>
+        <text x="360" y="228" text-anchor="middle" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$0</text>
+        <text x="180" y="228" text-anchor="middle" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$350</text>
+        <text x="20" y="228" text-anchor="middle" fill="var(--muted-dim)" font-family="'IBM Plex Mono'" font-size="11">$700</text>
+
+        <text x="345" y="42" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="14">1 · Claude Code + Opus לביקורת COBOL</text>
+        <rect x="20" y="26" width="340" height="24" rx="5" fill="var(--amber)"/>
+        <text x="14" y="42" text-anchor="end" fill="var(--amber)" font-family="'IBM Plex Mono'" font-size="13" font-weight="600" class="ltr">≈$675/mo</text>
+
+        <text x="345" y="112" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="14">2 · GLM‑5.2 — GLM Coding Plan (Max)</text>
+        <rect x="268" y="96" width="92" height="24" rx="5" fill="var(--green)"/>
+        <text x="262" y="112" text-anchor="end" fill="var(--green)" font-family="'IBM Plex Mono'" font-size="13" font-weight="600" class="ltr">≈$180/mo</text>
+
+        <text x="345" y="182" text-anchor="end" fill="var(--text)" font-family="Heebo" font-size="14">3 · מודל פתוח, GPU מתוזמן 9h/יום</text>
+        <rect x="296" y="166" width="64" height="24" rx="5" fill="var(--cyan)"/>
+        <text x="290" y="182" text-anchor="end" fill="var(--cyan)" font-family="'IBM Plex Mono'" font-size="13" font-weight="600" class="ltr">≈$125/mo</text>
+      </svg>
+      <p class="chart-caption">פתרון 1: 5 מושבי Team Premium + חיוב API לאוטומציה · פתרון 2: מנוי GLM Coding Plan (Max, לצוות) · פתרון 3: RunPod A6000 בתשלום שעתי, מופעל רק בחלון העבודה.</p>
+    </div>
+  </section>
+
+  <!-- ================= SOLUTIONS COMPARISON TABLE ================= -->
+  <section id="reco">
+    <div class="section-head"><span class="section-tag">08 / RECOMMENDATION</span><h2>השוואה מלאה ומה לבחור</h2></div>
+    <table class="reco">
+      <thead>
+        <tr><th>קריטריון</th><th>1 · Claude Code</th><th>2 · GLM‑5.2</th><th>3 · אירוח עצמי</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>מודל</td><td>Sonnet 4.6/5 + Opus 4.8</td><td>GLM‑5.2 (744B MoE)</td><td>Qwen3‑Coder‑30B / Qwen3.6‑27B</td></tr>
+        <tr><td>תשתית</td><td>ללא — API בלבד</td><td>ללא — API בלבד</td><td>GPU שכור, מופעל 9h/יום</td></tr>
+        <tr><td>איכות COBOL/AS400</td><td>הכי חזקה</td><td>קרובה, מעט מתחתיה</td><td>חלשה יחסית — כדאי RAG על הקוד</td></tr>
+        <tr><td>עלות חודשית</td><td class="pick">≈$650–700</td><td class="pick">≈$160–200</td><td class="pick">≈$100–150</td></tr>
+        <tr><td>מתאים ל‑</td><td>קוד legacy קריטי, זמן צוות יקר</td><td>רוב הצוותים — האיזון הכי טוב</td><td>דרישת אבטחת מידע / ללא יציאת קוד</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    מחירים נכון לאמצע 2026, לפי מקורות ציבוריים של הספקים · שוק ה‑GPU ומחירי המנויים תנודתיים — בדקו מחיר עדכני לפני התחייבות · <span class="ltr-inline">Qwen3.6 · GLM-5.2 · Claude Code</span>
+  </footer>
+
+</div>
+</body>
+</html>
