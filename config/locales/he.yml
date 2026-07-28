@@ -53,6 +53,42 @@ he:
       default: "%d/%m/%Y %H:%M"
       short: "%d %b %H:%M"
       long: "%d ב%B %Y %H:%M"
+  datetime:
+    distance_in_words:
+      half_a_minute: "חצי דקה"
+      less_than_x_seconds:
+        one: "פחות משנייה"
+        other: "פחות מ-%{count} שניות"
+      x_seconds:
+        one: "שנייה אחת"
+        other: "%{count} שניות"
+      less_than_x_minutes:
+        one: "פחות מדקה"
+        other: "פחות מ-%{count} דקות"
+      x_minutes:
+        one: "דקה"
+        other: "%{count} דקות"
+      about_x_hours:
+        one: "כשעה"
+        other: "כ-%{count} שעות"
+      x_days:
+        one: "יום"
+        other: "%{count} ימים"
+      about_x_months:
+        one: "כחודש"
+        other: "כ-%{count} חודשים"
+      x_months:
+        one: "חודש"
+        other: "%{count} חודשים"
+      about_x_years:
+        one: "כשנה"
+        other: "כ-%{count} שנים"
+      over_x_years:
+        one: "יותר משנה"
+        other: "יותר מ-%{count} שנים"
+      almost_x_years:
+        one: "כמעט שנה"
+        other: "כמעט %{count} שנים"
   app_name: "DevTeam Hub"
   nav:
     today: "היום"

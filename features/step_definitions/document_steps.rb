@@ -14,6 +14,10 @@ When("אני מבקר בעמוד המסמכים של הפרויקט {string}") d
   visit project_documents_path(project)
 end
 
+When("אני מבקר בעמוד כל המסמכים") do
+  visit all_documents_path
+end
+
 Then("הקישור למסמך {string} אמור להיפתח בכרטיסייה חדשה") do |title|
   doc  = Document.find_by!(title: title)
   link = find("a[href='#{document_path(doc)}']", match: :first)
