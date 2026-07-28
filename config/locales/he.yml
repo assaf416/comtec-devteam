@@ -246,6 +246,18 @@ he:
       other: "אחר"
   sprints:
     new_sprint: "ספרינט חדש"
+  chat:
+    title: "ערוצים"
+    create: "צור ערוץ"
+    no_channels: "אין עדיין ערוצים. צור ערוץ כדי להתחיל לשתף פעולה."
+    col_name: "שם"
+    col_project: "פרויקט"
+    col_actions: "פעולות"
+    pin: "נעץ"
+    unpin: "בטל נעיצה"
+    sidebar_title: "צ'אטים"
+    sidebar_empty: "אין עדיין צ'אטים נעוצים"
+    sidebar_add: "+ הוספה"
   documents:
     types:
       spec: "מפרט"

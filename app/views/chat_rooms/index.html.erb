@@ -1,7 +1,37 @@
-<% content_for :page_title, "Channels" %>
+<% content_for :page_title, t("chat.title") %>
 
-<div class="p-5">
-  <h1 class="fw-bold">Channels</h1>
-  <p class="subfw-bold">No channels yet. Create one to start collaborating.</p>
-  <%= link_to "Create a channel", new_chat_room_path, class: "btn btn-primary" %>
+<div class="p-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="fw-bold mb-0"><%= t("chat.title") %></h1>
+    <%= link_to t("chat.create"), new_chat_room_path, class: "btn btn-primary btn-sm" %>
+  </div>
+
+  <% if @chat_rooms.empty? %>
+    <p class="text-muted"><%= t("chat.no_channels") %></p>
+  <% else %>
+    <table class="table table-hover w-100 align-middle">
+      <thead>
+        <tr>
+          <th><%= t("chat.col_name") %></th>
+          <th><%= t("chat.col_project") %></th>
+          <th class="text-end"><%= t("chat.col_actions") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @chat_rooms.each do |room| %>
+          <tr>
+            <td><%= link_to "# #{room.name}", chat_room_path(room) %></td>
+            <td><%= room.project&.name || "—" %></td>
+            <td class="text-end">
+              <% if @pinned_ids.include?(room.id) %>
+                <%= button_to t("chat.unpin"), unpin_chat_room_path(room), method: :delete, class: "btn btn-sm btn-outline-secondary", form_class: "d-inline" %>
+              <% else %>
+                <%= button_to t("chat.pin"), pin_chat_room_path(room), method: :post, class: "btn btn-sm btn-outline-primary", form_class: "d-inline" %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
 </div>

@@ -1,14 +1,9 @@
 class ChatRoomsController < ApplicationController
-  before_action :set_chat_room, only: %i[show]
+  before_action :set_chat_room, only: %i[show pin unpin]
 
   def index
-    # Redirect to the first active room, or prompt to create one
-    room = ChatRoom.active.order(:room_type, :name).first
-    if room
-      redirect_to chat_room_path(room)
-    else
-      @chat_rooms = []
-    end
+    @chat_rooms   = ChatRoom.active.order(:room_type, :name)
+    @pinned_ids   = current_user.chat_room_pins.pluck(:chat_room_id)
   end
 
   def show
@@ -17,6 +12,16 @@ class ChatRoomsController < ApplicationController
                            .recent
                            .last(100)
     @message = ChatMessage.new
+  end
+
+  def pin
+    current_user.chat_room_pins.find_or_create_by!(chat_room: @chat_room) { |p| p.pinned_at = Time.current }
+    redirect_back fallback_location: chat_rooms_path
+  end
+
+  def unpin
+    current_user.chat_room_pins.where(chat_room: @chat_room).destroy_all
+    redirect_back fallback_location: chat_rooms_path
   end
 
   def new

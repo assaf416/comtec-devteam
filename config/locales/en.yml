@@ -185,6 +185,18 @@ en:
       other: "Other"
   sprints:
     new_sprint: "New Sprint"
+  chat:
+    title: "Channels"
+    create: "Create a channel"
+    no_channels: "No channels yet. Create one to start collaborating."
+    col_name: "Name"
+    col_project: "Project"
+    col_actions: "Actions"
+    pin: "Pin"
+    unpin: "Unpin"
+    sidebar_title: "Chats"
+    sidebar_empty: "No pinned chats yet"
+    sidebar_add: "+ Add"
   documents:
     types:
       spec: "Specification"

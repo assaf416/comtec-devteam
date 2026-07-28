@@ -253,6 +253,10 @@ Rails.application.routes.draw do
 
   resources :chat_rooms, only: %i[index show new create] do
     resources :chat_messages, only: %i[create]
+    member do
+      post   :pin
+      delete :unpin
+    end
   end
 
   # Ticket comments — derived from ticket (project resolved via ticket.project)
