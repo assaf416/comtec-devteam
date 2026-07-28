@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_14_110629) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_28_091711) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -539,6 +539,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_110629) do
     t.index ["ci_run_id"], name: "index_test_results_on_ci_run_id"
   end
 
+  create_table "test_studio_runs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "feature_path", null: false
+    t.datetime "finished_at"
+    t.text "output"
+    t.datetime "started_at"
+    t.integer "status", default: 0, null: false
+    t.integer "triggered_by_id"
+    t.datetime "updated_at", null: false
+    t.index ["feature_path"], name: "index_test_studio_runs_on_feature_path"
+    t.index ["triggered_by_id"], name: "index_test_studio_runs_on_triggered_by_id"
+  end
+
   create_table "ticket_watchers", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "ticket_id", null: false
@@ -695,6 +708,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_110629) do
   add_foreign_key "taggings", "tags"
   add_foreign_key "tasks", "tickets"
   add_foreign_key "test_results", "ci_runs"
+  add_foreign_key "test_studio_runs", "users", column: "triggered_by_id"
   add_foreign_key "ticket_watchers", "tickets"
   add_foreign_key "ticket_watchers", "users"
   add_foreign_key "tickets", "milestones"

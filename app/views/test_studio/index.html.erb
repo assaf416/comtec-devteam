@@ -1,0 +1,58 @@
+<% content_for :title, t("test_studio.title") %>
+
+<%= turbo_stream_from :test_studio %>
+
+<div class="card p-3 mb-3">
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <h1 class="fw-bold fs-4 mb-0">🧪 <%= t("test_studio.title") %></h1>
+    <div class="d-flex gap-2 align-items-center">
+      <%= form_with url: test_studio_path, method: :get, id: "test-studio-filter-form" do %>
+        <%= select_tag :group, options_for_select([[ t("test_studio.filter_all"), "" ]] + @groups.map { |g| [ g, g ] }, @selected_group),
+              class: "form-select form-select-sm", onchange: "this.form.requestSubmit()" %>
+      <% end %>
+      <%= button_to t("test_studio.run_all"), run_all_test_studio_path(group: @selected_group), method: :post, class: "btn btn-primary btn-sm" %>
+      <%= form_with url: run_selected_test_studio_path, method: :post, id: "test-studio-select-form" do %>
+        <%= submit_tag t("test_studio.run_selected"), class: "btn btn-outline-primary btn-sm" %>
+      <% end %>
+    </div>
+  </div>
+
+  <table class="table table-hover w-100 align-middle mb-0">
+    <thead>
+      <tr>
+        <th style="width: 2rem"></th>
+        <th><%= t("test_studio.col_feature") %></th>
+        <th><%= t("test_studio.col_project") %></th>
+        <th><%= t("test_studio.col_language") %></th>
+        <th><%= t("test_studio.col_last_run") %></th>
+        <th class="text-end"><%= t("test_studio.col_actions") %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @entries.each do |entry| %>
+        <% path = entry[:path] %>
+        <% run = @runs_by_path[path] %>
+        <tr>
+          <td><%= check_box_tag "paths[]", path, false, form: "test-studio-select-form" %></td>
+          <td><code><%= path %></code></td>
+          <td><span class="badge bg-light text-dark border"><%= entry[:group] %></span></td>
+          <td>
+            <% if entry[:hebrew] %>
+              <span class="badge bg-light text-dark border"><%= t("test_studio.lang_hebrew") %></span>
+            <% else %>
+              <span class="badge bg-light text-dark border"><%= t("test_studio.lang_english") %></span>
+            <% end %>
+          </td>
+          <td><%= render "test_studio/run_badge", run: run, path: path %></td>
+          <td class="text-end">
+            <div class="d-flex gap-1 justify-content-end">
+              <%= link_to t("test_studio.edit"), edit_test_studio_test_path(path: path), class: "btn btn-sm btn-outline-secondary" %>
+              <%= button_to t("test_studio.run"), run_test_studio_test_path(path: path), method: :post,
+                    class: "btn btn-sm btn-outline-primary", form_class: "d-inline" %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

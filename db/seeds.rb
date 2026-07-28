@@ -1711,4 +1711,48 @@ Ticket.where(kind: :story).order(:id).limit(4).each do |ticket|
 end
 puts "  ✓ sample attachments added to #{attached_count} tickets"
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Test Studio — fake Cucumber run history so the results/monitor view isn't
+# empty on a fresh install (the .feature files themselves are real app code,
+# not seed data — see features/*.feature)
+# ──────────────────────────────────────────────────────────────────────────────
+TestStudioRun.skip_broadcasts = true
+
+FAKE_RUN_OUTPUTS = {
+  passed: "3 scenarios (3 passed)\n11 steps (11 passed)\n",
+  failed: "3 scenarios (1 failed, 2 passed)\n11 steps (1 failed, 1 skipped, 9 passed)\n" \
+          "Failures:\n  1) Scenario failed here (RSpec::Expectations::ExpectationNotMetError)\n",
+  error:  "cucumber: command not found\n"
+}.freeze
+
+feature_paths = Dir.glob(Rails.root.join("features/**/*.feature"))
+                    .map { |f| Pathname.new(f).relative_path_from(Rails.root.join("features")).to_s }
+seed_users = User.order(:id).to_a
+
+if TestStudioRun.count.zero? && feature_paths.any? && seed_users.any?
+  run_count = 0
+  feature_paths.each_with_index do |path, idx|
+    # 1–3 historical runs per feature, most recent last, weighted towards passing.
+    (1 + idx % 3).times do |n|
+      status = [ :passed, :passed, :passed, :failed, :error ][(idx + n) % 5]
+      finished = (feature_paths.size - idx + n).hours.ago
+
+      TestStudioRun.create!(
+        feature_path: path,
+        status: status,
+        output: FAKE_RUN_OUTPUTS[status],
+        started_at: finished - 4.seconds,
+        finished_at: finished,
+        triggered_by: seed_users[(idx + n) % seed_users.size]
+      )
+      run_count += 1
+    end
+  end
+  puts "  ✓ #{run_count} fake Test Studio runs seeded across #{feature_paths.size} feature files"
+else
+  puts "  ↷ Test Studio runs already seeded, skipping"
+end
+
+TestStudioRun.skip_broadcasts = false
+
 puts "✅ Seed complete!"

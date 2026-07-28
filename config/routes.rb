@@ -59,6 +59,14 @@ Rails.application.routes.draw do
   post "cucumber_tests/review", to: "cucumber_tests#review", as: :review_cucumber_test
   post "cucumber_tests/deploy", to: "cucumber_tests#deploy", as: :deploy_cucumber_test
 
+  # ── Test Studio (browse/edit/run this app's own Hebrew Cucumber suite) ──────
+  get   "test_studio",              to: "test_studio#index",        as: :test_studio
+  get   "test_studio/edit",         to: "test_studio#edit",         as: :edit_test_studio_test
+  patch "test_studio/update",       to: "test_studio#update",       as: :update_test_studio_test
+  post  "test_studio/run",          to: "test_studio#run",          as: :run_test_studio_test
+  post  "test_studio/run_all",      to: "test_studio#run_all",      as: :run_all_test_studio
+  post  "test_studio/run_selected", to: "test_studio#run_selected", as: :run_selected_test_studio
+
 
   # ── Server / remote-machine monitoring (heartbeats) ─────────────────────────
   get "servers",        to: "servers#index",   as: :servers

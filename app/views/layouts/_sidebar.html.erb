@@ -57,6 +57,11 @@
     <span class="nav-icon">✅</span> <%= t('nav.todos') %>
   <% end %>
 
+  <%= link_to test_studio_path,
+        class: "sidebar-nav-item #{controller_name == 'test_studio' ? 'is-active' : ''}" do %>
+    <span class="nav-icon">🧪</span> <%= t('nav.test_studio') %>
+  <% end %>
+
   <%# Project chat + AI Agent — only inside a project %>
   <% if current_project %>
     <%= link_to project_chat_path(current_project),
