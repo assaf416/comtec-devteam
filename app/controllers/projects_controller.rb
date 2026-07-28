@@ -13,7 +13,6 @@ class ProjectsController < ApplicationController
                          .order(created_at: :desc)
                          .limit(8)
     @recent_ci_runs     = @project.ci_runs.includes(:triggered_by).order(created_at: :desc).limit(5)
-    @recent_deployments = @project.deployments.includes(:deployed_by).order(created_at: :desc).limit(5)
     @open_pull_requests = @project.pull_requests.where(status: :open).order(updated_at: :desc).limit(5)
     @recent_documents   = @project.documents.order(updated_at: :desc).limit(6)
 
@@ -31,6 +30,8 @@ class ProjectsController < ApplicationController
     else                         not_closed
     end
     @panel_tickets = scope.includes(:assignee).order(updated_at: :desc).limit(15)
+
+    build_project_metrics
   end
 
   def new
@@ -165,6 +166,35 @@ class ProjectsController < ApplicationController
   end
 
   private
+
+  # Metrics panel on the project show page: hours worked, closed tickets,
+  # avg dev time, an estimated code-coverage figure (the app has no real
+  # coverage integration, so this is a deterministic simulated value — same
+  # pattern as ReportsController#security's simulated findings), and a
+  # week-to-date opened-vs-closed ticket trend.
+  def build_project_metrics
+    @hours_by_member = @project.time_logs.joins(:user).group("users.name").sum(:hours)
+
+    closed_tickets = @project.tickets.where(status: [ :done, :closed ])
+    @closed_tickets_count = closed_tickets.count
+
+    dev_hours = closed_tickets.filter_map(&:actual_hours_in_hours)
+    @avg_dev_hours = dev_hours.any? ? (dev_hours.sum / dev_hours.size).round(1) : nil
+
+    @estimated_code_coverage = 65 + (Digest::MD5.hexdigest(@project.id.to_s).to_i(16) % 30)
+
+    week_start = Date.current.beginning_of_week
+    week_days  = (week_start..Date.current.end_of_week)
+    opened_by_day = @project.tickets.where(created_at: week_start.beginning_of_day..)
+                             .group("date(created_at)").count
+    closed_by_day = closed_tickets.where(updated_at: week_start.beginning_of_day..)
+                                  .group("date(updated_at)").count
+
+    @tickets_this_week = week_days.map do |day|
+      label = I18n.t("date.abbr_day_names")[day.wday]
+      [ label, opened_by_day[day.to_s] || 0, closed_by_day[day.to_s] || 0 ]
+    end
+  end
 
   # Summarise estimated-vs-actual hours for a set of completed tickets.
   def estimation_summary(rows)

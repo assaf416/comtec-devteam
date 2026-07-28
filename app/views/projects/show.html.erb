@@ -8,6 +8,9 @@
   .avatar-stack .avatar-stack-more { width: 34px; height: 34px; border-radius: 50%;
     background: #e2e8f0; color: #475569; display: flex; align-items: center;
     justify-content: center; font-weight: 700; font-size: .72rem; }
+
+  /* Make status badges stand out more on this page. */
+  .badge { font-size: .8rem; padding: .45em .7em; letter-spacing: .02em; }
 </style>
 
 <%= render "shared/context_bar", type: "Project", icon: "📦", color: "primary",
@@ -33,7 +36,7 @@
       <% end %>
     </div>
   </div>
-  <div class="level-right">
+  <div class="level-right d-flex flex-column align-items-stretch gap-1">
     <%= link_to "💬 Chat with AI", project_ai_chats_path(@project), class: "btn btn-primary btn-sm" %>
     <%= link_to "📊 Dashboard", dashboard_project_path(@project), class: "btn btn-primary btn-sm is-light" %>
     <%= link_to "🧪 #{t('common.actions.create_test')}", edit_cucumber_test_path(project_id: @project.id), class: "btn btn-secondary btn-sm is-light" %>
@@ -70,6 +73,54 @@
     <div class="card p-3 mb-3 stat-card">
       <div class="stat-number"><%= @project.pull_requests.where(status: :open).count %></div>
       <div class="stat-label">Open Pull Requests</div>
+    </div>
+  </div>
+</div>
+
+<%# ─── Project metrics ────────────────────────────────────────────────── %>
+<div class="card p-3 mb-3">
+  <h3 class="fw-bold fs-5 mb-3">📈 <%= t("projects.metrics.title") %></h3>
+
+  <div class="row mb-3">
+    <div class="col-4">
+      <div class="card p-3 stat-card">
+        <div class="stat-number"><%= @closed_tickets_count %></div>
+        <div class="stat-label"><%= t("projects.metrics.closed_tickets") %></div>
+      </div>
+    </div>
+    <div class="col-4">
+      <div class="card p-3 stat-card">
+        <div class="stat-number">
+          <%= @avg_dev_hours ? "#{@avg_dev_hours}#{t('projects.metrics.hours_suffix')}" : "—" %>
+        </div>
+        <div class="stat-label"><%= t("projects.metrics.avg_dev_time") %></div>
+      </div>
+    </div>
+    <div class="col-4">
+      <div class="card p-3 stat-card">
+        <div class="stat-number"><%= @estimated_code_coverage %>%</div>
+        <div class="stat-label" title="<%= t('projects.metrics.code_coverage_note') %>">
+          <%= t("projects.metrics.code_coverage") %> ⓘ
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-6">
+      <p class="fs-7 fw-bold text-muted mb-2"><%= t("projects.metrics.hours_by_member") %></p>
+      <% if @hours_by_member.any? %>
+        <%= column_chart @hours_by_member, suffix: t("projects.metrics.hours_suffix"), height: "260px" %>
+      <% else %>
+        <p class="text-muted fs-7"><%= t("time_logs.no_entries") %></p>
+      <% end %>
+    </div>
+    <div class="col-6">
+      <p class="fs-7 fw-bold text-muted mb-2"><%= t("projects.metrics.week_progress") %></p>
+      <%= column_chart [
+            { name: t("projects.metrics.opened"), data: @tickets_this_week.map { |day, opened, _| [day, opened] } },
+            { name: t("projects.metrics.closed"), data: @tickets_this_week.map { |day, _, closed| [day, closed] } }
+          ], height: "260px" %>
     </div>
   </div>
 </div>
@@ -217,42 +268,6 @@
     </table>
   <% else %>
     <p class="text-muted fs-7 mb-0">No CI runs yet.</p>
-  <% end %>
-</div>
-
-<%# ─── Deployments / Versions ─────────────────────────────────────────── %>
-<div class="card p-3 mb-3">
-  <div class="level mb-3">
-    <div class="level-left"><h3 class="fw-bold fs-5 mb-0">🚀 <%= t("projects.sections.deployments") %></h3></div>
-    <div class="level-right">
-      <%= link_to "View All →", project_deployments_path(@project), class: "fs-7 text-muted" %>
-    </div>
-  </div>
-  <% if @recent_deployments.any? %>
-    <table class="table table-hover w-100 fs-7 mb-0">
-      <thead>
-        <tr>
-          <th>Version</th>
-          <th>Environment</th>
-          <th>Status</th>
-          <th>Deployed By</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @recent_deployments.each do |deploy| %>
-          <tr>
-            <td><span class="badge bg-light text-dark"><%= deploy.version %></span></td>
-            <td><span class="deploy-env-badge <%= deploy.environment.to_s.downcase.gsub(/[^a-z]/, '') %>"><%= deploy.environment %></span></td>
-            <td><%= status_tag(deploy.status) %></td>
-            <td><%= deploy.deployed_by&.display_name || '—' %></td>
-            <td><%= deploy.created_at.strftime('%d/%m/%Y') %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <p class="text-muted fs-7 mb-0">No deployments yet.</p>
   <% end %>
 </div>
 
