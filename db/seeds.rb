@@ -388,10 +388,10 @@ tickets_data = [
     project:               projects[0],
     kind:           :story,
     level:                 :complex,
-    title:                 "Add PDF export for print queue jobs",
-    description:           "Allow operators to export the current print queue as a PDF report " \
-                           "including job ID, document name, page count, and submission time. " \
-                           "The export should support filtering by printer and date range.",
+    title:                 "הוספת ייצוא PDF לעבודות בתור ההדפסה",
+    description:           "לאפשר למפעילים לייצא את תור ההדפסה הנוכחי כדוח PDF הכולל מזהה עבודה, " \
+                           "שם מסמך, מספר עמודים וזמן שליחה. הייצוא צריך לתמוך בסינון " \
+                           "לפי מדפסת וטווח תאריכים.",
     status:                :in_progress,
     priority:              :medium,
     owner:                 team_lead,
@@ -405,10 +405,10 @@ tickets_data = [
     project:               projects[0],
     kind:           :story,
     level:                 :moderate,
-    title:                 "Support duplex printing profiles per printer",
-    description:           "Add per-printer duplex profile configuration. Operators should be " \
-                           "able to define default duplex mode (none, long-edge, short-edge) " \
-                           "per printer. Profile must persist across server restarts.",
+    title:                 "תמיכה בפרופילי הדפסה דו-צדדית לכל מדפסת",
+    description:           "הוספת הגדרת פרופיל הדפסה דו-צדדית (duplex) לכל מדפסת. מפעילים צריכים " \
+                           "להיות מסוגלים להגדיר מצב דו-צדדי ברירת מחדל (ללא, קצה ארוך, קצה קצר) " \
+                           "לכל מדפסת. הפרופיל חייב להישמר גם לאחר הפעלה מחדש של השרת.",
     status:                :backlog,
     priority:              :low,
     owner:                 pm_user,
@@ -422,12 +422,12 @@ tickets_data = [
     project:               projects[0],
     kind:           :bug_fix,
     level:                 :complex,
-    how_to_reproduce:      "1. Connect a printer and start a multi-page print job\n2. Disconnect the printer's network cable mid-job\n3. Observe: job stays in 'Sending' status indefinitely\n4. Expected: job marked 'Failed' after retry timeout with configurable backoff",
-    title:                 "Print jobs stuck in queue after network timeout",
-    description:           "When the network connection to a printer is lost mid-job, the print " \
-                           "spooler does not recover — jobs remain in the queue with status " \
-                           "'Sending' indefinitely. Expected: auto-retry with configurable " \
-                           "backoff, job marked 'Failed' after max retries.",
+    how_to_reproduce:      "1. חבר מדפסת והתחל עבודת הדפסה מרובת עמודים\n2. נתק את כבל הרשת של המדפסת באמצע העבודה\n3. תצפית: העבודה נשארת בסטטוס 'נשלח' ללא הגבלת זמן\n4. ציפייה: העבודה תסומן כ'נכשל' לאחר timeout של ניסיון חוזר עם backoff הניתן להגדרה",
+    title:                 "עבודות הדפסה נתקעות בתור לאחר timeout ברשת",
+    description:           "כאשר החיבור לרשת של מדפסת אבד באמצע עבודה, ה-print spooler לא " \
+                           "מתאושש — העבודות נשארות בתור עם סטטוס 'נשלח' ללא הגבלת זמן. " \
+                           "ציפייה: ניסיון חוזר אוטומטי עם backoff הניתן להגדרה, והעבודה " \
+                           "תסומן כ'נכשל' לאחר מספר מקסימלי של ניסיונות.",
     status:                :open,
     priority:              :critical,
     owner:                 team_lead,
@@ -441,11 +441,11 @@ tickets_data = [
     project:               projects[0],
     kind:           :bug_fix,
     level:                 :simple,
-    how_to_reproduce:      "1. Set Windows locale to he-IL\n2. Open the print queue manager\n3. Add a print job for any document\n4. Observe: paper size defaults to Letter (8.5x11)\n5. Expected: paper size should default to A4 for he-IL locale",
-    title:                 "Wrong paper size selected for Hebrew locale",
-    description:           "When the system locale is set to he-IL, the default paper size " \
-                           "falls back to Letter instead of A4. Root cause is likely a missing " \
-                           "locale mapping in PaperSizeHelper.vb.",
+    how_to_reproduce:      "1. הגדר את לוקאל ה-Windows ל-he-IL\n2. פתח את מנהל תור ההדפסה\n3. הוסף עבודת הדפסה לכל מסמך\n4. תצפית: גודל הנייר ברירת המחדל הוא Letter (8.5x11)\n5. ציפייה: גודל הנייר צריך להיות A4 כברירת מחדל עבור לוקאל he-IL",
+    title:                 "גודל נייר שגוי נבחר עבור לוקאל עברי",
+    description:           "כאשר לוקאל המערכת מוגדר ל-he-IL, גודל הנייר ברירת המחדל חוזר ל-Letter " \
+                           "במקום A4. הסיבה השורשית היא ככל הנראה מיפוי לוקאל חסר " \
+                           "ב-PaperSizeHelper.vb.",
     status:                :in_review,
     priority:              :high,
     owner:                 qa_user,
@@ -461,10 +461,10 @@ tickets_data = [
     project:               projects[0],
     kind:           :meta_story,
     level:                 :simple,
-    title:                 "Upgrade .NET runtime from 4.8.0 to 4.8.1",
-    description:           "Update project target framework to .NET 4.8.1. Run full regression " \
-                           "suite after upgrade. Update NuGet dependencies to compatible versions. " \
-                           "Test on Windows Server 2019 and 2022.",
+    title:                 "שדרוג ריצת .NET מגרסה 4.8.0 ל-4.8.1",
+    description:           "עדכון ה-target framework של הפרויקט ל-.NET 4.8.1. הרצת חבילת רגרסיה " \
+                           "מלאה לאחר השדרוג. עדכון תלויות NuGet לגרסאות תואמות. " \
+                           "בדיקה על Windows Server 2019 ו-2022.",
     status:                :done,
     priority:              :medium,
     owner:                 admin,
@@ -480,10 +480,10 @@ tickets_data = [
     project:               projects[1],
     kind:           :story,
     level:                 :complex,
-    title:                 "Implement RabbitMQ dead-letter exchange for failed message retry",
-    description:           "Configure a dead-letter exchange (DLX) on the order-processing queue. " \
-                           "Messages that fail after 3 attempts should be routed to a DLX with a " \
-                           "30-minute TTL before re-queuing. Add Serilog events for each DLX routing.",
+    title:                 "מימוש dead-letter exchange ב-RabbitMQ לניסיון חוזר של הודעות שנכשלו",
+    description:           "הגדרת dead-letter exchange (DLX) על תור עיבוד ההזמנות. הודעות " \
+                           "שנכשלות לאחר 3 ניסיונות יועברו ל-DLX עם TTL של 30 דקות לפני חזרה " \
+                           "לתור. הוספת אירועי Serilog לכל ניתוב ב-DLX.",
     status:                :in_progress,
     priority:              :high,
     owner:                 team_lead,
@@ -497,11 +497,11 @@ tickets_data = [
     project:               projects[1],
     kind:           :story,
     level:                 :simple,
-    title:                 "Add Serilog structured logging to all MVC controllers",
-    description:           "Replace Console.WriteLine / Debug.WriteLine calls with Serilog " \
-                           "ILogger<T> structured logging. Include request correlation ID " \
-                           "(from X-Correlation-ID header) in every log entry. Configure " \
-                           "Serilog sinks: File (rolling daily) + Application Insights.",
+    title:                 "הוספת לוגים מובנים עם Serilog לכל בקרי ה-MVC",
+    description:           "החלפת קריאות Console.WriteLine / Debug.WriteLine בלוגים מובנים עם " \
+                           "Serilog ILogger<T>. הכללת מזהה קורלציה לבקשה (מכותרת " \
+                           "X-Correlation-ID) בכל רשומת לוג. הגדרת Serilog sinks: קובץ " \
+                           "(מתגלגל יומית) + Application Insights.",
     status:                :done,
     priority:              :medium,
     owner:                 pm_user,
@@ -515,11 +515,11 @@ tickets_data = [
     project:               projects[1],
     kind:           :story,
     level:                 :expert,
-    title:                 "Migrate data layer to EntityFrameworkCore 9 code-first",
-    description:           "Replace the legacy LINQ-to-SQL layer with EF Core 9 code-first " \
-                           "migrations. Map all existing stored procedures to EF Core raw SQL " \
-                           "calls or equivalent LINQ expressions. Target SQL Server 2022 " \
-                           "compatibility level 160.",
+    title:                 "מיגרציה של שכבת הנתונים ל-EntityFrameworkCore 9 code-first",
+    description:           "החלפת שכבת ה-LINQ-to-SQL הישנה במיגרציות code-first של EF Core 9. " \
+                           "מיפוי כל הפרוצדורות המאוחסנות הקיימות לקריאות SQL גולמי ב-EF Core " \
+                           "או ביטויי LINQ שקולים. יעד: תאימות ל-SQL Server 2022 ברמת " \
+                           "תאימות 160.",
     status:                :backlog,
     priority:              :high,
     owner:                 admin,
@@ -532,12 +532,12 @@ tickets_data = [
     project:               projects[1],
     kind:           :bug_fix,
     level:                 :expert,
-    how_to_reproduce:      "1. Run OrderProcessor load test with 60+ concurrent threads\n2. Submit 100 identical order IDs simultaneously\n3. Check the database for duplicate Order records\n4. Observe: same order processed more than once, creating duplicate invoices\n5. Expected: each order processed exactly once (idempotent)",
-    title:                 "Race condition in multi-threaded order processor",
-    description:           "Under high load (>50 concurrent threads) the OrderProcessor " \
-                           "occasionally processes the same order twice, resulting in duplicate " \
-                           "invoices. Suspected cause: missing lock around order-status read-then-" \
-                           "update. Needs a distributed lock via SQL Server application locks.",
+    how_to_reproduce:      "1. הרץ מבחן עומס של OrderProcessor עם 60+ תהליכונים במקביל\n2. שלח 100 מזהי הזמנה זהים בו-זמנית\n3. בדוק במסד הנתונים רשומות Order כפולות\n4. תצפית: אותה הזמנה מעובדת יותר מפעם אחת, ונוצרות חשבוניות כפולות\n5. ציפייה: כל הזמנה תעובד בדיוק פעם אחת (אידמפוטנטי)",
+    title:                 "מצב תחרות (race condition) במעבד הזמנות מרובה-תהליכונים",
+    description:           "תחת עומס גבוה (50+ תהליכונים במקביל) ה-OrderProcessor מעבד לעיתים " \
+                           "את אותה הזמנה פעמיים, מה שגורם לחשבוניות כפולות. חשד: נעילה חסרה " \
+                           "סביב קריאה-ואז-עדכון של סטטוס ההזמנה. נדרשת נעילה מבוזרת באמצעות " \
+                           "application locks של SQL Server.",
     status:                :in_review,
     priority:              :critical,
     owner:                 qa_user,
@@ -553,12 +553,12 @@ tickets_data = [
     project:               projects[1],
     kind:           :bug_fix,
     level:                 :complex,
-    how_to_reproduce:      "1. Log in as a tenant with >500k orders\n2. Navigate to Reports → Monthly Revenue\n3. Select any month with full data\n4. Observe: request times out after 30 seconds\n5. Run EXPLAIN on generated SQL — full table scan on Orders table confirmed",
-    title:                 "SQL Server query timeout on large report generation",
-    description:           "The monthly revenue report times out (30 s) for tenants with " \
-                           ">500k orders. The query performs a full table scan on Orders " \
-                           "because the WHERE clause casts the date column. Fix: add a " \
-                           "computed persisted column + filtered index.",
+    how_to_reproduce:      "1. התחבר כלקוח עם 500 אלף+ הזמנות\n2. נווט לדוחות → הכנסה חודשית\n3. בחר כל חודש עם נתונים מלאים\n4. תצפית: הבקשה נתקעת ב-timeout לאחר 30 שניות\n5. הרצת EXPLAIN על ה-SQL שנוצר — אושר full table scan על טבלת Orders",
+    title:                 "timeout בשאילתת SQL Server בעת יצירת דוח גדול",
+    description:           "דוח ההכנסה החודשי נתקע ב-timeout (30 שניות) עבור לקוחות עם " \
+                           "500 אלף+ הזמנות. השאילתה מבצעת full table scan על Orders כי " \
+                           "סעיף ה-WHERE ממיר את עמודת התאריך. פתרון: הוספת עמודה מחושבת " \
+                           "persisted + אינדקס מסונן.",
     status:                :open,
     priority:              :high,
     owner:                 team_lead,
@@ -574,11 +574,11 @@ tickets_data = [
     project:               projects[2],
     kind:           :story,
     level:                 :complex,
-    title:                 "Build Vue 3 Composition API client statistics dashboard",
-    description:           "Create a multi-panel statistics dashboard using Vue 3 Composition " \
-                           "API + TypeScript. Panels: active sessions, bandwidth usage, top " \
-                           "routes, error rate. Data sourced from NestJS /api/stats endpoints. " \
-                           "Use Pinia for state management and Chart.js for visualisations.",
+    title:                 "בניית לוח מחוונים סטטיסטי ללקוח עם Vue 3 Composition API",
+    description:           "יצירת לוח מחוונים סטטיסטי מרובה-פאנלים באמצעות Vue 3 Composition " \
+                           "API + TypeScript. פאנלים: sessions פעילים, שימוש ברוחב פס, מסלולים " \
+                           "מובילים, שיעור שגיאות. הנתונים ממקור נקודות הקצה NestJS /api/stats. " \
+                           "שימוש ב-Pinia לניהול מצב ו-Chart.js להדמיה חזותית.",
     status:                :in_progress,
     priority:              :high,
     owner:                 team_lead,
@@ -592,11 +592,11 @@ tickets_data = [
     project:               projects[2],
     kind:           :story,
     level:                 :complex,
-    title:                 "Configure Docker Windows Container CI/CD deployment pipeline",
-    description:           "Build a Docker Windows Container image for the NestJS API. " \
-                           "Define multi-stage Dockerfile (build → runtime). Configure the " \
-                           "Jenkins pipeline to: build image, push to internal registry, " \
-                           "deploy to staging via docker service update.",
+    title:                 "הגדרת צנרת CI/CD לפריסה עם Docker Windows Container",
+    description:           "בניית image של Docker Windows Container עבור ה-API של NestJS. " \
+                           "הגדרת Dockerfile רב-שלבי (build → runtime). הגדרת צנרת Jenkins: " \
+                           "בניית image, דחיפה למאגר פנימי, פריסה ל-staging באמצעות " \
+                           "docker service update.",
     status:                :backlog,
     priority:              :medium,
     owner:                 pm_user,
@@ -609,11 +609,11 @@ tickets_data = [
     project:               projects[2],
     kind:           :story,
     level:                 :complex,
-    title:                 "NestJS JWT authentication with refresh token rotation",
-    description:           "Implement JWT access + refresh token flow in the NestJS AuthModule. " \
-                           "Access token TTL: 15 min. Refresh token TTL: 7 days with rotation " \
-                           "on each use. Revocation list stored in SQL Server. " \
-                           "Guard all protected routes with @UseGuards(JwtAuthGuard).",
+    title:                 "אימות JWT ב-NestJS עם רוטציית refresh token",
+    description:           "מימוש זרימת JWT access + refresh token ב-AuthModule של NestJS. TTL " \
+                           "של access token: 15 דקות. TTL של refresh token: 7 ימים עם רוטציה " \
+                           "בכל שימוש. רשימת ביטול מאוחסנת ב-SQL Server. הגנה על כל הנתיבים " \
+                           "המוגנים עם @UseGuards(JwtAuthGuard).",
     status:                :done,
     priority:              :critical,
     owner:                 admin,
@@ -627,12 +627,11 @@ tickets_data = [
     project:               projects[2],
     kind:           :bug_fix,
     level:                 :simple,
-    how_to_reproduce:      "1. Log in to the application\n2. Navigate to any authenticated page\n3. Press F5 (hard browser refresh)\n4. Observe: user is logged out / Pinia store is cleared\n5. Expected: session should persist across browser refreshes",
-    title:                 "Pinia store state lost on browser refresh (missing persist plugin)",
-    description:           "After a hard browser refresh all Pinia store state is cleared, " \
-                           "forcing the user to re-authenticate. Fix: install " \
-                           "pinia-plugin-persistedstate and configure localStorage persistence " \
-                           "for the auth and session stores.",
+    how_to_reproduce:      "1. התחבר לאפליקציה\n2. נווט לכל עמוד מאובטח\n3. לחץ F5 (רענון דפדפן קשיח)\n4. תצפית: המשתמש מנותק / ה-Pinia store מתאפס\n5. ציפייה: ה-session אמור להישמר גם לאחר רענוני דפדפן",
+    title:                 "מצב ה-Pinia store אבד ברענון דפדפן (חסר plugin להתמדה)",
+    description:           "לאחר רענון דפדפן קשיח כל מצב ה-Pinia store מתאפס, ומחייב את המשתמש " \
+                           "להתחבר מחדש. פתרון: התקנת pinia-plugin-persistedstate והגדרת " \
+                           "התמדה ב-localStorage עבור ה-stores של auth ו-session.",
     status:                :open,
     priority:              :medium,
     owner:                 qa_user,
@@ -646,12 +645,12 @@ tickets_data = [
     project:               projects[2],
     kind:           :bug_fix,
     level:                 :complex,
-    how_to_reproduce:      "1. Run load test with 200 concurrent virtual users (k6 or Artillery)\n2. Monitor SQL Server connection count via sys.dm_exec_connections\n3. Observe: requests fail with ConnectionTimeoutError after ~60 seconds\n4. Expected: connection pool handles 200+ concurrent users without exhaustion",
-    title:                 "SQL Server connection pool exhaustion under concurrent load",
-    description:           "Under load testing (200 concurrent users) the SQL Server connection " \
-                           "pool is exhausted after ~60 seconds. TypeORM default pool max is 10. " \
-                           "Increase pool size to 50 and enable connection timeout monitoring. " \
-                           "Also audit for missing .release() calls in raw query paths.",
+    how_to_reproduce:      "1. הרץ מבחן עומס עם 200 משתמשים וירטואליים במקביל (k6 או Artillery)\n2. עקוב אחר מספר חיבורי SQL Server דרך sys.dm_exec_connections\n3. תצפית: בקשות נכשלות עם ConnectionTimeoutError לאחר כ-60 שניות\n4. ציפייה: ה-connection pool מטפל ב-200+ משתמשים במקביל ללא התרוקנות",
+    title:                 "התרוקנות pool החיבורים של SQL Server תחת עומס מקבילי",
+    description:           "תחת מבחן עומס (200 משתמשים במקביל) ה-pool של חיבורי SQL Server " \
+                           "מתרוקן לאחר כ-60 שניות. ברירת המחדל של TypeORM ל-pool מקסימלי היא " \
+                           "10. הגדלת גודל ה-pool ל-50 והפעלת ניטור timeout לחיבורים. כמו כן, " \
+                           "יש לבדוק קריאות .release() חסרות בנתיבי שאילתה גולמיים.",
     status:                :in_review,
     priority:              :critical,
     owner:                 team_lead,
@@ -669,11 +668,11 @@ tickets_data = [
     project:               projects[3],
     kind:           :story,
     level:                 :complex,
-    title:                 "Kanban board with drag-and-drop using Next.js 16 Server Actions",
-    description:           "Implement a drag-and-drop Kanban board for sprint tickets using " \
-                           "@dnd-kit/core. Board columns: Backlog, In Progress, In Review, Done. " \
-                           "Column transitions should call Next.js 16 Server Actions to persist " \
-                           "status changes. Optimistic UI updates required.",
+    title:                 "לוח Kanban עם גרירה ושחרור באמצעות Next.js 16 Server Actions",
+    description:           "מימוש לוח Kanban עם גרירה ושחרור לכרטיסי ספרינט באמצעות " \
+                           "@dnd-kit/core. עמודות הלוח: Backlog, בעבודה, בסקירה, הושלם. מעברי " \
+                           "עמודות צריכים לקרוא ל-Server Actions של Next.js 16 כדי לשמור שינויי " \
+                           "סטטוס. נדרשים עדכוני UI אופטימיים.",
     status:                :in_progress,
     priority:              :high,
     owner:                 pm_user,
@@ -687,11 +686,10 @@ tickets_data = [
     project:               projects[3],
     kind:           :story,
     level:                 :moderate,
-    title:                 "PostgreSQL full-text search for tickets and projects",
-    description:           "Add a tsvector column to the tickets table populated from title + " \
-                           "description. Create a GIN index. Expose a /search endpoint backed by " \
-                           "to_tsquery. Frontend: debounced search input with highlighted " \
-                           "matches using ts_headline.",
+    title:                 "חיפוש טקסט מלא ב-PostgreSQL עבור כרטיסים ופרויקטים",
+    description:           "הוספת עמודת tsvector לטבלת הכרטיסים המאוכלסת מכותרת + תיאור. " \
+                           "יצירת אינדקס GIN. חשיפת נקודת קצה /search המבוססת על to_tsquery. " \
+                           "חזית: שדה חיפוש עם debounce והדגשת התאמות באמצעות ts_headline.",
     status:                :backlog,
     priority:              :medium,
     owner:                 admin,
@@ -704,11 +702,11 @@ tickets_data = [
     project:               projects[3],
     kind:           :story,
     level:                 :moderate,
-    title:                 "Jenkins CI pipeline integration with Bun test runner",
-    description:           "Configure Jenkinsfile to run bun test --reporter=junit, parse " \
-                           "the JUnit XML output, and publish test results in Jenkins. " \
-                           "Pipeline stages: Install → Lint → Test → Build → Deploy to staging. " \
-                           "Cache bun.lock in Jenkins workspace for faster installs.",
+    title:                 "אינטגרציית צנרת CI של Jenkins עם ה-test runner של Bun",
+    description:           "הגדרת Jenkinsfile להרצת bun test --reporter=junit, פענוח פלט " \
+                           "ה-JUnit XML, ופרסום תוצאות הבדיקה ב-Jenkins. שלבי הצנרת: התקנה → " \
+                           "Lint → בדיקה → בנייה → פריסה ל-staging. שמירת bun.lock במטמון " \
+                           "בסביבת העבודה של Jenkins להתקנות מהירות יותר.",
     status:                :done,
     priority:              :medium,
     owner:                 pm_user,
@@ -722,12 +720,12 @@ tickets_data = [
     project:               projects[3],
     kind:           :bug_fix,
     level:                 :moderate,
-    how_to_reproduce:      "1. Open the project in VSCode on Windows (WSL2)\n2. Start the dev server: bun run dev\n3. Rename any .ts source file in VSCode (F2 or right-click → Rename)\n4. Observe: Bun dev server crashes with ENOENT error\n5. Workaround: set BUN_HMR_POLL=1 bun run dev",
-    title:                 "Bun hot-reload crashes on Windows WSL2 after file rename",
-    description:           "When a source file is renamed in VSCode on Windows (which triggers " \
-                           "a delete + create inotify event pair), Bun's HMR watcher crashes " \
-                           "with ENOENT. Workaround: enable polling via BUN_HMR_POLL=1. " \
-                           "Proper fix: debounce inotify events in the watcher.",
+    how_to_reproduce:      "1. פתח את הפרויקט ב-VSCode על Windows (WSL2)\n2. הפעל את שרת הפיתוח: bun run dev\n3. שנה שם לכל קובץ .ts ב-VSCode (F2 או קליק ימני → Rename)\n4. תצפית: שרת הפיתוח של Bun קורס עם שגיאת ENOENT\n5. פתרון עוקף: הגדר BUN_HMR_POLL=1 bun run dev",
+    title:                 "קריסת hot-reload של Bun ב-Windows WSL2 לאחר שינוי שם קובץ",
+    description:           "כאשר קובץ מקור משנה שם ב-VSCode על Windows (מה שמפעיל זוג אירועי " \
+                           "inotify של מחיקה + יצירה), ה-watcher של HMR ב-Bun קורס עם ENOENT. " \
+                           "פתרון עוקף: הפעלת polling באמצעות BUN_HMR_POLL=1. פתרון אמיתי: " \
+                           "debounce לאירועי inotify ב-watcher.",
     status:                :open,
     priority:              :high,
     owner:                 qa_user,
@@ -741,12 +739,12 @@ tickets_data = [
     project:               projects[3],
     kind:           :bug_fix,
     level:                 :complex,
-    how_to_reproduce:      "1. Open the sprint detail page for a sprint with >1000 tickets\n2. Apply a status filter (e.g. in_progress)\n3. Run EXPLAIN ANALYZE on the generated SQL in psql\n4. Observe: Seq Scan on tickets instead of Index Scan\n5. Expected: GIN index on (sprint_id, status) should be used",
-    title:                 "PostgreSQL query planner ignores GIN index on sprint filter",
-    description:           "The sprint ticket list query performs a sequential scan on tickets " \
-                           "even though a GIN index on (sprint_id, status) exists. Cause: the " \
-                           "ORM is casting sprint_id to text in the WHERE clause. Fix by " \
-                           "ensuring the parameter type matches the column type (bigint).",
+    how_to_reproduce:      "1. פתח את עמוד פרטי הספרינט לספרינט עם 1000+ כרטיסים\n2. הפעל סינון לפי סטטוס (למשל in_progress)\n3. הרץ EXPLAIN ANALYZE על ה-SQL שנוצר ב-psql\n4. תצפית: Seq Scan על tickets במקום Index Scan\n5. ציפייה: אינדקס ה-GIN על (sprint_id, status) אמור לשמש",
+    title:                 "מתכנן השאילתות של PostgreSQL מתעלם מאינדקס GIN בסינון ספרינט",
+    description:           "שאילתת רשימת כרטיסי הספרינט מבצעת סריקה סדרתית על tickets למרות " \
+                           "שקיים אינדקס GIN על (sprint_id, status). הסיבה: ה-ORM ממיר את " \
+                           "sprint_id לטקסט בסעיף ה-WHERE. הפתרון: לוודא שסוג הפרמטר תואם " \
+                           "לסוג העמודה (bigint).",
     status:                :in_review,
     priority:              :high,
     owner:                 team_lead,
@@ -762,11 +760,10 @@ tickets_data = [
     project:               projects[3],
     kind:           :spike,
     level:                 :moderate,
-    title:                 "Evaluate Bun native SQLite vs PostgreSQL for local dev workflow",
-    description:           "Investigate using Bun's built-in SQLite for local development " \
-                           "(faster setup, zero deps) vs keeping PostgreSQL everywhere. " \
-                           "Produce a short decision document covering: performance on test " \
-                           "suite, migration tooling compatibility, and Docker impact.",
+    title:                 "הערכת SQLite המובנה ב-Bun מול PostgreSQL לזרימת עבודה מקומית",
+    description:           "בדיקת שימוש ב-SQLite המובנה של Bun לפיתוח מקומי (הגדרה מהירה יותר, " \
+                           "ללא תלויות) מול שמירה על PostgreSQL בכל מקום. הפקת מסמך החלטה קצר " \
+                           "המכסה: ביצועים על חבילת הבדיקות, תאימות כלי מיגרציה, והשפעה על Docker.",
     status:                :backlog,
     priority:              :low,
     owner:                 admin,
@@ -781,11 +778,10 @@ tickets_data = [
     project:               projects[4],
     kind:           :story,
     level:                 :moderate,
-    title:                 "Project membership management with role-based email notifications",
-    description:           "Admins and project leads can add/remove users from projects via the " \
-                           "project show page. Adding a member sends a ProjectMailer email and " \
-                           "creates an Activity record (event_type: member_added). Roles: " \
-                           "developer, viewer, lead, qa.",
+    title:                 "ניהול חברות בפרויקט עם התראות אימייל מבוססות-תפקיד",
+    description:           "מנהלים וראשי צוות יכולים להוסיף/להסיר משתמשים מפרויקטים דרך עמוד " \
+                           "הפרויקט. הוספת חבר שולחת אימייל ProjectMailer ויוצרת רשומת Activity " \
+                           "(event_type: member_added). תפקידים: מפתח, צופה, ראש צוות, QA.",
     status:                :done,
     priority:              :high,
     owner:                 admin,
@@ -799,11 +795,11 @@ tickets_data = [
     project:               projects[4],
     kind:           :story,
     level:                 :moderate,
-    title:                 "Activity feed with APM exception ingestion via webhook",
-    description:           "Timeline activity feed on each project page showing member changes, " \
-                           "CI results, deployments, and exceptions. APM exceptions ingested via " \
-                           "POST /webhooks/exception (verified with X-APM-Key header). " \
-                           "Activity model has 10 event types with icons and metadata.",
+    title:                 "פיד פעילות עם קליטת חריגות APM דרך webhook",
+    description:           "פיד פעילות ציר-זמן בכל עמוד פרויקט המציג שינויי חברים, תוצאות CI, " \
+                           "פריסות וחריגות. חריגות APM נקלטות דרך POST /webhooks/exception " \
+                           "(מאומת עם כותרת X-APM-Key). למודל ה-Activity יש 10 סוגי אירועים " \
+                           "עם אייקונים ומטא-דאטה.",
     status:                :done,
     priority:              :high,
     owner:                 admin,
@@ -817,11 +813,11 @@ tickets_data = [
     project:               projects[4],
     kind:           :story,
     level:                 :complex,
-    title:                 "Slack-style 3-column layout with Hotwire real-time chat",
-    description:           "Redesign the app shell as a 3-column layout (dark sidebar, main " \
-                           "content, right notifications panel). Chat rooms with Turbo Frames " \
-                           "for real-time message updates. Sidebar shows project CI status, " \
-                           "deployments, and PR counts with accordion per project.",
+    title:                 "פריסת 3 עמודות בסגנון Slack עם צ'אט בזמן אמת מבוסס Hotwire",
+    description:           "עיצוב מחדש של מעטפת האפליקציה כפריסת 3 עמודות (סיידבר כהה, תוכן " \
+                           "ראשי, פאנל התראות מימין). חדרי צ'אט עם Turbo Frames לעדכוני הודעות " \
+                           "בזמן אמת. הסיידבר מציג סטטוס CI, פריסות וספירת PR לכל פרויקט " \
+                           "עם אקורדיון.",
     status:                :done,
     priority:              :high,
     owner:                 admin,
@@ -835,11 +831,11 @@ tickets_data = [
     project:               projects[4],
     kind:           :story,
     level:                 :moderate,
-    title:                 "Auto-create git branch and notify assignee on ticket assignment",
-    description:           "When a ticket is assigned to a developer, automatically create a " \
-                           "branch on the Gitea repo (feature/T-{id}-{slug} or bugfix/...) " \
-                           "and send the assignee an in-app notification with the exact " \
-                           "git fetch + git checkout command they need to run.",
+    title:                 "יצירת branch אוטומטית והתראת האחראי בעת שיוך כרטיס",
+    description:           "כאשר כרטיס משויך למפתח, ליצור אוטומטית branch במאגר ה-Gitea " \
+                           "(feature/T-{id}-{slug} או bugfix/...) ולשלוח למשויך התראה " \
+                           "באפליקציה עם פקודות ה-git fetch וה-git checkout המדויקות " \
+                           "שעליו להריץ.",
     status:                :in_progress,
     priority:              :high,
     owner:                 admin,
@@ -853,12 +849,11 @@ tickets_data = [
     project:               projects[4],
     kind:           :bug_fix,
     level:                 :simple,
-    how_to_reproduce:      "1. Open any project page with the sidebar visible\n2. Expand a project accordion section in the sidebar\n3. Click any Turbo navigation link (tab, ticket, etc.)\n4. Observe: sidebar accordion collapses back to default state\n5. Expected: accordion open/close state should persist across Turbo navigation",
-    title:                 "Sidebar accordion state lost on Turbo navigation",
-    description:           "When navigating between pages via Turbo Drive, the sidebar project " \
-                           "accordion forgets which sections were open. The Stimulus controller " \
-                           "needs to persist accordion state in sessionStorage and restore it " \
-                           "on connect().",
+    how_to_reproduce:      "1. פתח כל עמוד פרויקט שבו הסיידבר גלוי\n2. הרחב סעיף אקורדיון של פרויקט בסיידבר\n3. לחץ על כל קישור ניווט Turbo (טאב, כרטיס וכו')\n4. תצפית: אקורדיון הסיידבר קורס בחזרה למצב ברירת המחדל\n5. ציפייה: מצב הפתיחה/סגירה של האקורדיון אמור להישמר בין ניווטי Turbo",
+    title:                 "מצב האקורדיון בסיידבר אבד בניווט Turbo",
+    description:           "בעת ניווט בין עמודים באמצעות Turbo Drive, אקורדיון הפרויקט בסיידבר " \
+                           "שוכח אילו סעיפים היו פתוחים. בקר ה-Stimulus צריך לשמור את מצב " \
+                           "האקורדיון ב-sessionStorage ולשחזר אותו ב-connect().",
     status:                :open,
     priority:              :medium,
     owner:                 qa_user,
@@ -872,11 +867,11 @@ tickets_data = [
     project:               projects[4],
     kind:           :spike,
     level:                 :moderate,
-    title:                 "Evaluate ActionCable for real-time chat vs Turbo Streams polling",
-    description:           "Investigate whether replacing the current Turbo Frames + form-submit " \
-                           "chat with ActionCable WebSocket broadcasts would improve UX without " \
-                           "adding operational complexity (Redis pub/sub, cable config). " \
-                           "Document latency, resource usage, and deployment implications.",
+    title:                 "הערכת ActionCable לצ'אט בזמן אמת מול polling של Turbo Streams",
+    description:           "בדיקה האם החלפת הצ'אט הנוכחי המבוסס Turbo Frames + שליחת טופס " \
+                           "ב-broadcast של ActionCable WebSocket תשפר את חוויית המשתמש בלי " \
+                           "להוסיף מורכבות תפעולית (Redis pub/sub, הגדרת cable). תיעוד השהיה, " \
+                           "שימוש במשאבים, והשלכות על פריסה.",
     status:                :backlog,
     priority:              :low,
     owner:                 admin,
@@ -890,6 +885,53 @@ tickets_data = [
 # Disable auto-branch-callback during seed to avoid noise
 # (callback will still fire for the assigned ones — that's intentional)
 created_ticket_count = 0
+# Re-translate tickets that already exist from an earlier (English-titled)
+# seed run — find_or_create_by! below is keyed on title, so without this the
+# Hebrew-translated title would just create a duplicate ticket.
+LEGACY_TICKET_TITLES = [
+  "Add PDF export for print queue jobs",
+  "Support duplex printing profiles per printer",
+  "Print jobs stuck in queue after network timeout",
+  "Wrong paper size selected for Hebrew locale",
+  "Upgrade .NET runtime from 4.8.0 to 4.8.1",
+  "Implement RabbitMQ dead-letter exchange for failed message retry",
+  "Add Serilog structured logging to all MVC controllers",
+  "Migrate data layer to EntityFrameworkCore 9 code-first",
+  "Race condition in multi-threaded order processor",
+  "SQL Server query timeout on large report generation",
+  "Build Vue 3 Composition API client statistics dashboard",
+  "Configure Docker Windows Container CI/CD deployment pipeline",
+  "NestJS JWT authentication with refresh token rotation",
+  "Pinia store state lost on browser refresh (missing persist plugin)",
+  "SQL Server connection pool exhaustion under concurrent load",
+  "Kanban board with drag-and-drop using Next.js 16 Server Actions",
+  "PostgreSQL full-text search for tickets and projects",
+  "Jenkins CI pipeline integration with Bun test runner",
+  "Bun hot-reload crashes on Windows WSL2 after file rename",
+  "PostgreSQL query planner ignores GIN index on sprint filter",
+  "Evaluate Bun native SQLite vs PostgreSQL for local dev workflow",
+  "Project membership management with role-based email notifications",
+  "Activity feed with APM exception ingestion via webhook",
+  "Slack-style 3-column layout with Hotwire real-time chat",
+  "Auto-create git branch and notify assignee on ticket assignment",
+  "Sidebar accordion state lost on Turbo navigation",
+  "Evaluate ActionCable for real-time chat vs Turbo Streams polling"
+].freeze
+
+renamed_ticket_count = 0
+tickets_data.each_with_index do |t, idx|
+  old_title = LEGACY_TICKET_TITLES[idx]
+  next unless old_title && old_title != t[:title]
+
+  ticket = Ticket.find_by(project: t[:project], title: old_title)
+  next unless ticket
+
+  ticket.update!(title: t[:title], description: t[:description])
+  ticket.update_column(:how_to_reproduce, t[:how_to_reproduce]) if t[:how_to_reproduce]
+  renamed_ticket_count += 1
+end
+puts "  ✓ #{renamed_ticket_count} legacy tickets re-titled to Hebrew" if renamed_ticket_count.positive?
+
 tickets_data.each do |t|
   ticket = Ticket.find_or_create_by!(project: t[:project], title: t[:title]) do |tk|
     tk.kind                  = t[:kind]
