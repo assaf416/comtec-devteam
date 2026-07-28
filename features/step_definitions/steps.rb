@@ -324,3 +324,23 @@ end
 Then("אני אמור לראות את כפתור ההצטרפות לפגישה") do
   expect(page).to have_link("Join")
 end
+
+# ── Test Studio ───────────────────────────────────────────────────────────────
+
+When("אני נכנס לעמוד {string}") do |page_name|
+  raise "Unknown page #{page_name}" unless page_name == "Test Studio"
+
+  visit test_studio_path
+end
+
+When("אני לוחץ על כפתור ה-Run של {string}") do |feature_path|
+  within(:xpath, "//tr[contains(., '#{feature_path}')]") { click_button "Run" }
+end
+
+Then("נוצרה הרצה חדשה עבור {string} עם סטטוס {string} או {string}") do |feature_path, status_a, status_b|
+  status_map = { "עבר" => "passed", "נכשל" => "failed" }
+  run = TestStudioRun.where(feature_path: feature_path).order(:id).last
+
+  expect(run).to be_present
+  expect(run.status).to be_in([ status_map.fetch(status_a), status_map.fetch(status_b) ])
+end

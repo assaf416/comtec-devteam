@@ -1,0 +1,13 @@
+<div id="<%= test_studio_output_id(path) %>">
+  <% if run %>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <%= render "test_studio/run_badge", run: run, path: path %>
+      <% if run.started_at %>
+        <span class="text-muted fs-7"><%= run.started_at.strftime("%H:%M:%S") %></span>
+      <% end %>
+    </div>
+    <% if run.output.present? %>
+      <pre class="test-studio-run-output"><%= run.output %></pre>
+    <% end %>
+  <% end %>
+</div>
