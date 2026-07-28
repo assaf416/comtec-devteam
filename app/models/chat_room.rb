@@ -1,6 +1,7 @@
 class ChatRoom < ApplicationRecord
   belongs_to :project, optional: true
   has_many :chat_messages, dependent: :destroy
+  has_many :chat_room_pins, dependent: :destroy
 
   enum :room_type, { general: 0, project_room: 1, incident: 2, announcement: 3 }, default: :general
 

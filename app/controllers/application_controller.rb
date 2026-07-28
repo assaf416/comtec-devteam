@@ -32,6 +32,11 @@ class ApplicationController < ActionController::Base
     # Team members for sidebar presence list
     @sidebar_team_members = User.order(:name)
 
+    # Sidebar chat menu: latest 5 rooms the user has pinned for quick access
+    @sidebar_pinned_chat_rooms = current_user.pinned_chat_rooms
+                                              .order("chat_room_pins.pinned_at DESC")
+                                              .limit(5)
+
     # Right panel: 15 most recent notifications
     @panel_notifications = current_user.notifications
                                        .order(created_at: :desc)

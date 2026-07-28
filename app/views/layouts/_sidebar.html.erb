@@ -62,6 +62,31 @@
     <span class="nav-icon">🧪</span> <%= t('nav.test_studio') %>
   <% end %>
 
+  <hr class="sidebar-divider">
+
+  <%# ── צ'אטים / Pinned chats ────────────────────────────────────────────── %>
+  <div class="sidebar-section-label d-flex align-items-center justify-content-between">
+    <span><%= t('chat.sidebar_title') %></span>
+    <%= link_to t('chat.sidebar_add'), chat_rooms_path, style: "font-size:.68rem; text-transform:none; letter-spacing:normal;" %>
+  </div>
+
+  <% if @sidebar_pinned_chat_rooms.blank? %>
+    <div class="sidebar-nav-item text-muted" style="font-size:.75rem; cursor:default;">
+      <%= t('chat.sidebar_empty') %>
+    </div>
+  <% else %>
+    <% @sidebar_pinned_chat_rooms.each do |room| %>
+      <div class="sidebar-nav-item d-flex align-items-center justify-content-between #{controller_name == 'chat_rooms' && params[:id] == room.id.to_s ? 'is-active' : ''}">
+        <%= link_to chat_room_path(room), class: "text-truncate flex-grow-1" do %>
+          <span class="nav-icon">💬</span> <%= room.name %>
+        <% end %>
+        <%= button_to unpin_chat_room_path(room), method: :delete, class: "btn btn-sm p-0 border-0 bg-transparent", form_class: "d-inline", style: "color:inherit; opacity:.6;", title: t('chat.unpin') do %>
+          ✕
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+
   <%# Project chat + AI Agent — only inside a project %>
   <% if current_project %>
     <%= link_to project_chat_path(current_project),

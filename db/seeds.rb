@@ -282,7 +282,8 @@ chat_rooms_data = [
   { name: "tdi2",      description: "TDI2 team channel",                         room_type: :project_room, project: projects[1]  },
   { name: "dis",       description: "Digital Internet Services channel",         room_type: :project_room, project: projects[2]  },
   { name: "wms",       description: "Work Management System channel",            room_type: :project_room, project: projects[3]  },
-  { name: "devteam",   description: "DevTeam Hub dev channel",                   room_type: :project_room, project: projects[4]  }
+  { name: "devteam",   description: "DevTeam Hub dev channel",                   room_type: :project_room, project: projects[4]  },
+  { name: "qa",        description: "Cross-team QA discussion and bug triage",   room_type: :general,      project: nil          }
 ]
 
 chat_rooms_data.each do |attrs|
@@ -295,6 +296,20 @@ chat_rooms_data.each do |attrs|
 end
 
 puts "  ✓ #{chat_rooms_data.size} chat rooms"
+
+# Pin a few rooms by default for every internal user so the sidebar chat
+# menu isn't empty on a fresh install.
+default_pinned_rooms = ChatRoom.where(name: %w[general devteam qa]).to_a
+pin_count = 0
+users.each do |u|
+  default_pinned_rooms.each do |room|
+    next if ChatRoomPin.exists?(user: u, chat_room: room)
+
+    ChatRoomPin.create!(user: u, chat_room: room, pinned_at: Time.current)
+    pin_count += 1
+  end
+end
+puts "  ✓ #{pin_count} default chat room pins" if pin_count.positive?
 
 # ─────────────────────────────────────────────────────────────────
 # Demo project chat conversations — so the per-project Chat page has
@@ -328,6 +343,26 @@ rescue StandardError => e
   nil
 end
 
+# Small one-page PDF "report" via ImageMagick (same tool as the PNG above,
+# just a different output extension), for seeding a PDF attachment.
+def chat_report_pdf(title)
+  file = Tempfile.new([ "chat-report", ".pdf" ])
+  file.close
+  system(
+    "convert", "-size", "612x792", "xc:white",
+    "-gravity", "North", "-fill", "#333333", "-pointsize", "20",
+    "-annotate", "+0+60", title,
+    "-gravity", "NorthWest", "-fill", "#555555", "-pointsize", "13",
+    "-annotate", "+60+140", "Summary generated for the demo seed.",
+    file.path,
+    exception: true
+  )
+  file
+rescue StandardError => e
+  puts "    ⚠ Could not generate chat PDF (#{e.message}) — skipping PDF"
+  nil
+end
+
 ChatMessage.skip_broadcasts = true
 projects.each do |project|
   room = project.chat_rooms.active.order(:created_at, :id).first
@@ -346,6 +381,7 @@ projects.each do |project|
     { user: who.(1), body: "אני על #{ref} — מקווה לסיים היום את הפיתוח ולהעביר ל-review.",                     at: 2.days.ago.change(hour: 9, min: 12) },
     { user: who.(0), body: "מצרף את דיאגרמת הארכיטקטורה שדיברנו עליה 👇",                                        at: 2.days.ago.change(hour: 10, min: 5), image: true },
     { user: who.(2), body: "תודה! אני מוסיף את סיכום הפגישה כקובץ להורדה.",                                       at: 1.day.ago.change(hour: 11, min: 20), file: true },
+    { user: who.(1), body: "מצרף דוח PDF מסודר עם הסטטוס העדכני 📄",                                              at: 1.day.ago.change(hour: 13, min: 0), pdf: true },
     { user: who.(1), body: "פתחתי PR — מוזמנים להסתכל כשמתפנה 🙏",                                               at: 1.day.ago.change(hour: 15, min: 30) },
     { user: who.(3), body: "עברתי על ה-QA, נראה טוב. יש הערה קטנה על edge case שאעלה בכרטיס.",                   at: Time.current.change(hour: 8, min: 45) },
     { user: who.(0), body: "מצוין, ממשיכים 🚀",                                                                   at: Time.current.change(hour: 9, min: 5) }
@@ -366,12 +402,53 @@ projects.each do |project|
         filename:     "meeting-notes.txt",
         content_type: "text/plain"
       )
+    elsif m[:pdf]
+      pdf = chat_report_pdf("#{project.name} — Status Report")
+      msg.files.attach(io: File.open(pdf.path), filename: "status-report.pdf", content_type: "application/pdf") if pdf
+    end
+    msg.save!
+  end
+end
+
+# Demo conversations for the general (non-project) rooms too, so the
+# sidebar chat menu isn't empty for rooms with no project of their own.
+ChatMessage.skip_broadcasts = true
+general_scripts = {
+  "general" => [
+    { user: users[0], body: "בוקר טוב לכולם! מזכיר שהיום 12:00 עדכון סטטוס שבועי 📢" },
+    { user: users[1], body: "מצרף את המצגת מהסקירה של שבוע שעבר 📄", pdf: true },
+    { user: users[2], body: "תודה! אעבור עליה לפני הפגישה." }
+  ],
+  "random" => [
+    { user: users[3], body: "מישהו מכיר מקום טוב לארוחת צהריים ליד המשרד? 🍜" },
+    { user: users[0], body: "יש מקום תאילנדי חדש שנפתח, ממליץ בחום!" }
+  ],
+  "qa" => [
+    { user: users[2], body: "מצאתי באג בסביבת ה-staging, מצרף צילום מסך 🐛", image: true },
+    { user: users[1], body: "פתחתי כרטיס עבורו, אעדכן כשיש תיקון." },
+    { user: users[3], body: "תודה, אבדוק אצלי גם." }
+  ]
+}
+
+general_scripts.each do |room_name, msgs|
+  room = ChatRoom.find_by(name: room_name)
+  next unless room
+  next if room.chat_messages.exists?
+
+  msgs.each_with_index do |m, i|
+    msg = room.chat_messages.build(user: m[:user], body: m[:body], created_at: (msgs.size - i).hours.ago)
+    if m[:image]
+      png = project_chat_diagram_png("#{room.name} — Screenshot")
+      msg.files.attach(io: File.open(png.path), filename: "screenshot.png", content_type: "image/png") if png
+    elsif m[:pdf]
+      pdf = chat_report_pdf("#{room.name.humanize} — Weekly Update")
+      msg.files.attach(io: File.open(pdf.path), filename: "weekly-update.pdf", content_type: "application/pdf") if pdf
     end
     msg.save!
   end
 end
 ChatMessage.skip_broadcasts = false
-puts "  ✓ demo chat conversations seeded for #{projects.size} projects"
+puts "  ✓ demo chat conversations seeded for #{projects.size} projects + #{general_scripts.size} general rooms"
 
 # ─────────────────────────────────────────────────────────────────
 # Tickets / Stories
