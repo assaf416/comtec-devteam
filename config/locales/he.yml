@@ -356,6 +356,9 @@ he:
       week_progress: "כרטיסים שנפתחו מול שנסגרו השבוע"
       opened: "נפתחו"
       closed: "נסגרו"
+      coverage_chart_title: "פילוח כיסוי בדיקות"
+      covered: "מכוסה"
+      not_covered: "לא מכוסה"
   project_report:
     title: "דוח בדיקות"
     no_runs: "אין ריצות CI עדיין."

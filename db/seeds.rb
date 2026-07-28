@@ -1028,10 +1028,15 @@ tickets_data.each do |t|
   end
 
   # Always keep new fields up to date (idempotent on re-seed)
+  ticket.actual_hours = t[:actual_hours] # in-memory only, to derive the split below
+  dev_time, test_time = ticket.development_and_test_time_split
+
   ticket.update_columns(
     kind:  Ticket.kinds[t[:kind].to_s],
     level: Ticket.levels[(t[:level] || :moderate).to_s],
-    actual_hours: t[:actual_hours]
+    actual_hours: t[:actual_hours],
+    total_development_time: dev_time,
+    total_test_time: test_time
   )
   ticket.update_column(:how_to_reproduce, t[:how_to_reproduce]) if t[:how_to_reproduce].present?
 

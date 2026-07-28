@@ -178,10 +178,14 @@ class ProjectsController < ApplicationController
     closed_tickets = @project.tickets.where(status: [ :done, :closed ])
     @closed_tickets_count = closed_tickets.count
 
-    dev_hours = closed_tickets.filter_map(&:actual_hours_in_hours)
+    dev_hours = closed_tickets.where.not(total_development_time: nil).pluck(:total_development_time)
     @avg_dev_hours = dev_hours.any? ? (dev_hours.sum / dev_hours.size).round(1) : nil
 
     @estimated_code_coverage = 65 + (Digest::MD5.hexdigest(@project.id.to_s).to_i(16) % 30)
+    @code_coverage_breakdown = {
+      t("projects.metrics.covered")     => @estimated_code_coverage,
+      t("projects.metrics.not_covered") => 100 - @estimated_code_coverage
+    }
 
     week_start = Date.current.beginning_of_week
     week_days  = (week_start..Date.current.end_of_week)
