@@ -132,10 +132,9 @@ puts "  ✓ #{customer_users.size} customer portal users"
 # ─────────────────────────────────────────────────────────────────
 projects_data = [
   {
-    name:           "Print Server / TDI",
-    description:    "Windows print server and TDI print management system. " \
-                    "Handles print queue management, driver distribution, and " \
-                    "enterprise printer configuration.",
+    name:           "שרת הדפסה TDI",
+    description:    "שרת הדפסה ל-Windows ומערכת ניהול הדפסה TDI. " \
+                    "מטפלת בניהול תורי הדפסה, הפצת דרייברים והגדרת מדפסות ארגוניות.",
     tech_stack:     "C# .NET 4.8.1, VB.net, Windows Print Spooler, WinForms",
     repo_url:       "https://github.com/assaf416/print-server-tdi",
     default_branch: "main",
@@ -143,9 +142,9 @@ projects_data = [
   },
   {
     name:           "TDI2",
-    description:    "Next-generation TDI platform built on ASP.NET MVC Core 10. " \
-                    "Multi-threaded order processing with RabbitMQ messaging, " \
-                    "Entity Framework Core ORM, and Serilog structured logging.",
+    description:    "פלטפורמת ה-TDI מהדור הבא, בנויה על ASP.NET MVC Core 10. " \
+                    "עיבוד הזמנות מרובה-תהליכונים עם תקשורת RabbitMQ, " \
+                    "ORM של Entity Framework Core ולוגים מובנים עם Serilog.",
     tech_stack:     "ASP.NET MVC Core 10, Visual Studio 2026, IIS, Razor Pages, " \
                     "NuGet, RabbitMQ, EntityFrameworkCore, Serilog, SQL Server, " \
                     "JavaScript, HTML, CSS, Bootstrap, JSON/XML, NUnit, Multithread",
@@ -154,10 +153,9 @@ projects_data = [
     active:         true
   },
   {
-    name:           "Digital Internet Services",
-    description:    "Customer-facing web portal with Vue 3 SPA frontend and " \
-                    "NestJS API backend. Deployed using Docker Windows Containers " \
-                    "with SQL Server persistence.",
+    name:           "שירותי אינטרנט דיגיטליים",
+    description:    "פורטל אינטרנט מול לקוחות עם חזית Vue 3 SPA וגב NestJS API. " \
+                    "פרוס באמצעות Docker Windows Containers עם התמדה ב-SQL Server.",
     tech_stack:     "Vue 3 (Composition API + TypeScript), Vite, NestJS (Node.js), " \
                     "SQL Server, Docker (Windows Containers)",
     repo_url:       "https://github.com/assaf416/digital-internet-services",
@@ -165,10 +163,9 @@ projects_data = [
     active:         true
   },
   {
-    name:           "Work Management System",
-    description:    "Internal work-item tracking platform. Next.js 16 frontend " \
-                    "running on Bun runtime with PostgreSQL 16 storage and " \
-                    "Jenkins CI/CD pipelines.",
+    name:           "מערכת ניהול עבודה",
+    description:    "פלטפורמה פנימית למעקב אחר פריטי עבודה. חזית Next.js 16 " \
+                    "הרצה על ריצת Bun עם אחסון PostgreSQL 16 וצנרות CI/CD של Jenkins.",
     tech_stack:     "Next.js 16, TypeScript, Bun (runtime), PostgreSQL 16, Jenkins",
     repo_url:       "https://github.com/assaf416/work-management-system",
     default_branch: "main",
@@ -176,9 +173,8 @@ projects_data = [
   },
   {
     name:           "DevTeam Hub",
-    description:    "This application. Internal DevOps dashboard aggregating CI, " \
-                    "deployments, pull requests, tickets, and team communication " \
-                    "in a single Slack-style interface.",
+    description:    "האפליקציה הזו. לוח בקרה פנימי ל-DevOps המרכז CI, " \
+                    "פריסות, בקשות משיכה, כרטיסים ותקשורת צוות בממשק אחד בסגנון Slack.",
     tech_stack:     "Rails 8.1, Ruby 3.4, SQLite3, Hotwire (Turbo + Stimulus), " \
                     "Bulma CSS, Devise, Pundit, ActiveStorage",
     repo_url:       "https://github.com/assaf416/dev-team-hub",
@@ -188,12 +184,33 @@ projects_data = [
 ]
 
 projects = projects_data.map do |attrs|
-  Project.find_or_create_by!(name: attrs[:name]) do |p|
-    p.assign_attributes(attrs)
-  end
+  # Keyed on repo_url (stable) rather than name, and always synced, so
+  # renaming a project's seeded `name`/`description` on reseed updates the
+  # existing row instead of creating a duplicate.
+  project = Project.find_or_initialize_by(repo_url: attrs[:repo_url])
+  project.assign_attributes(attrs)
+  project.save!
+  project
 end
 
 puts "  ✓ #{projects.size} projects (#{projects.count(&:active?)} active)"
+
+# Re-translate the auto-created default docs (Project#create_default_documents)
+# for projects that already existed from an earlier (English-titled) seed run —
+# the after_create callback only fires once, at creation time.
+LEGACY_DEFAULT_DOC_TITLES = { "Risk Management" => "ניהול סיכונים", "Product Backlog" => "בקלוג מוצר", "Test Plan" => "תוכנית בדיקות" }.freeze
+retitled_doc_count = 0
+projects.each do |project|
+  LEGACY_DEFAULT_DOC_TITLES.each do |old_title, new_title|
+    doc = project.documents.find { |d| d.title.start_with?("#{old_title} — ") }
+    next unless doc
+
+    attrs = Project::DEFAULT_DOCUMENTS.find { |d| d[:title] == new_title }
+    doc.update!(title: "#{new_title} — #{project.name}", content: attrs[:content])
+    retitled_doc_count += 1
+  end
+end
+puts "  ✓ #{retitled_doc_count} legacy default docs re-titled to Hebrew" if retitled_doc_count.positive?
 
 # ─────────────────────────────────────────────────────────────────
 # Project memberships
@@ -1505,107 +1522,107 @@ puts "  ✓ Rich PR data (files + tests) on #{pr_built} tickets; #{PullRequest.c
 docs_to_seed = [
   {
     file:            "docs/cli_manual.html",
-    title:           "dt CLI Manual",
+    title:           "מדריך ה-CLI של dt",
     doc_type:        :runbook,
-    summary:         "Complete reference for the dt command-line client — setup, ticket management, CI, deployments, and logs.",
+    summary:         "מדריך מלא לכלי שורת הפקודה dt — התקנה, ניהול כרטיסים, CI, פריסות ולוגים.",
     version_number:  "1.0"
   },
   {
     file:            "docs/writing_specs_and_tickets.html",
-    title:           "Writing Specs & Tickets — Agile Best Practices",
+    title:           "כתיבת מפרטים וכרטיסים — שיטות עבודה מומלצות באג'ייל",
     doc_type:        :spec,
-    summary:         "Guide to writing clear, actionable tickets — user stories, acceptance criteria, ticket kinds, and anti-patterns.",
+    summary:         "מדריך לכתיבת כרטיסים ברורים וניתנים לפעולה — סיפורי משתמש, קריטריוני קבלה, סוגי כרטיסים ומלכודות נפוצות.",
     version_number:  "1.0"
   },
   {
     file:            "docs/ticket_estimation_guide.html",
-    title:           "Ticket Estimation Guide",
+    title:           "מדריך הערכת כרטיסים",
     doc_type:        :spec,
-    summary:         "Practical guide to story points, complexity levels, hour estimates, planning poker, and tracking velocity.",
+    summary:         "מדריך מעשי לנקודות סיפור, רמות מורכבות, הערכת שעות, פוקר תכנון ומעקב קצב.",
     version_number:  "1.0"
   },
   {
     file:            "docs/api_reference.html",
-    title:           "API Reference",
+    title:           "מסמך API",
     doc_type:        :architecture,
-    summary:         "REST API documentation for DevTeam Hub — authentication, endpoints, request/response formats.",
+    summary:         "תיעוד REST API של DevTeam Hub — אימות, נקודות קצה, ופורמט בקשה/תגובה.",
     version_number:  "1.0"
   },
   {
     file:            "docs/infrastructure_guide.html",
-    title:           "Infrastructure Guide",
+    title:           "מדריך תשתיות",
     doc_type:        :architecture,
-    summary:         "Deployment architecture, Docker setup, CI/CD pipelines, and production operations guide.",
+    summary:         "ארכיטקטורת פריסה, הגדרת Docker, צנרות CI/CD ומדריך תפעול בסביבת ייצור.",
     version_number:  "1.0"
   },
   {
     file:            "docs/presentation.html",
-    title:           "DevTeam Hub Presentation",
+    title:           "מצגת DevTeam Hub",
     doc_type:        :other,
-    summary:         "Overview presentation of the DevTeam Hub platform and capabilities.",
+    summary:         "מצגת סקירה של פלטפורמת DevTeam Hub והיכולות שלה.",
     version_number:  "1.0"
   },
   {
     file:            "docs/automatic_testing_presentation.html",
-    title:           "Automatic Testing Presentation",
+    title:           "מצגת בדיקות אוטומטיות",
     doc_type:        :test_coverage,
-    summary:         "Presentation on automated testing strategies, frameworks, and best practices.",
+    summary:         "מצגת על אסטרטגיות בדיקות אוטומטיות, פריימוורקים ושיטות עבודה מומלצות.",
     version_number:  "1.0"
   },
   {
     file:            "docs/project_overview.md",
-    title:           "Project Overview",
+    title:           "סקירת הפרויקט",
     doc_type:        :spec,
-    summary:         "High-level overview of the DevTeam Hub project — goals, architecture, and roadmap.",
+    summary:         "סקירה כללית של פרויקט DevTeam Hub — מטרות, ארכיטקטורה ומפת דרכים.",
     version_number:  "1.0"
   },
   {
     file:            "docs/project_risks.md",
-    title:           "Project Risks",
+    title:           "סיכוני הפרויקט",
     doc_type:        :risk_management,
-    summary:         "Risk register for the DevTeam Hub project — identified risks, mitigations, and contingency plans.",
+    summary:         "מרשם סיכונים לפרויקט DevTeam Hub — סיכונים שזוהו, פתרונות הפחתה ותוכניות חירום.",
     version_number:  "1.0"
   },
   {
     file:            "docs/stories_backlog.md",
-    title:           "Stories Backlog",
+    title:           "בקלוג סיפורים",
     doc_type:        :user_story,
-    summary:         "Product backlog of user stories and feature requests for DevTeam Hub.",
+    summary:         "בקלוג מוצר של סיפורי משתמש ובקשות תכונות עבור DevTeam Hub.",
     version_number:  "1.0"
   },
   {
     file:            "docs/code_review_tools_recommendation.html",
-    title:           "Code Review & Approval Tools — Recommendation",
+    title:           "כלי סקירת קוד ואישור — המלצה",
     doc_type:        :architecture,
-    summary:         "Evaluation of code review tools for CI — SonarQube CE + Ollama AI recommendation with implementation guide.",
+    summary:         "הערכת כלי סקירת קוד עבור CI — המלצת SonarQube CE + Ollama AI עם מדריך יישום.",
     version_number:  "1.0"
   },
   {
     file:            "docs/unified_logging_recommendation.html",
-    title:           "Unified Logging — Recommendation & Implementation",
+    title:           "לוגים מאוחדים — המלצה ויישום",
     doc_type:        :architecture,
-    summary:         "Unified log management with Grafana Loki + Promtail — format, tools, API, CLI, and CI integration.",
+    summary:         "ניהול לוגים מאוחד עם Grafana Loki + Promtail — פורמט, כלים, API, CLI ואינטגרציית CI.",
     version_number:  "1.0"
   },
   {
     file:            "docs/local_llm_onprem_guide.html",
-    title:           "AI in On-Premises Projects — Local LLM & Hardware Guide",
+    title:           "AI בפרויקטים מקומיים — מדריך LLM מקומי וחומרה",
     doc_type:        :architecture,
-    summary:         "Free local-LLM scan + Mac mini M5 hardware recommendation for on-prem dev AI (code review, fixes, docs, presentations).",
+    summary:         "סריקת LLM מקומי חינמית + המלצת חומרה Mac mini M5 ל-AI פיתוח מקומי (סקירת קוד, תיקונים, תיעוד, מצגות).",
     version_number:  "1.0"
   },
   {
     file:            "docs/whats_new_2026.html",
-    title:           "What's New (2026) — Feature Brochure",
+    title:           "מה חדש (2026) — חוברת תכונות",
     doc_type:        :other,
-    summary:         "Brochure for the 2026 release: project-scoped AI chat (ask who delivers fastest / estimates best / sprint status), server monitoring, staged tickets, sprints, and ceremonies.",
+    summary:         "חוברת למהדורת 2026: צ'אט AI ממוקד-פרויקט (מי מספק הכי מהר / מעריך הכי טוב / סטטוס ספרינט), ניטור שרתים, כרטיסים בשלבים, ספרינטים וטקסי אג'ייל.",
     version_number:  "1.0"
   },
   {
     file:            "docs/product_overview_en.html",
-    title:           "Product Overview (English)",
+    title:           "סקירת מוצר (גרסה באנגלית)",
     doc_type:        :other,
-    summary:         "Product document: the need for agile, ticket management & automatic testing; spec→production lifecycle on a local AI engine; iterations, automated ceremonies and Jitsi for remote teams.",
+    summary:         "מסמך מוצר: הצורך באג'ייל, ניהול כרטיסים ובדיקות אוטומטיות; מחזור חיים ממפרט לייצור על מנוע AI מקומי; איטרציות, טקסים אוטומטיים ו-Jitsi לצוותים מרוחקים.",
     version_number:  "1.0"
   },
   {
@@ -1613,6 +1630,13 @@ docs_to_seed = [
     title:           "סקירת מוצר (עברית)",
     doc_type:        :other,
     summary:         "מסמך מוצר: הצורך באג'ייל, ניהול כרטיסים ובדיקות אוטומטיות; מחזור החיים ממפרט לייצור על מנוע AI מקומי; איטרציות, פגישות אוטומטיות ו-Jitsi לצוותים מרוחקים.",
+    version_number:  "1.0"
+  },
+  {
+    file:            "docs/hosting_qwen_guide.html",
+    title:           "איפה מריצים את Qwen3.6 — מפת ספקים ועוזר פיתוח לצוות",
+    doc_type:        :architecture,
+    summary:         "מיפוי ספקי אירוח ל-Qwen3.6 והמלצות להטמעת עוזר פיתוח מבוסס AI לצוות.",
     version_number:  "1.0"
   }
 ]
@@ -1624,14 +1648,18 @@ docs_to_seed.each do |d|
   filepath = Rails.root.join(d[:file])
   next unless File.exist?(filepath)
 
-  doc = Document.find_or_create_by!(title: d[:title], project: devteam_project) do |doc|
-    doc.content        = File.read(filepath)
-    doc.doc_type       = d[:doc_type]
-    doc.summary        = d[:summary]
-    doc.version_number = d[:version_number]
-    doc.author         = admin
-    doc.is_template    = false
-  end
+  # Keyed on file content (stable across renames) rather than title, so
+  # translating a seeded doc's title updates the existing row on reseed
+  # instead of leaving an orphaned duplicate under the old title.
+  file_content = File.read(filepath)
+  doc = Document.find_or_initialize_by(project: devteam_project, content: file_content)
+  doc.title          = d[:title]
+  doc.doc_type       = d[:doc_type]
+  doc.summary        = d[:summary]
+  doc.version_number = d[:version_number]
+  doc.author         ||= admin
+  doc.is_template     = false
+  doc.save!
   doc_count += 1
 end
 
