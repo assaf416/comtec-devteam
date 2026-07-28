@@ -107,7 +107,7 @@
   </div>
 
   <div class="row">
-    <div class="col-6">
+    <div class="col-4">
       <p class="fs-7 fw-bold text-muted mb-2"><%= t("projects.metrics.hours_by_member") %></p>
       <% if @hours_by_member.any? %>
         <%= column_chart @hours_by_member, suffix: t("projects.metrics.hours_suffix"), height: "260px" %>
@@ -115,12 +115,16 @@
         <p class="text-muted fs-7"><%= t("time_logs.no_entries") %></p>
       <% end %>
     </div>
-    <div class="col-6">
+    <div class="col-4">
       <p class="fs-7 fw-bold text-muted mb-2"><%= t("projects.metrics.week_progress") %></p>
       <%= column_chart [
             { name: t("projects.metrics.opened"), data: @tickets_this_week.map { |day, opened, _| [day, opened] } },
             { name: t("projects.metrics.closed"), data: @tickets_this_week.map { |day, _, closed| [day, closed] } }
           ], height: "260px" %>
+    </div>
+    <div class="col-4">
+      <p class="fs-7 fw-bold text-muted mb-2"><%= t("projects.metrics.coverage_chart_title") %></p>
+      <%= pie_chart @code_coverage_breakdown, suffix: "%", height: "260px" %>
     </div>
   </div>
 </div>

@@ -51,6 +51,14 @@ class Ticket < ApplicationRecord
   after_save :auto_create_branch_and_notify,
              if: -> { saved_change_to_assignee_id? && assignee_id.present? }
 
+  # Whenever actual_hours is set (ticket creation, or later logged), split it
+  # into total_development_time / total_test_time so dashboards don't need to
+  # re-parse the free-text actual_hours string. Split proportionally to the
+  # dev/tester estimate ratio, falling back to a 75/25 default when there's no
+  # estimate to go on.
+  before_save :assign_development_and_test_time,
+              if: -> { actual_hours.present? && (actual_hours_changed? || total_development_time.nil?) }
+
   # A newly created story starts with a single task named after the story, so the
   # team can immediately break it down and track progress via task completion.
   after_create_commit :create_initial_task, if: :story?
@@ -139,7 +147,26 @@ class Ticket < ApplicationRecord
     nil
   end
 
+  # Splits actual_hours_in_hours into [development_hours, test_hours],
+  # proportional to dev_estimate_hours vs tester_estimate_hours (or a 75/25
+  # default split when there's no estimate to derive a ratio from).
+  def development_and_test_time_split
+    total = actual_hours_in_hours
+    return [ nil, nil ] if total.nil?
+
+    dev_share  = dev_estimate_hours.to_f
+    test_share = tester_estimate_hours.to_f
+    ratio = (dev_share + test_share).positive? ? dev_share / (dev_share + test_share) : 0.75
+
+    dev_time = (total * ratio).round(2)
+    [ dev_time, (total - dev_time).round(2) ]
+  end
+
   private
+
+  def assign_development_and_test_time
+    self.total_development_time, self.total_test_time = development_and_test_time_split
+  end
 
   def auto_create_branch_and_notify
     TicketBranchService.new(self).call

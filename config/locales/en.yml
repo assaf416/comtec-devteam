@@ -295,6 +295,9 @@ en:
       week_progress: "Tickets Opened vs. Closed This Week"
       opened: "Opened"
       closed: "Closed"
+      coverage_chart_title: "Test Coverage Breakdown"
+      covered: "Covered"
+      not_covered: "Not covered"
   project_report:
     title: "Test Report"
     no_runs: "No CI runs yet."

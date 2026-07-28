@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_28_114018) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_28_130307) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -605,7 +605,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_28_114018) do
     t.text "test_plan"
     t.decimal "tester_estimate_hours", precision: 6, scale: 2
     t.string "title"
+    t.decimal "total_development_time", precision: 6, scale: 2
     t.decimal "total_tasks_estimation", precision: 8, scale: 2, default: "0.0"
+    t.decimal "total_test_time", precision: 6, scale: 2
     t.datetime "updated_at", null: false
     t.index ["assignee_id"], name: "index_tickets_on_assignee_id"
     t.index ["estimated_by_id"], name: "index_tickets_on_estimated_by_id"
