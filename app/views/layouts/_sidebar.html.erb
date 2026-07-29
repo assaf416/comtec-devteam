@@ -1,9 +1,11 @@
 <%# ── Left Sidebar ──────────────────────────────────────────────────────────── %>
 <%
-  # A project is "current" when the page being viewed belongs to one. Controllers
-  # for project-scoped pages set @project; the AI-Agent and GitHub groups only
-  # appear in that context.
-  current_project = @project if defined?(@project) && @project.is_a?(Project) && @project.persisted?
+  # A project is "current" when the page being viewed belongs to one.
+  # Controllers for project-scoped pages set @project; the AI-Agent and GitHub
+  # groups only appear in that context.
+  current_project = if defined?(@project) && @project.is_a?(Project) && @project.persisted?
+    @project
+  end
 %>
 <aside class="app-sidebar">
 
@@ -15,72 +17,118 @@
   </div>
 
   <%# ── פריט ראשי / Main ─────────────────────────────────────────────────── %>
-  <div class="sidebar-section-label"><%= t('sidebar.main_label') %></div>
+  <div class="sidebar-section-label"><%= t("sidebar.main_label") %></div>
 
   <%= link_to today_path,
         class: "sidebar-nav-item #{controller_name == 'today' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">📋</span> <%= t('nav.my_day') %>
+    <span class="nav-icon">📋</span>
+    <%= t("nav.my_day") %>
   <% end %>
 
   <%= link_to projects_path,
         class: "sidebar-nav-item #{controller_name == 'projects' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">📦</span> <%= t('nav.my_projects') %>
+    <span class="nav-icon">📦</span>
+    <%= t("nav.my_projects") %>
+  <% end %>
+
+  <%= link_to all_tickets_path,
+        class: "sidebar-nav-item #{controller_name == 'tickets' ? 'is-active' : ''}" do %>
+    <span class="nav-icon">🎫</span>
+    <%= t("nav.tickets") %>
   <% end %>
 
   <%= link_to all_documents_path,
         class: "sidebar-nav-item #{controller_name == 'all_documents' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">📚</span> <%= t('nav.library') %>
+    <span class="nav-icon">📚</span>
+    <%= t("nav.library") %>
   <% end %>
 
   <%= link_to attachments_path,
         class: "sidebar-nav-item #{controller_name == 'attachments' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">📎</span> <%= t('nav.files') %>
+    <span class="nav-icon">📎</span>
+    <%= t("nav.files") %>
+  <% end %>
+
+  <hr class="sidebar-divider">
+
+  <%# ── תשתיות / Infrastructure ─────────────────────────────────────────── %>
+  <div class="sidebar-section-label"><%= t("sidebar.infrastructure_label") %></div>
+
+  <%= link_to log_viewer_path,
+        class: "sidebar-nav-item #{controller_name == 'log_viewer' ? 'is-active' : ''}" do %>
+    <span class="nav-icon">📜</span>
+    <%= t("nav.logs") %>
+  <% end %>
+
+  <%= link_to notifications_path,
+        class: "sidebar-nav-item #{controller_name == 'notifications' ? 'is-active' : ''}" do %>
+    <span class="nav-icon">🔥</span>
+    <%= t("nav.sentry_notifications") %>
   <% end %>
 
   <hr class="sidebar-divider">
 
   <%# ── כלים / Tools ──────────────────────────────────────────────────────── %>
-  <div class="sidebar-section-label"><%= t('sidebar.tools_label') %></div>
+  <div class="sidebar-section-label"><%= t("sidebar.tools_label") %></div>
 
   <%= link_to time_logs_path,
         class: "sidebar-nav-item #{controller_name == 'time_logs' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">⏱️</span> <%= t('nav.time_logging') %>
+    <span class="nav-icon">⏱️</span>
+    <%= t("nav.time_logging") %>
   <% end %>
 
   <%= link_to notes_path,
         class: "sidebar-nav-item #{controller_name == 'notes' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">📝</span> <%= t('nav.notes') %>
+    <span class="nav-icon">📝</span>
+    <%= t("nav.notes") %>
   <% end %>
 
   <%= link_to todo_lists_path,
         class: "sidebar-nav-item #{controller_name == 'todo_lists' || controller_name == 'todo_items' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">✅</span> <%= t('nav.todos') %>
+    <span class="nav-icon">✅</span>
+    <%= t("nav.todos") %>
   <% end %>
 
   <%= link_to test_studio_path,
         class: "sidebar-nav-item #{controller_name == 'test_studio' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">🧪</span> <%= t('nav.test_studio') %>
+    <span class="nav-icon">🧪</span>
+    <%= t("nav.test_studio") %>
   <% end %>
 
   <hr class="sidebar-divider">
 
   <%# ── צ'אטים / Pinned chats ────────────────────────────────────────────── %>
-  <div class="sidebar-section-label d-flex align-items-center justify-content-between">
-    <span><%= t('chat.sidebar_title') %></span>
-    <%= link_to t('chat.sidebar_add'), chat_rooms_path, style: "font-size:.68rem; text-transform:none; letter-spacing:normal;" %>
+  <div
+    class="
+      sidebar-section-label d-flex align-items-center justify-content-between
+    "
+  >
+    <span><%= t("chat.sidebar_title") %></span>
+    <%= link_to t("chat.sidebar_add"),
+    chat_rooms_path,
+    style: "font-size:.68rem; text-transform:none; letter-spacing:normal;" %>
   </div>
 
   <% if @sidebar_pinned_chat_rooms.blank? %>
-    <div class="sidebar-nav-item text-muted" style="font-size:.75rem; cursor:default;">
-      <%= t('chat.sidebar_empty') %>
+    <div
+      class="sidebar-nav-item text-muted"
+      style="font-size:.75rem; cursor:default;"
+    >
+      <%= t("chat.sidebar_empty") %>
     </div>
   <% else %>
     <% @sidebar_pinned_chat_rooms.each do |room| %>
-      <div class="sidebar-nav-item d-flex align-items-center justify-content-between #{controller_name == 'chat_rooms' && params[:id] == room.id.to_s ? 'is-active' : ''}">
-        <%= link_to chat_room_path(room), class: "text-truncate flex-grow-1" do %>
-          <span class="nav-icon">💬</span> <%= room.name %>
+      <div
+        class="
+          sidebar-nav-item sidebar-chat-item #{controller_name == 'chat_rooms' &&
+          params[:id] == room.id.to_s ? 'is-active' : ''}
+        "
+      >
+        <%= link_to chat_room_path(room), class: "sidebar-chat-link" do %>
+          <span class="nav-icon">💬</span>
+          <span class="sidebar-chat-name" title="<%= room.name %>"><%= room.name %></span>
         <% end %>
-        <%= button_to unpin_chat_room_path(room), method: :delete, class: "btn btn-sm p-0 border-0 bg-transparent", form_class: "d-inline", style: "color:inherit; opacity:.6;", title: t('chat.unpin') do %>
+        <%= button_to unpin_chat_room_path(room), method: :delete, class: "sidebar-chat-unpin", form_class: "d-inline", title: t('chat.unpin'), aria: { label: t('chat.unpin') } do %>
           ✕
         <% end %>
       </div>
@@ -91,62 +139,71 @@
   <% if current_project %>
     <%= link_to project_chat_path(current_project),
           class: "sidebar-nav-item #{controller_name == 'project_chats' ? 'is-active' : ''}" do %>
-      <span class="nav-icon">💬</span> <%= t('nav.project_chat') %>
+      <span class="nav-icon">💬</span>
+      <%= t("nav.project_chat") %>
     <% end %>
 
     <%= link_to project_ai_chats_path(current_project),
           class: "sidebar-nav-item #{controller_name == 'ai_chats' ? 'is-active' : ''}" do %>
-      <span class="nav-icon">🤖</span> <%= t('nav.ai_agent') %>
+      <span class="nav-icon">🤖</span>
+      <%= t("nav.ai_agent") %>
     <% end %>
   <% end %>
 
   <%# ── גיטהב / GitHub — only inside a project ───────────────────────────── %>
   <% if current_project %>
     <hr class="sidebar-divider">
-    <div class="sidebar-section-label"><%= t('sidebar.github_label') %></div>
+    <div class="sidebar-section-label"><%= t("sidebar.github_label") %></div>
 
     <% if current_project.repo_url.present? %>
       <%= link_to current_project.repo_url, target: "_blank", rel: "noopener noreferrer",
             class: "sidebar-nav-item" do %>
-        <span class="nav-icon">💻</span> <%= t('nav.github_code') %>
+        <span class="nav-icon">💻</span>
+        <%= t("nav.github_code") %>
       <% end %>
     <% end %>
 
     <%= link_to project_pull_requests_path(current_project),
           class: "sidebar-nav-item #{controller_name == 'pull_requests' ? 'is-active' : ''}" do %>
-      <span class="nav-icon">🔀</span> <%= t('nav.github_prs') %>
+      <span class="nav-icon">🔀</span>
+      <%= t("nav.github_prs") %>
     <% end %>
 
     <%= link_to ci_dashboard_project_path(current_project),
           class: "sidebar-nav-item #{controller_name == 'ci_runs' ? 'is-active' : ''}" do %>
-      <span class="nav-icon">🏗️</span> <%= t('nav.github_build') %>
+      <span class="nav-icon">🏗️</span>
+      <%= t("nav.github_build") %>
     <% end %>
 
     <%= link_to report_project_path(current_project),
           class: "sidebar-nav-item #{controller_name == 'projects' && action_name == 'report' ? 'is-active' : ''}" do %>
-      <span class="nav-icon">✅</span> <%= t('nav.github_tests') %>
+      <span class="nav-icon">✅</span>
+      <%= t("nav.github_tests") %>
     <% end %>
 
     <%= link_to project_tickets_path(current_project),
           class: "sidebar-nav-item #{controller_name == 'tickets' ? 'is-active' : ''}" do %>
-      <span class="nav-icon">🎫</span> <%= t('nav.github_issues') %>
+      <span class="nav-icon">🎫</span>
+      <%= t("nav.github_issues") %>
     <% end %>
   <% end %>
 
   <hr class="sidebar-divider">
 
   <%# ── טבלאות / Tables ──────────────────────────────────────────────────── %>
-  <div class="sidebar-section-label"><%= t('sidebar.tables_label') %></div>
+  <div class="sidebar-section-label"><%= t("sidebar.tables_label") %></div>
 
   <%= link_to customers_path,
         class: "sidebar-nav-item #{controller_name == 'customers' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">🏢</span> <%= t('nav.customers') %>
+    <span class="nav-icon">🏢</span>
+    <%= t("nav.customers") %>
   <% end %>
 
   <% if current_user.admin? %>
     <%= link_to admin_users_path,
           class: "sidebar-nav-item #{controller_path == 'admin/users' ? 'is-active' : ''}" do %>
-      <span class="nav-icon">👥</span> <%= t('nav.users') %>
+      <span class="nav-icon">👥</span>
+      <%= t("nav.users") %>
     <% end %>
   <% end %>
 
@@ -160,12 +217,16 @@
     <div style="flex:1;min-width:0;">
       <div class="sidebar-user-name"><%= current_user.display_name %></div>
       <div class="sidebar-user-status">
-        <%= link_to t('nav.profile'), edit_profile_path,
-              style: "color:rgba(255,255,255,0.4);font-size:0.72rem;text-decoration:none;" %>
+        <%= link_to t("nav.profile"),
+        edit_profile_path,
+        style: "color:rgba(255,255,255,0.4);font-size:0.72rem;text-decoration:none;" %>
         &nbsp;·&nbsp;
-        <%= link_to t('nav.sign_out'), destroy_user_session_path,
-              data: { turbo_method: :delete },
-              style: "color:rgba(255,255,255,0.4);font-size:0.72rem;text-decoration:none;" %>
+        <%= link_to t("nav.sign_out"),
+        destroy_user_session_path,
+        data: {
+          turbo_method: :delete,
+        },
+        style: "color:rgba(255,255,255,0.4);font-size:0.72rem;text-decoration:none;" %>
       </div>
     </div>
   </div>
