@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_28_130307) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_01_063246) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -150,6 +150,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_28_130307) do
     t.index ["chat_room_id", "created_at"], name: "index_chat_messages_on_chat_room_id_and_created_at"
     t.index ["chat_room_id"], name: "index_chat_messages_on_chat_room_id"
     t.index ["user_id"], name: "index_chat_messages_on_user_id"
+  end
+
+  create_table "chat_room_memberships", force: :cascade do |t|
+    t.integer "chat_room_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "joined_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["chat_room_id"], name: "index_chat_room_memberships_on_chat_room_id"
+    t.index ["user_id", "chat_room_id"], name: "index_chat_room_memberships_on_user_id_and_chat_room_id", unique: true
+    t.index ["user_id"], name: "index_chat_room_memberships_on_user_id"
   end
 
   create_table "chat_room_pins", force: :cascade do |t|
@@ -690,6 +701,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_28_130307) do
   add_foreign_key "branches", "tickets"
   add_foreign_key "chat_messages", "chat_rooms"
   add_foreign_key "chat_messages", "users"
+  add_foreign_key "chat_room_memberships", "chat_rooms"
+  add_foreign_key "chat_room_memberships", "users"
   add_foreign_key "chat_room_pins", "chat_rooms"
   add_foreign_key "chat_room_pins", "users"
   add_foreign_key "chat_rooms", "projects"

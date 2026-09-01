@@ -23,6 +23,11 @@
             <td><%= link_to "# #{room.name}", chat_room_path(room) %></td>
             <td><%= room.project&.name || "—" %></td>
             <td class="text-end">
+              <% if @member_ids.include?(room.id) %>
+                <%= button_to t("chat.leave"), leave_chat_room_path(room), method: :delete, class: "btn btn-sm btn-outline-secondary", form_class: "d-inline" %>
+              <% else %>
+                <%= button_to t("chat.join"), join_chat_room_path(room), method: :post, class: "btn btn-sm btn-outline-primary", form_class: "d-inline" %>
+              <% end %>
               <% if @pinned_ids.include?(room.id) %>
                 <%= button_to t("chat.unpin"), unpin_chat_room_path(room), method: :delete, class: "btn btn-sm btn-outline-secondary", form_class: "d-inline" %>
               <% else %>

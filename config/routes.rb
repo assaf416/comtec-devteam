@@ -256,6 +256,8 @@ Rails.application.routes.draw do
     member do
       post   :pin
       delete :unpin
+      post   :join
+      delete :leave
     end
   end
 
