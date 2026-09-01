@@ -24,6 +24,16 @@ class TestStudioRun < ApplicationRecord
     "run_output_#{feature_path.parameterize}"
   end
 
+  # Parsed structured_results (an array of {name, elements} feature hashes —
+  # see TestStudioRunJob#parse_step_report), or nil while running / on error.
+  def step_report
+    return nil if structured_results.blank?
+
+    JSON.parse(structured_results)
+  rescue JSON::ParserError
+    nil
+  end
+
   private
 
   def broadcast_status
