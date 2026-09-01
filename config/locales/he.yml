@@ -255,9 +255,14 @@ he:
     col_actions: "פעולות"
     pin: "נעץ"
     unpin: "בטל נעיצה"
+    join: "הצטרף"
+    leave: "עזוב"
     sidebar_title: "צ'אטים"
     sidebar_empty: "אין עדיין צ'אטים נעוצים"
     sidebar_add: "+ הוספה"
+    my_rooms_title: "החדרים שלי"
+    my_rooms_empty: "עדיין לא הצטרפת לאף חדר צ'אט."
+    no_messages_yet: "אין עדיין הודעות."
   documents:
     types:
       spec: "מפרט"

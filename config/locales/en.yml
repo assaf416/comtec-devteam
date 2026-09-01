@@ -194,9 +194,14 @@ en:
     col_actions: "Actions"
     pin: "Pin"
     unpin: "Unpin"
+    join: "Join"
+    leave: "Leave"
     sidebar_title: "Chats"
     sidebar_empty: "No pinned chats yet"
     sidebar_add: "+ Add"
+    my_rooms_title: "My Chat Rooms"
+    my_rooms_empty: "You haven't joined any chat rooms yet."
+    no_messages_yet: "No messages yet."
   documents:
     types:
       spec: "Specification"

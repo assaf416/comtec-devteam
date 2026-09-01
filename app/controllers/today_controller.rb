@@ -87,6 +87,11 @@ class TodayController < ApplicationController
     @jenkins_url = ENV.fetch("JENKINS_URL", "http://localhost:8080")
     @gitea_url   = ENV.fetch("GITEA_URL",   "http://localhost:3000")
 
+    # ── My Chat Rooms: last 4 messages from each room I'm a member of ────────
+    @my_chat_rooms = current_user.member_chat_rooms.active.order(:room_type, :name).map do |room|
+      { room: room, messages: room.chat_messages.includes(:user).recent.last(4) }
+    end
+
     # ── Review queue: PRs awaiting review + my own open PRs ─────────────────────
     @review_queue = PullRequest.where(status: %i[open review])
                                .includes(:project, :ticket)

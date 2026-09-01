@@ -328,6 +328,33 @@
       <% end %>
     </div>
 
+    <%# My Chat Rooms -%>
+    <div id="section-chat-rooms" class="card p-3 mb-4">
+      <h2 class="fw-bold fs-5 mb-3">💬 <%= t("chat.my_rooms_title") %></h2>
+      <% if @my_chat_rooms.empty? %>
+        <p class="text-muted"><%= t("chat.my_rooms_empty") %></p>
+      <% else %>
+        <% @my_chat_rooms.each do |entry| %>
+          <div class="mb-3">
+            <%= link_to "# #{entry[:room].name}", chat_room_path(entry[:room]), class: "fw-medium" %>
+            <% if entry[:messages].empty? %>
+              <p class="fs-7 text-muted mb-0"><%= t("chat.no_messages_yet") %></p>
+            <% else %>
+              <% entry[:messages].each do |msg| %>
+                <div class="d-flex justify-content-between py-1" style="border-bottom:1px solid #f5f5f5;">
+                  <span class="fs-7">
+                    <span class="fw-medium"><%= msg.user.display_name %>:</span>
+                    <%= truncate(msg.body, length: 80) %>
+                  </span>
+                  <span class="fs-7 text-muted ms-2"><%= l(msg.created_at, format: :short) %></span>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
   </div><%# /right column %>
 
 </div>

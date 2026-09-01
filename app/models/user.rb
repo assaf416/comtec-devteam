@@ -35,6 +35,8 @@ class User < ApplicationRecord
   has_many :recently_viewed_attachments, through: :attachment_views, source: :attachment
   has_many :chat_room_pins, dependent: :destroy
   has_many :pinned_chat_rooms, through: :chat_room_pins, source: :chat_room
+  has_many :chat_room_memberships, dependent: :destroy
+  has_many :member_chat_rooms, through: :chat_room_memberships, source: :chat_room
 
   validates :name, presence: true
   validates :email, presence: true, uniqueness: true

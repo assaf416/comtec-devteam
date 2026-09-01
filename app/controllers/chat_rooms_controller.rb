@@ -1,9 +1,10 @@
 class ChatRoomsController < ApplicationController
-  before_action :set_chat_room, only: %i[show pin unpin]
+  before_action :set_chat_room, only: %i[show pin unpin join leave]
 
   def index
     @chat_rooms   = ChatRoom.active.order(:room_type, :name)
     @pinned_ids   = current_user.chat_room_pins.pluck(:chat_room_id)
+    @member_ids   = current_user.chat_room_memberships.pluck(:chat_room_id)
   end
 
   def show
@@ -21,6 +22,16 @@ class ChatRoomsController < ApplicationController
 
   def unpin
     current_user.chat_room_pins.where(chat_room: @chat_room).destroy_all
+    redirect_back fallback_location: chat_rooms_path
+  end
+
+  def join
+    current_user.chat_room_memberships.find_or_create_by!(chat_room: @chat_room) { |m| m.joined_at = Time.current }
+    redirect_back fallback_location: chat_rooms_path
+  end
+
+  def leave
+    current_user.chat_room_memberships.where(chat_room: @chat_room).destroy_all
     redirect_back fallback_location: chat_rooms_path
   end
 

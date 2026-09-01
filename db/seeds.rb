@@ -283,7 +283,10 @@ chat_rooms_data = [
   { name: "dis",       description: "Digital Internet Services channel",         room_type: :project_room, project: projects[2]  },
   { name: "wms",       description: "Work Management System channel",            room_type: :project_room, project: projects[3]  },
   { name: "devteam",   description: "DevTeam Hub dev channel",                   room_type: :project_room, project: projects[4]  },
-  { name: "qa",        description: "Cross-team QA discussion and bug triage",   room_type: :general,      project: nil          }
+  { name: "qa",        description: "Cross-team QA discussion and bug triage",   room_type: :general,      project: nil          },
+  { name: "ניהול פרוייקטים", description: "Cross-project management discussion", room_type: :general, project: nil },
+  { name: "בדיקות",           description: "QA testing coordination",             room_type: :general, project: nil },
+  { name: "חשכל פניקס",       description: "חשכל פניקס channel",                   room_type: :general, project: nil }
 ]
 
 chat_rooms_data.each do |attrs|
@@ -310,6 +313,30 @@ users.each do |u|
   end
 end
 puts "  ✓ #{pin_count} default chat room pins" if pin_count.positive?
+
+# Register users as members of chat rooms — a user can belong to many rooms
+# at once. Everyone joins "general" + the project-management room; QA users
+# additionally join "בדיקות"; a handful join "חשכל פניקס".
+membership_rules = {
+  ChatRoom.find_by(name: "general")            => users,
+  ChatRoom.find_by(name: "ניהול פרוייקטים")     => users,
+  ChatRoom.find_by(name: "בדיקות")               => users.select { |u| u.qa? || u.team_lead? },
+  ChatRoom.find_by(name: "חשכל פניקס")           => users.first(3),
+  ChatRoom.find_by(name: "devteam")            => users
+}
+
+membership_count = 0
+membership_rules.each do |room, members|
+  next unless room
+
+  members.each do |u|
+    next if ChatRoomMembership.exists?(user: u, chat_room: room)
+
+    ChatRoomMembership.create!(user: u, chat_room: room, joined_at: Time.current)
+    membership_count += 1
+  end
+end
+puts "  ✓ #{membership_count} chat room memberships" if membership_count.positive?
 
 # ─────────────────────────────────────────────────────────────────
 # Demo project chat conversations — so the per-project Chat page has
@@ -427,6 +454,21 @@ general_scripts = {
     { user: users[2], body: "מצאתי באג בסביבת ה-staging, מצרף צילום מסך 🐛", image: true },
     { user: users[1], body: "פתחתי כרטיס עבורו, אעדכן כשיש תיקון." },
     { user: users[3], body: "תודה, אבדוק אצלי גם." }
+  ],
+  "ניהול פרוייקטים" => [
+    { user: users[0], body: "עדכון סטטוס רבעוני יישלח מחר לכל מנהלי הפרויקטים." },
+    { user: users[1], body: "אשמח לקבל את התכנון המעודכן של TDI2 עד סוף השבוע." },
+    { user: users[2], body: "מצרף את לוח הזמנים המעודכן 📄", pdf: true },
+    { user: users[0], body: "תודה על העדכון, נעבור עליו בישיבה הבאה." }
+  ],
+  "בדיקות" => [
+    { user: users[3], body: "סיימתי סבב בדיקות רגרסיה לגרסה האחרונה." },
+    { user: users[2], body: "יש 2 באגים חדשים שנפתחו, מצרף פירוט." },
+    { user: users[1], body: "אעדכן את תוכנית הבדיקות בהתאם." }
+  ],
+  "חשכל פניקס" => [
+    { user: users[0], body: "פתחנו ערוץ ייעודי לפרויקט חשכל פניקס." },
+    { user: users[1], body: "מעולה, אעדכן כאן על כל התקדמות." }
   ]
 }
 
