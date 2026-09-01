@@ -66,6 +66,12 @@
     <%= t("nav.sentry_notifications") %>
   <% end %>
 
+  <%= link_to bdd_tests_path,
+        class: "sidebar-nav-item #{controller_name == 'bdd_tests' ? 'is-active' : ''}" do %>
+    <span class="nav-icon">🔬</span>
+    <%= t("nav.bdd_tests") %>
+  <% end %>
+
   <hr class="sidebar-divider">
 
   <%# ── כלים / Tools ──────────────────────────────────────────────────────── %>
@@ -95,15 +101,9 @@
     <%= t("nav.test_studio") %>
   <% end %>
 
-  <%= link_to bdd_tests_path,
-        class: "sidebar-nav-item #{controller_name == 'bdd_tests' ? 'is-active' : ''}" do %>
-    <span class="nav-icon">🔬</span>
-    <%= t("nav.bdd_tests") %>
-  <% end %>
-
   <hr class="sidebar-divider">
 
-  <%# ── צ'אטים / Pinned chats ────────────────────────────────────────────── %>
+  <%# ── קבוצות / Groups (all chat rooms I'm a member of) ────────────────── %>
   <div
     class="
       sidebar-section-label d-flex align-items-center justify-content-between
@@ -115,7 +115,7 @@
     style: "font-size:.68rem; text-transform:none; letter-spacing:normal;" %>
   </div>
 
-  <% if @sidebar_pinned_chat_rooms.blank? %>
+  <% if @sidebar_chat_rooms.blank? %>
     <div
       class="sidebar-nav-item text-muted"
       style="font-size:.75rem; cursor:default;"
@@ -123,21 +123,12 @@
       <%= t("chat.sidebar_empty") %>
     </div>
   <% else %>
-    <% @sidebar_pinned_chat_rooms.each do |room| %>
-      <div
-        class="
-          sidebar-nav-item sidebar-chat-item #{controller_name == 'chat_rooms' &&
-          params[:id] == room.id.to_s ? 'is-active' : ''}
-        "
-      >
-        <%= link_to chat_room_path(room), class: "sidebar-chat-link" do %>
-          <span class="nav-icon">💬</span>
-          <span class="sidebar-chat-name" title="<%= room.name %>"><%= room.name %></span>
-        <% end %>
-        <%= button_to unpin_chat_room_path(room), method: :delete, class: "sidebar-chat-unpin", form_class: "d-inline", title: t('chat.unpin'), aria: { label: t('chat.unpin') } do %>
-          ✕
-        <% end %>
-      </div>
+    <% @sidebar_chat_rooms.each do |room| %>
+      <%= link_to chat_room_path(room),
+            class: "sidebar-nav-item #{controller_name == 'chat_rooms' && params[:id] == room.id.to_s ? 'is-active' : ''}" do %>
+        <span class="nav-icon">💬</span>
+        <%= room.name %>
+      <% end %>
     <% end %>
   <% end %>
 
