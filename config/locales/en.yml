@@ -213,6 +213,7 @@ en:
     edited: "(edited)"
     empty_state_title: "This is the beginning of #%{room}"
     empty_state_body_html: "Send a message to get the conversation started.<br>Link tickets with <code>#T-123</code>, CI runs with <code>#CI-456</code>, deployments with <code>#D-789</code>"
+    remove_file: "Remove file"
   documents:
     types:
       spec: "Specification"

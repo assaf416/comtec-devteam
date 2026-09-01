@@ -16,11 +16,13 @@
         data-action="input->chat#autoGrow keydown->chat#keySubmit"
         style="min-height:52px;"
       ></textarea>
+      <div class="chat-attachments-preview d-none" data-chat-target="attachmentsPreview" data-remove-label="<%= t('chat.remove_file') %>"></div>
       <div class="chat-compose-footer">
         <label class="btn btn-sm btn-outline-secondary mb-0" title="<%= t('chat.attach_files') %>">
           📎
           <span class="d-none d-md-inline"><%= t("chat.attach") %></span>
-          <%= file_field_tag "chat_message[files][]", multiple: true, class: "d-none" %>
+          <%= file_field_tag "chat_message[files][]", multiple: true, class: "d-none",
+                data: { chat_target: "fileInput", action: "change->chat#filesSelected" } %>
         </label>
         <button type="button" class="btn btn-sm btn-outline-secondary mb-0 ms-1" title="<%= t('chat.emoji') %>" data-action="click->chat#toggleEmojiPicker">
           🙂

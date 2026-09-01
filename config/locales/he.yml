@@ -274,6 +274,7 @@ he:
     edited: "(נערך)"
     empty_state_title: "זו תחילת הצ'אט ב-#%{room}"
     empty_state_body_html: "שלחו הודעה כדי להתחיל את השיחה.<br>ניתן לקשר כרטיסים עם <code>#T-123</code>, ריצות CI עם <code>#CI-456</code>, פריסות עם <code>#D-789</code>"
+    remove_file: "הסר קובץ"
   documents:
     types:
       spec: "מפרט"
