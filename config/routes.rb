@@ -68,7 +68,7 @@ Rails.application.routes.draw do
   post  "test_studio/run_selected", to: "test_studio#run_selected", as: :run_selected_test_studio
 
   # ── BDD Tests (run other projects' Cucumber suites: C#/Node/Rails/Go/Ruby, plus SOAP/E2E/AS400) ──
-  resources :bdd_tests, only: %i[index show] do
+  resources :bdd_tests, only: %i[index show edit update] do
     member do
       post :run
     end

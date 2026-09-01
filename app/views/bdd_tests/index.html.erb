@@ -5,14 +5,23 @@
 <div class="card p-3 mb-3">
   <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
     <h1 class="fw-bold fs-4 mb-0">🔬 <%= t("bdd_tests.title") %></h1>
-    <div class="d-flex gap-2 align-items-center">
-      <%= form_with url: bdd_tests_path, method: :get, id: "bdd-tests-filter-form" do %>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+      <%= form_with url: bdd_tests_path, method: :get, id: "bdd-tests-filter-form", class: "d-flex gap-2" do %>
+        <%= select_tag :project_id,
+              options_for_select(
+                [[t("bdd_tests.filter_all_projects"), ""]] + @projects.map { |p| [p.name, p.id] },
+                @selected_project_id
+              ),
+              class: "form-select form-select-sm", onchange: "this.form.requestSubmit()" %>
         <%= select_tag :tag,
               options_for_select(
                 [[t("bdd_tests.filter_all_tags"), ""]] + @tag_counts.map { |t| ["#{t.name} (#{t.taggings_count})", t.name] },
                 @selected_tag
               ),
               class: "form-select form-select-sm", onchange: "this.form.requestSubmit()" %>
+        <%= search_field_tag :q, @query, class: "form-control form-control-sm",
+              placeholder: t("bdd_tests.search_placeholder") %>
+        <%= submit_tag t("bdd_tests.search"), class: "btn btn-outline-secondary btn-sm" %>
       <% end %>
       <% if current_user.admin? || current_user.qa? %>
         <%= form_with url: run_selected_bdd_tests_path, method: :post, id: "bdd-tests-select-form" do %>
@@ -64,10 +73,14 @@
               </td>
               <td><%= render "bdd_tests/run_badge", run: bdd_test.latest_bdd_test_run, bdd_test: bdd_test %></td>
               <td class="text-end">
-                <% if current_user.admin? || current_user.qa? %>
-                  <%= button_to t("bdd_tests.run"), run_bdd_test_path(bdd_test), method: :post,
-                        class: "btn btn-sm btn-outline-primary", form_class: "d-inline" %>
-                <% end %>
+                <div class="d-flex gap-1 justify-content-end">
+                  <%= link_to t("bdd_tests.results"), bdd_test_path(bdd_test), class: "btn btn-sm btn-outline-secondary" %>
+                  <% if current_user.admin? || current_user.qa? %>
+                    <%= link_to t("bdd_tests.edit"), edit_bdd_test_path(bdd_test), class: "btn btn-sm btn-outline-secondary" %>
+                    <%= button_to t("bdd_tests.run"), run_bdd_test_path(bdd_test), method: :post,
+                          class: "btn btn-sm btn-outline-primary", form_class: "d-inline" %>
+                  <% end %>
+                </div>
               </td>
             </tr>
           <% end %>

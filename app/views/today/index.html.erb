@@ -81,10 +81,10 @@
               <%= link_to ticket.title, project_ticket_path(ticket.project, ticket), class: "fw-medium" %>
               <span class="badge bg-light text-dark is-small ms-1"><%= ticket.project.name %></span>
               <% if ticket.branch_name.present? %>
-                <span class="badge bg-dark is-small ms-1" title="Branch"><code style="background:transparent;color:inherit;"><%= ticket.branch_name %></code></span>
+                <span class="badge bg-dark is-small ms-1" title="<%= t('today.branch') %>"><code style="background:transparent;color:inherit;"><%= ticket.branch_name %></code></span>
               <% end %>
               <% if ticket.updated_at > Time.current.beginning_of_day %>
-                <span class="badge bg-success-subtle text-success is-small ms-1">updated today</span>
+                <span class="badge bg-success-subtle text-success is-small ms-1"><%= t("today.updated_today") %></span>
               <% end %>
               <span class="d-inline-flex flex-wrap gap-1 ms-1 align-middle"><%= render "tickets/progress_badges", ticket: ticket %></span>
             </div>
@@ -101,34 +101,34 @@
     <%# Review queue -%>
     <div id="section-reviews" class="card p-3 mb-4">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <h2 class="fw-bold fs-5 mb-0">🔍 Review queue</h2>
-        <span class="badge bg-light text-dark border"><%= @review_queue.size %> open</span>
+        <h2 class="fw-bold fs-5 mb-0">🔍 <%= t("today.review_queue") %></h2>
+        <span class="badge bg-light text-dark border"><%= t("today.open_count", count: @review_queue.size) %></span>
       </div>
       <% if @my_open_prs.any? %>
-        <p class="text-uppercase text-muted fw-bold small mb-1">My open PRs</p>
+        <p class="text-uppercase text-muted fw-bold small mb-1"><%= t("today.my_open_prs") %></p>
         <% @my_open_prs.each do |pr| %>
           <div class="d-flex justify-content-between align-items-center py-1">
             <div>
               <%= link_to "##{pr.pr_number} #{pr.title.truncate(48)}", cockpit_pull_request_path(pr), class: "fw-medium text-decoration-none" %>
               <span class="badge bg-light text-dark is-small ms-1"><%= pr.project.name %></span>
             </div>
-            <span class="badge bg-<%= pr.status == 'review' ? 'primary' : 'success' %>"><%= pr.status.capitalize %></span>
+            <span class="badge bg-<%= pr.status == 'review' ? 'primary' : 'success' %>"><%= t("today.pr_status.#{pr.status}") %></span>
           </div>
         <% end %>
         <hr class="my-2">
       <% end %>
       <% if @review_queue.empty? %>
-        <p class="text-muted mb-0">Nothing waiting for review. 🎉</p>
+        <p class="text-muted mb-0"><%= t("today.nothing_to_review") %></p>
       <% else %>
-        <p class="text-uppercase text-muted fw-bold small mb-1">Awaiting review</p>
+        <p class="text-uppercase text-muted fw-bold small mb-1"><%= t("today.awaiting_review") %></p>
         <% @review_queue.each do |pr| %>
           <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom:1px solid #f0f0f0;">
             <div>
               <%= link_to "##{pr.pr_number} #{pr.title.truncate(46)}", cockpit_pull_request_path(pr), class: "fw-medium text-decoration-none" %>
               <span class="badge bg-light text-dark is-small ms-1"><%= pr.project.name %></span>
-              <% if pr.author.present? %><span class="fs-8 text-muted ms-1">by <%= pr.author %></span><% end %>
+              <% if pr.author.present? %><span class="fs-8 text-muted ms-1"><%= t("today.by") %> <%= pr.author %></span><% end %>
             </div>
-            <%= link_to "Review →", cockpit_pull_request_path(pr), class: "btn btn-sm btn-outline-primary py-0" %>
+            <%= link_to t("today.review"), cockpit_pull_request_path(pr), class: "btn btn-sm btn-outline-primary py-0" %>
           </div>
         <% end %>
       <% end %>
@@ -177,7 +177,7 @@
             <div>
               <%= link_to doc.title, document_path(doc), target: "_blank", rel: "noopener" %>
               <span class="badge bg-light text-dark is-small ms-1"><%= doc.project.name %></span>
-              <span class="badge bg-info text-dark is-light is-small ms-1"><%= doc.doc_type.to_s.humanize %></span>
+              <span class="badge bg-info text-dark is-light is-small ms-1"><%= t("documents.types.#{doc.doc_type}") %></span>
             </div>
             <span class="text-muted fs-7"><%= doc.author&.display_name %> · <%= l(doc.updated_at, format: :short) %></span>
           </div>
@@ -241,19 +241,19 @@
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="fw-bold fs-5 mb-0">⚙️ <%= t("today.ci_header") %></h2>
         <% if @jenkins_url.present? %>
-          <%= link_to "Open Jenkins →", @jenkins_url, target: "_blank", rel: "noopener", class: "btn btn-secondary btn-sm is-dark" %>
+          <%= link_to t("today.open_jenkins"), @jenkins_url, target: "_blank", rel: "noopener", class: "btn btn-secondary btn-sm is-dark" %>
         <% end %>
       </div>
 
       <%# Failing builds alert -%>
       <% if @my_failing_builds.any? %>
         <div class="alert alert-danger is-light py-2 px-3 mb-3">
-          <strong>⚠ <%= @my_failing_builds.size %> failing <%= "build".pluralize(@my_failing_builds.size) %></strong>
+          <strong>⚠ <%= t("today.failing_build", count: @my_failing_builds.size) %></strong>
           <% @my_failing_builds.each do |run| %>
             <div class="d-flex justify-content-between fs-7 mt-1">
               <span><%= run.project.name %> · #<%= run.build_number %> · <%= run.branch_name %></span>
               <% if run.log_url.present? %>
-                <%= link_to "View log", run.log_url, target: "_blank", rel: "noopener", class: "text-danger" %>
+                <%= link_to t("today.view_log"), run.log_url, target: "_blank", rel: "noopener", class: "text-danger" %>
               <% end %>
             </div>
           <% end %>
@@ -281,7 +281,7 @@
             <div class="d-flex align-items-center">
               <%= status_tag(run.status) %>
               <% if run.log_url.present? %>
-                <%= link_to "Log", run.log_url, target: "_blank", rel: "noopener", class: "btn btn-secondary btn-sm is-light ms-1" %>
+                <%= link_to t("today.log"), run.log_url, target: "_blank", rel: "noopener", class: "btn btn-secondary btn-sm is-light ms-1" %>
               <% end %>
             </div>
           </div>
@@ -299,7 +299,7 @@
                 <% job_name = URI.encode_www_form_component(proj.name) %>
                 <%= link_to "Jenkins", "#{@jenkins_url}/job/#{job_name}/", target: "_blank", rel: "noopener", class: "badge bg-dark" %>
                 <% if proj.repo_url.present? %>
-                  <%= link_to "Repo", proj.repo_url, target: "_blank", rel: "noopener", class: "badge bg-primary-subtle text-primary ms-1" %>
+                  <%= link_to t("today.repo"), proj.repo_url, target: "_blank", rel: "noopener", class: "badge bg-primary-subtle text-primary ms-1" %>
                 <% end %>
               </span>
             </div>
@@ -320,7 +320,7 @@
               <span class="fw-medium"><%= dep.project.name %></span>
               <span class="badge bg-light text-dark is-small ms-1"><%= dep.environment %></span>
               <span class="badge bg-info text-dark is-light is-small ms-1">v<%= dep.version %></span>
-              <span class="fs-7 text-muted ms-1"><%= dep.deploy_type.to_s.humanize %></span>
+              <span class="fs-7 text-muted ms-1"><%= t("deployments.types.#{dep.deploy_type}") %></span>
             </div>
             <%= status_tag(dep.status) %>
           </div>

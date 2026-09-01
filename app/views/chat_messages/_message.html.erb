@@ -12,10 +12,10 @@
     <% unless is_continuation %>
       <div class="chat-msg-meta">
         <span class="chat-msg-author"><%= message.user.display_name %></span>
-        <span class="chat-msg-time" title="<%= message.created_at.strftime('%Y-%m-%d %H:%M') %>">
-          <%= message.created_at.strftime("%-I:%M %p") %>
+        <span class="chat-msg-time" title="<%= l(message.created_at, format: :long) %>">
+          <%= message.created_at.strftime("%H:%M") %>
         </span>
-        <% if message.edited? %><span class="chat-msg-time">(edited)</span><% end %>
+        <% if message.edited? %><span class="chat-msg-time"><%= t("chat.edited") %></span><% end %>
       </div>
     <% end %>
 

@@ -1,15 +1,5 @@
 <% content_for :title, t("nav.projects") %>
 
-<style>
-  .avatar-stack { display: flex; align-items: center; }
-  .avatar-stack .avatar-stack-item { margin-inline-start: -10px; border: 2px solid #fff;
-    border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.06); display: inline-flex; }
-  .avatar-stack .avatar-stack-item:first-child { margin-inline-start: 0; }
-  .avatar-stack .avatar-stack-more { width: 28px; height: 28px; border-radius: 50%;
-    background: #e2e8f0; color: #475569; display: flex; align-items: center;
-    justify-content: center; font-weight: 700; font-size: .68rem; }
-</style>
-
 <div class="level mb-3">
   <div class="level-left"><h1 class="fw-bold"><%= t("nav.projects") %></h1></div>
   <div class="level-right"><%= link_to t("buttons.new_project"), new_project_path, class: "btn btn-primary" %></div>
@@ -22,7 +12,7 @@
         <tr>
           <th>Project</th>
           <th>Tech stack</th>
-          <th>Team</th>
+          <th>Status</th>
           <th class="text-center">Open tickets</th>
           <th class="text-center">CI (7d)</th>
           <th class="text-end"></th>
@@ -39,23 +29,14 @@
           >
             <td>
               <div class="fw-semibold"><%= project.name %></div>
-              <% unless project.active? %><span class="badge bg-secondary">Archived</span><% end %>
               <div class="text-muted fs-7"><%= project.description&.truncate(70) %></div>
             </td>
             <td class="fs-7 text-muted"><%= project.tech_stack %></td>
             <td>
-              <% members = project.members.sort_by(&:name) %>
-              <% if members.any? %>
-                <div class="avatar-stack" title="<%= members.map(&:display_name).join(', ') %>">
-                  <% members.first(5).each do |m| %>
-                    <span class="avatar-stack-item"><%= user_avatar(m, size: 28) %></span>
-                  <% end %>
-                  <% if members.size > 5 %>
-                    <span class="avatar-stack-item avatar-stack-more">+<%= members.size - 5 %></span>
-                  <% end %>
-                </div>
+              <% if project.active? %>
+                <span class="badge bg-success">Active</span>
               <% else %>
-                <span class="text-muted fs-7">—</span>
+                <span class="badge bg-secondary">Archived</span>
               <% end %>
             </td>
             <td class="text-center"><%= project.tickets.where.not(status: %i[done closed]).count %></td>

@@ -36,7 +36,7 @@
         <% if msg_date != prev_date %>
           <div class="chat-day-divider">
             <hr>
-            <span><%= msg_date == Date.today ? "Today" : msg_date.strftime("%B %-d, %Y") %></span>
+            <span><%= msg_date == Date.today ? t("chat.today") : l(msg_date, format: :long) %></span>
             <hr>
           </div>
           <% prev_user_id = nil %>
@@ -54,10 +54,9 @@
       <% if @messages.empty? %>
         <div style="text-align:center;padding:3rem 1rem;color:#bbb;">
           <div style="font-size:2.5rem;margin-bottom:0.5rem;">#</div>
-          <strong style="color:#aaa;">This is the beginning of #<%= @chat_room.name %></strong>
+          <strong style="color:#aaa;"><%= t("chat.empty_state_title", room: @chat_room.name) %></strong>
           <p style="font-size:0.85rem;margin-top:0.5rem;">
-            Send a message to get the conversation started.<br>
-            Link tickets with <code>#T-123</code>, CI runs with <code>#CI-456</code>, deployments with <code>#D-789</code>
+            <%= t("chat.empty_state_body_html") %>
           </p>
         </div>
       <% end %>
