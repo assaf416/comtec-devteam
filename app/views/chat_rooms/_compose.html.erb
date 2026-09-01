@@ -1,8 +1,13 @@
-<div class="chat-compose" id="chatComposeForm">
+<div class="chat-compose" id="chatComposeForm" style="position:relative;">
   <%= form_with url: chat_room_chat_messages_path(chat_room),
                 method: :post, html: { multipart: true },
                 data: { action: "submit->chat#afterSubmit" } do |f| %>
-    <div class="chat-compose-box p-3 mb-3" style="position:relative;">
+    <div class="chat-emoji-picker d-none" data-chat-target="emojiPicker">
+      <% %w[😀 😂 😊 😍 🎉 👍 👎 🙏 🔥 ❤️ 😢 😮 🤔 👏 🚀 ✅ ❌ 💡 📌 👀].each do |emoji| %>
+        <button type="button" class="chat-emoji-option" data-action="click->chat#insertEmoji"><%= emoji %></button>
+      <% end %>
+    </div>
+    <div class="chat-compose-box p-3 mb-3">
       <textarea
         name="chat_message[body]"
         placeholder="<%= t('chat.message_placeholder', room: chat_room.name) %>"
@@ -11,11 +16,6 @@
         data-action="input->chat#autoGrow keydown->chat#keySubmit"
         style="min-height:52px;"
       ></textarea>
-      <div class="chat-emoji-picker d-none" data-chat-target="emojiPicker">
-        <% %w[😀 😂 😊 😍 🎉 👍 👎 🙏 🔥 ❤️ 😢 😮 🤔 👏 🚀 ✅ ❌ 💡 📌 👀].each do |emoji| %>
-          <button type="button" class="chat-emoji-option" data-action="click->chat#insertEmoji"><%= emoji %></button>
-        <% end %>
-      </div>
       <div class="chat-compose-footer">
         <label class="btn btn-sm btn-outline-secondary mb-0" title="<%= t('chat.attach_files') %>">
           📎
