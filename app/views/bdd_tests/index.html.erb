@@ -1,0 +1,82 @@
+<% content_for :title, t("bdd_tests.title") %>
+
+<%= turbo_stream_from :bdd_tests %>
+
+<div class="card p-3 mb-3">
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <h1 class="fw-bold fs-4 mb-0">🔬 <%= t("bdd_tests.title") %></h1>
+    <div class="d-flex gap-2 align-items-center">
+      <%= form_with url: bdd_tests_path, method: :get, id: "bdd-tests-filter-form" do %>
+        <%= select_tag :tag,
+              options_for_select(
+                [[t("bdd_tests.filter_all_tags"), ""]] + @tag_counts.map { |t| ["#{t.name} (#{t.taggings_count})", t.name] },
+                @selected_tag
+              ),
+              class: "form-select form-select-sm", onchange: "this.form.requestSubmit()" %>
+      <% end %>
+      <% if current_user.admin? || current_user.qa? %>
+        <%= form_with url: run_selected_bdd_tests_path, method: :post, id: "bdd-tests-select-form" do %>
+          <%= submit_tag t("bdd_tests.run_selected"), class: "btn btn-outline-primary btn-sm" %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <% @tests_by_project.each do |project, tests| %>
+    <div class="mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h2 class="fw-bold fs-6 mb-0">
+          📦 <%= project.name %>
+          <span class="badge bg-light text-dark border"><%= t("bdd_tests.project_kind_#{project.project_kind}") %></span>
+        </h2>
+        <% if current_user.admin? || current_user.qa? %>
+          <%= button_to t("bdd_tests.import"), import_project_bdd_tests_path(project_id: project.id),
+                method: :post, class: "btn btn-sm btn-outline-secondary" %>
+        <% end %>
+      </div>
+
+      <table class="table table-hover w-100 align-middle mb-0">
+        <thead>
+          <tr>
+            <th style="width: 2rem"></th>
+            <th><%= t("bdd_tests.col_name") %></th>
+            <th><%= t("bdd_tests.col_tags") %></th>
+            <th><%= t("bdd_tests.col_last_run") %></th>
+            <th class="text-end"><%= t("bdd_tests.col_actions") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% tests.each do |bdd_test| %>
+            <tr>
+              <td>
+                <% if current_user.admin? || current_user.qa? %>
+                  <%= check_box_tag "bdd_test_ids[]", bdd_test.id, false, form: "bdd-tests-select-form" %>
+                <% end %>
+              </td>
+              <td>
+                <%= link_to bdd_test.name.presence || bdd_test.path, bdd_test_path(bdd_test) %>
+                <div class="fs-7 text-muted"><code><%= bdd_test.path %></code></div>
+              </td>
+              <td>
+                <% bdd_test.tag_list.each do |tag| %>
+                  <span class="badge bg-light text-dark border"><%= tag %></span>
+                <% end %>
+              </td>
+              <td><%= render "bdd_tests/run_badge", run: bdd_test.latest_bdd_test_run, bdd_test: bdd_test %></td>
+              <td class="text-end">
+                <% if current_user.admin? || current_user.qa? %>
+                  <%= button_to t("bdd_tests.run"), run_bdd_test_path(bdd_test), method: :post,
+                        class: "btn btn-sm btn-outline-primary", form_class: "d-inline" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
+  <% if @tests_by_project.empty? %>
+    <p class="text-muted"><%= t("bdd_tests.no_tests") %></p>
+  <% end %>
+</div>

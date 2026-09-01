@@ -95,6 +95,12 @@
     <%= t("nav.test_studio") %>
   <% end %>
 
+  <%= link_to bdd_tests_path,
+        class: "sidebar-nav-item #{controller_name == 'bdd_tests' ? 'is-active' : ''}" do %>
+    <span class="nav-icon">🔬</span>
+    <%= t("nav.bdd_tests") %>
+  <% end %>
+
   <hr class="sidebar-divider">
 
   <%# ── צ'אטים / Pinned chats ────────────────────────────────────────────── %>

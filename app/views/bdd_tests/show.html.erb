@@ -1,0 +1,63 @@
+<% content_for :title, @bdd_test.name.presence || @bdd_test.path %>
+
+<style>
+  .test-studio-run-output {
+    background: #0e1116; color: #d7dbe0; border-radius: 8px; padding: 12px 14px;
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: .8rem;
+    max-height: 40vh; overflow-y: auto; white-space: pre-wrap; word-break: break-word; direction: ltr;
+  }
+  .test-studio-step-report { margin-bottom: 10px; }
+  .tsr-scenario { border: 1px solid #e2e5ea; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; background: #fff; }
+  .tsr-scenario-name { font-weight: 700; margin-bottom: 6px; }
+  .tsr-steps { list-style: none; margin: 0; padding: 0; }
+  .tsr-step { display: flex; align-items: flex-start; gap: 6px; padding: 3px 0; font-size: .86rem; }
+  .tsr-step-passed { color: #1a7f37; }
+  .tsr-step-failed { color: #b42318; font-weight: 600; }
+  .tsr-step-skipped, .tsr-step-undefined, .tsr-step-pending { color: #6b7280; }
+  .tsr-error {
+    direction: ltr; text-align: left; background: #fff5f5; border: 1px solid #f3c6c6;
+    color: #b42318; border-radius: 6px; padding: 8px 10px; margin: 6px 0 0 0;
+    font-size: .78rem; white-space: pre-wrap; width: 100%; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  }
+</style>
+
+<%= turbo_stream_from :bdd_tests %>
+
+<nav class="breadcrumb is-small mb-2"><ul>
+  <li><%= link_to t("bdd_tests.title"), bdd_tests_path %></li>
+  <li class="is-active"><a><%= @bdd_test.name.presence || @bdd_test.path %></a></li>
+</ul></nav>
+
+<div class="card p-3 mb-3">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <div>
+      <h1 class="fw-bold fs-5 mb-0">🔬 <%= @bdd_test.name.presence || @bdd_test.path %></h1>
+      <p class="fs-7 text-muted mb-0"><code><%= @bdd_test.path %></code> — <%= @bdd_test.project.name %></p>
+    </div>
+    <% if current_user.admin? || current_user.qa? %>
+      <%= button_to t("bdd_tests.run"), run_bdd_test_path(@bdd_test), method: :post, class: "btn btn-primary btn-sm" %>
+    <% end %>
+  </div>
+
+  <%= render "bdd_tests/run_output", run: @bdd_test.latest_bdd_test_run, bdd_test: @bdd_test %>
+</div>
+
+<div class="card p-3">
+  <h2 class="fw-bold fs-6 mb-2"><%= t("bdd_tests.run_history") %></h2>
+  <table class="table table-hover w-100 align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= t("bdd_tests.col_last_run") %></th>
+        <th><%= t("bdd_tests.col_started_at") %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @runs.each do |run| %>
+        <tr>
+          <td><span class="badge <%= run.passed? ? "bg-success" : (run.status == "running" ? "bg-info text-dark" : "bg-danger") %>"><%= t("bdd_tests.status_#{run.status}") %></span></td>
+          <td><%= run.started_at&.strftime("%d/%m/%Y %H:%M:%S") || "—" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

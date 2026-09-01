@@ -254,6 +254,11 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.require(:project).permit(:name, :description, :repo_url, :tech_stack, :gitea_repo_id, :default_branch, :staging_base_url, :active)
+    permitted = [ :name, :description, :repo_url, :tech_stack, :gitea_repo_id, :default_branch, :staging_base_url, :active ]
+    # home_folder/cucumber_cmd effectively grant command execution on this
+    # machine (see BddTestRunJob) — never let a non admin/qa-submitted param
+    # through, even if a request is crafted to include them directly.
+    permitted += [ :home_folder, :cucumber_cmd, :project_kind ] if current_user.admin? || current_user.qa?
+    params.require(:project).permit(*permitted)
   end
 end
