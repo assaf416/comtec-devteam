@@ -2,7 +2,7 @@ class ProjectsController < ApplicationController
   before_action :set_project, only: [ :show, :edit, :update, :destroy, :dashboard, :report, :ci_dashboard, :calendar_events, :sync_issues ]
 
   def index
-    @projects = Project.order(:name)
+    @projects = Project.includes(:members).order(:name)
   end
 
   def show
@@ -30,6 +30,7 @@ class ProjectsController < ApplicationController
     else                         not_closed
     end
     @panel_tickets = scope.includes(:assignee).order(updated_at: :desc).limit(15)
+    @staging_health = @project.staging_health
 
     build_project_metrics
   end
@@ -253,6 +254,6 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.require(:project).permit(:name, :description, :repo_url, :tech_stack, :gitea_repo_id, :default_branch, :active)
+    params.require(:project).permit(:name, :description, :repo_url, :tech_stack, :gitea_repo_id, :default_branch, :staging_base_url, :active)
   end
 end

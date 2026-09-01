@@ -1,7 +1,17 @@
-<% content_for :title, t('nav.projects') %>
+<% content_for :title, t("nav.projects") %>
+
+<style>
+  .avatar-stack { display: flex; align-items: center; }
+  .avatar-stack .avatar-stack-item { margin-inline-start: -10px; border: 2px solid #fff;
+    border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.06); display: inline-flex; }
+  .avatar-stack .avatar-stack-item:first-child { margin-inline-start: 0; }
+  .avatar-stack .avatar-stack-more { width: 28px; height: 28px; border-radius: 50%;
+    background: #e2e8f0; color: #475569; display: flex; align-items: center;
+    justify-content: center; font-weight: 700; font-size: .68rem; }
+</style>
 
 <div class="level mb-3">
-  <div class="level-left"><h1 class="fw-bold"><%= t('nav.projects') %></h1></div>
+  <div class="level-left"><h1 class="fw-bold"><%= t("nav.projects") %></h1></div>
   <div class="level-right"><%= link_to t("buttons.new_project"), new_project_path, class: "btn btn-primary" %></div>
 </div>
 
@@ -12,6 +22,7 @@
         <tr>
           <th>Project</th>
           <th>Tech stack</th>
+          <th>Team</th>
           <th class="text-center">Open tickets</th>
           <th class="text-center">CI (7d)</th>
           <th class="text-end"></th>
@@ -19,32 +30,52 @@
       </thead>
       <tbody>
         <% @projects.each do |project| %>
-          <% passed = project.ci_runs.passed.where(created_at: 7.days.ago..Time.current).count %>
+          <% passed =
+            project.ci_runs.passed.where(created_at: 7.days.ago..Time.current).count %>
           <% failing = project.ci_runs.failed.where(created_at: 1.day.ago..Time.current).any? %>
-          <tr style="cursor:pointer;" onclick="window.location='<%= project_path(project) %>'">
+          <tr
+            style="cursor:pointer;"
+            onclick="window.location='<%= project_path(project) %>'"
+          >
             <td>
               <div class="fw-semibold"><%= project.name %></div>
               <% unless project.active? %><span class="badge bg-secondary">Archived</span><% end %>
               <div class="text-muted fs-7"><%= project.description&.truncate(70) %></div>
             </td>
             <td class="fs-7 text-muted"><%= project.tech_stack %></td>
-            <td class="text-center"><%= project.tickets.where.not(status: [ :done, :closed ]).count %></td>
+            <td>
+              <% members = project.members.sort_by(&:name) %>
+              <% if members.any? %>
+                <div class="avatar-stack" title="<%= members.map(&:display_name).join(', ') %>">
+                  <% members.first(5).each do |m| %>
+                    <span class="avatar-stack-item"><%= user_avatar(m, size: 28) %></span>
+                  <% end %>
+                  <% if members.size > 5 %>
+                    <span class="avatar-stack-item avatar-stack-more">+<%= members.size - 5 %></span>
+                  <% end %>
+                </div>
+              <% else %>
+                <span class="text-muted fs-7">—</span>
+              <% end %>
+            </td>
+            <td class="text-center"><%= project.tickets.where.not(status: %i[done closed]).count %></td>
             <td class="text-center">
               <% if failing %>
                 <span class="badge bg-danger">⚠ Failing</span>
               <% else %>
-                <span class="badge bg-success-subtle text-success"><%= passed %> passed</span>
+                <span class="badge bg-success-subtle text-success"><%= passed %>
+                  passed</span>
               <% end %>
             </td>
             <td class="text-end" onclick="event.stopPropagation();" style="cursor:default;">
               <%= actions_dropdown do |d| %>
-                <% d.link t('common.view'), project_path(project), icon: '👁' %>
-                <% d.link "Dashboard", dashboard_project_path(project), icon: '📊' %>
-                <% d.link "Tickets", project_tickets_path(project), icon: '🎫' %>
-                <% d.link "CI", ci_dashboard_project_path(project), icon: '🏗️' %>
-                <% d.link "Deployments", project_deployments_path(project), icon: '🚀' %>
+                <% d.link t("common.view"), project_path(project), icon: "👁" %>
+                <% d.link "Dashboard", dashboard_project_path(project), icon: "📊" %>
+                <% d.link "Tickets", project_tickets_path(project), icon: "🎫" %>
+                <% d.link "CI", ci_dashboard_project_path(project), icon: "🏗️" %>
+                <% d.link "Deployments", project_deployments_path(project), icon: "🚀" %>
                 <% d.divider %>
-                <% d.link t('common.actions.edit'), edit_project_path(project), icon: '✏️' %>
+                <% d.link t("common.actions.edit"), edit_project_path(project), icon: "✏️" %>
               <% end %>
             </td>
           </tr>
@@ -55,6 +86,8 @@
 <% else %>
   <div class="card p-5 text-center text-muted">
     <p class="mb-2">No projects yet.</p>
-    <div><%= link_to t("buttons.new_project"), new_project_path, class: "btn btn-primary btn-sm" %></div>
+    <div><%= link_to t("buttons.new_project"),
+      new_project_path,
+      class: "btn btn-primary btn-sm" %></div>
   </div>
 <% end %>
