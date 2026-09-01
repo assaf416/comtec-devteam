@@ -1,0 +1,21 @@
+<% steps_status_icon = { "passed" => "✅", "failed" => "❌" } %>
+<div class="test-studio-step-report" dir="rtl">
+  <% report.each do |feature| %>
+    <% feature["elements"].each do |element| %>
+      <div class="tsr-scenario">
+        <div class="tsr-scenario-name"><%= element["keyword"] %>: <%= element["name"] %></div>
+        <ul class="tsr-steps">
+          <% element["steps"].each do |step| %>
+            <li class="tsr-step tsr-step-<%= step["status"] %>">
+              <span class="tsr-step-icon"><%= steps_status_icon.fetch(step["status"], "⚪") %></span>
+              <span class="tsr-step-text"><%= step["keyword"] %><%= step["name"] %></span>
+              <% if step["error_message"].present? %>
+                <pre class="tsr-error" dir="ltr"><%= step["error_message"] %></pre>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  <% end %>
+</div>

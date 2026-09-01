@@ -6,6 +6,9 @@
         <span class="text-muted fs-7"><%= run.started_at.strftime("%H:%M:%S") %></span>
       <% end %>
     </div>
+    <% if run.step_report.present? %>
+      <%= render "test_studio/step_report", report: run.step_report %>
+    <% end %>
     <% if run.output.present? %>
       <pre class="test-studio-run-output"><%= run.output %></pre>
     <% end %>
