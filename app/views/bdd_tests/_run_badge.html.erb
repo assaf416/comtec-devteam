@@ -1,0 +1,10 @@
+<% badge_class = {
+  "queued" => "bg-light text-dark border",
+  "running" => "bg-info text-dark",
+  "passed" => "bg-success",
+  "failed" => "bg-danger",
+  "error" => "bg-danger",
+}.fetch(run&.status.to_s, "bg-light text-muted border") %>
+<span id="<%= bdd_test_badge_id(bdd_test) %>" class="badge <%= badge_class %>">
+  <%= run ? t("bdd_tests.status_#{run.status}") : t("bdd_tests.never_run") %>
+</span>

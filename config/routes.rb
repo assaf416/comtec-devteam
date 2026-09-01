@@ -67,6 +67,17 @@ Rails.application.routes.draw do
   post  "test_studio/run_all",      to: "test_studio#run_all",      as: :run_all_test_studio
   post  "test_studio/run_selected", to: "test_studio#run_selected", as: :run_selected_test_studio
 
+  # ── BDD Tests (run other projects' Cucumber suites: C#/Node/Rails/Go/Ruby, plus SOAP/E2E/AS400) ──
+  resources :bdd_tests, only: %i[index show] do
+    member do
+      post :run
+    end
+    collection do
+      post :run_selected
+    end
+  end
+  post "projects/:project_id/bdd_tests/import", to: "bdd_tests#import", as: :import_project_bdd_tests
+
 
   # ── Server / remote-machine monitoring (heartbeats) ─────────────────────────
   get "servers",        to: "servers#index",   as: :servers

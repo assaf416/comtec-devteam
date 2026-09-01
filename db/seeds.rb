@@ -1949,4 +1949,57 @@ end
 
 TestStudioRun.skip_broadcasts = false
 
+# ─────────────────────────────────────────────────────────────────
+# BDD Tests: three virtual test-only "projects" (SOAP/E2E/AS400), each
+# wired to a small real Hebrew Cucumber suite checked into this repo under
+# demo_bdd_projects/, so the import → run pipeline is verifiable end-to-end
+# in this dev sandbox — other languages' toolchains aren't installed here,
+# but these three all run via this app's own Ruby/cucumber as a stand-in.
+# ─────────────────────────────────────────────────────────────────
+
+# Retire the old generic single-demo project from an earlier seed pass.
+if (legacy = Project.find_by(name: "פרויקט הדגמה — BDD"))
+  legacy.bdd_tests.each { |t| t.update_column(:latest_bdd_test_run_id, nil); t.bdd_test_runs.destroy_all }
+  legacy.bdd_tests.destroy_all
+  legacy.documents.destroy_all
+  legacy.destroy!
+end
+
+bdd_projects_data = [
+  { name: "בדיקות שירותי אינטרנט (SOAP)", home_folder: Rails.root.join("demo_bdd_projects/soap_webservice_tests").to_s,
+    cucumber_cmd: "bundle exec cucumber --no-profile",
+    description: "מאות בדיקות SOAP/XML מול האמולטור הפנימי (פורטים 536, 613)." },
+  { name: "בדיקות E2E בממשק המשתמש", home_folder: Rails.root.join("demo_bdd_projects/e2e_ui_tests").to_s,
+    cucumber_cmd: "bundle exec cucumber --no-profile",
+    description: "בדיקות Cucumber קלאסיות מול ממשק המשתמש — דפדוף, מילוי טפסים." },
+  { name: "בדיקות AS400 (JRuby)", home_folder: Rails.root.join("demo_bdd_projects/as400_jruby_tests").to_s,
+    cucumber_cmd: "bundle exec cucumber --no-profile",
+    description: "בדיקות מול אפליקציית COBOL ב-AS400 דרך רתמת JRuby (בסביבת הפיתוח מורץ דרך cucumber רגיל — ה-QA מריצים jruby -S cucumber על המכונה האמיתית)." }
+]
+
+bdd_projects = bdd_projects_data.map do |attrs|
+  project = Project.find_or_create_by!(name: attrs[:name]) do |p|
+    p.project_kind = :test_suite
+    p.active       = true
+  end
+  # Always keep these fields current (idempotent on re-seed) — matches this
+  # file's find_or_create_by! + explicit update convention used elsewhere.
+  project.update_columns(
+    home_folder: attrs[:home_folder],
+    cucumber_cmd: attrs[:cucumber_cmd],
+    description: attrs[:description]
+  )
+  project
+end
+puts "  ✓ #{bdd_projects.size} BDD test-suite projects"
+
+imported_total = 0
+bdd_projects.each do |project|
+  next if project.bdd_tests.any?
+
+  result = BddTestImportService.new(project).call
+  imported_total += result.imported_count
+end
+puts "  ✓ #{imported_total} BDD tests imported across #{bdd_projects.size} projects" if imported_total.positive?
+
 puts "✅ Seed complete!"

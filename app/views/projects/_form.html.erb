@@ -48,6 +48,31 @@
     </div>
   </div>
 
+  <% if current_user.admin? || current_user.qa? %>
+    <hr class="my-3">
+    <p class="fs-7 text-muted mb-2">🔬 BDD test runner (admin/QA only)</p>
+    <div class="row">
+      <div class="col">
+        <div class="mb-3">
+          <%= f.label :project_kind, "Project Kind", class: "label" %>
+          <div class=""><%= f.select :project_kind, Project.project_kinds.keys, {}, class: "input" %></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="mb-3">
+          <%= f.label :home_folder, "Home Folder", class: "label" %>
+          <div class=""><%= f.text_field :home_folder, class: "input", placeholder: "/mnt/c/my-project-name" %></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="mb-3">
+          <%= f.label :cucumber_cmd, "Cucumber Command", class: "label" %>
+          <div class=""><%= f.text_field :cucumber_cmd, class: "input", placeholder: "bundle exec cucumber" %></div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <div class="d-flex gap-2 align-items-end">
     <div class=""><%= f.submit project.new_record? ? "Create Project" : "Update Project", class: "btn btn-primary" %></div>
     <div class=""><%= link_to "Cancel", projects_path, class: "btn btn-secondary" %></div>

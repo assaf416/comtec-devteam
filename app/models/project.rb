@@ -15,6 +15,9 @@ class Project < ApplicationRecord
   has_many :ai_reviews, as: :reviewable, dependent: :destroy
   has_many :chat_rooms, dependent: :nullify
   has_many :attachments, dependent: :destroy
+  has_many :bdd_tests, dependent: :destroy
+
+  enum :project_kind, { application: 0, test_suite: 1 }, default: :application
 
   validates :name, presence: true
 

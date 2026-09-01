@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_01_065956) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_01_074733) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -125,6 +125,37 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_01_065956) do
     t.index ["attachable_type", "attachable_id"], name: "index_attachments_on_attachable"
     t.index ["project_id"], name: "index_attachments_on_project_id"
     t.index ["uploaded_by_id"], name: "index_attachments_on_uploaded_by_id"
+  end
+
+  create_table "bdd_test_runs", force: :cascade do |t|
+    t.integer "bdd_test_id", null: false
+    t.string "chdir"
+    t.string "command"
+    t.datetime "created_at", null: false
+    t.datetime "finished_at"
+    t.text "output"
+    t.text "result_html"
+    t.datetime "started_at"
+    t.integer "status", default: 0, null: false
+    t.text "structured_results"
+    t.integer "triggered_by_id"
+    t.datetime "updated_at", null: false
+    t.index ["bdd_test_id"], name: "index_bdd_test_runs_on_bdd_test_id"
+    t.index ["triggered_by_id"], name: "index_bdd_test_runs_on_triggered_by_id"
+  end
+
+  create_table "bdd_tests", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "latest_bdd_test_run_id"
+    t.datetime "latest_run_at"
+    t.integer "latest_status"
+    t.string "name"
+    t.string "path", null: false
+    t.integer "project_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["latest_bdd_test_run_id"], name: "index_bdd_tests_on_latest_bdd_test_run_id"
+    t.index ["project_id", "path"], name: "index_bdd_tests_on_project_id_and_path", unique: true
+    t.index ["project_id"], name: "index_bdd_tests_on_project_id"
   end
 
   create_table "branches", force: :cascade do |t|
@@ -451,10 +482,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_01_065956) do
   create_table "projects", force: :cascade do |t|
     t.boolean "active"
     t.datetime "created_at", null: false
+    t.string "cucumber_cmd"
     t.string "default_branch"
     t.text "description"
     t.string "gitea_repo_id"
+    t.string "home_folder"
     t.string "name"
+    t.integer "project_kind", default: 0, null: false
     t.string "repo_url"
     t.string "tech_stack"
     t.datetime "updated_at", null: false
@@ -698,6 +732,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_01_065956) do
   add_foreign_key "attachment_views", "users"
   add_foreign_key "attachments", "projects"
   add_foreign_key "attachments", "users", column: "uploaded_by_id"
+  add_foreign_key "bdd_test_runs", "bdd_tests"
+  add_foreign_key "bdd_test_runs", "users", column: "triggered_by_id"
+  add_foreign_key "bdd_tests", "bdd_test_runs", column: "latest_bdd_test_run_id"
+  add_foreign_key "bdd_tests", "projects"
   add_foreign_key "branches", "projects"
   add_foreign_key "branches", "tickets"
   add_foreign_key "chat_messages", "chat_rooms"

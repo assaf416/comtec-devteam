@@ -12,6 +12,11 @@ Given("אני מחובר כראש צוות") do
   login_as(@user, scope: :user)
 end
 
+Given("אני מחובר כQA") do
+  @user = FactoryBot.create(:user, role: :qa)
+  login_as(@user, scope: :user)
+end
+
 Given("שפת ההעדפה שלי היא עברית") do
   @user = FactoryBot.create(:user, preferred_language: "he")
   login_as(@user, scope: :user)

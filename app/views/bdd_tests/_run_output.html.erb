@@ -1,0 +1,21 @@
+<div id="<%= bdd_test_output_id(bdd_test) %>">
+  <% if run %>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <%= render "bdd_tests/run_badge", run: run, bdd_test: bdd_test %>
+      <% if run.started_at %>
+        <span class="text-muted fs-7"><%= run.started_at.strftime("%H:%M:%S") %></span>
+      <% end %>
+    </div>
+    <% if run.step_report.present? %>
+      <%= render "bdd_tests/step_report", report: run.step_report %>
+    <% end %>
+    <% if run.output.present? %>
+      <pre class="test-studio-run-output"><%= run.output %></pre>
+    <% end %>
+    <% if run.result_html.present? %>
+      <p class="fs-7 text-muted mt-2 mb-1"><%= t("bdd_tests.full_html_report") %></p>
+      <iframe srcdoc="<%= run.result_html %>" sandbox="allow-scripts"
+              style="width:100%;height:400px;border:1px solid #dee2e6;border-radius:8px;"></iframe>
+    <% end %>
+  <% end %>
+</div>
