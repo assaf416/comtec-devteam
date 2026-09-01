@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Auto-scrolls chat to bottom on connect and after new messages
 export default class extends Controller {
-    static targets = ["messages", "textarea", "emojiPicker"]
+    static targets = ["messages", "textarea", "emojiPicker", "fileInput", "attachmentsPreview"]
 
     connect() {
         this.scrollToBottom()
@@ -47,5 +47,49 @@ export default class extends Controller {
         ta.selectionStart = ta.selectionEnd = start + emoji.length
         ta.focus()
         if (this.hasEmojiPickerTarget) this.emojiPickerTarget.classList.add("d-none")
+    }
+
+    // Show a chip per selected file, each with a remove button
+    filesSelected() {
+        this.renderAttachmentsPreview()
+    }
+
+    renderAttachmentsPreview() {
+        if (!this.hasAttachmentsPreviewTarget || !this.hasFileInputTarget) return
+        const files = Array.from(this.fileInputTarget.files || [])
+        const preview = this.attachmentsPreviewTarget
+        preview.innerHTML = ""
+        preview.classList.toggle("d-none", files.length === 0)
+
+        files.forEach((file, index) => {
+            const chip = document.createElement("span")
+            chip.className = "chat-attachment-chip"
+
+            const name = document.createElement("span")
+            name.className = "chat-attachment-chip-name"
+            name.textContent = `📎 ${file.name}`
+            chip.appendChild(name)
+
+            const remove = document.createElement("button")
+            remove.type = "button"
+            remove.className = "chat-attachment-chip-remove"
+            remove.setAttribute("aria-label", this.attachmentsPreviewTarget.dataset.removeLabel || "Remove")
+            remove.textContent = "✕"
+            remove.addEventListener("click", () => this.removeFile(index))
+            chip.appendChild(remove)
+
+            preview.appendChild(chip)
+        })
+    }
+
+    // Native FileList is read-only, so rebuild it via DataTransfer without the removed entry
+    removeFile(index) {
+        const input = this.fileInputTarget
+        const dt = new DataTransfer()
+        Array.from(input.files).forEach((file, i) => {
+            if (i !== index) dt.items.add(file)
+        })
+        input.files = dt.files
+        this.renderAttachmentsPreview()
     }
 }
