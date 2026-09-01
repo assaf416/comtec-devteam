@@ -968,8 +968,37 @@ body {
         transition: border-color 0.1s;
 
         &:focus-within {
-            border-color: #4a90d9;
-            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.12);
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+        }
+    }
+
+    .chat-emoji-picker {
+        position: absolute;
+        bottom: 100%;
+        inset-inline-end: 0.75rem;
+        margin-bottom: 0.4rem;
+        background: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        padding: 0.5rem;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.15rem;
+        z-index: 20;
+
+        .chat-emoji-option {
+            border: none;
+            background: none;
+            font-size: 1.25rem;
+            padding: 0.25rem;
+            border-radius: 6px;
+            cursor: pointer;
+
+            &:hover {
+                background: #f0f2f5;
+            }
         }
     }
 

@@ -1,0 +1,83 @@
+<% content_for :title, "#{t("bdd_tests.edit")} — #{@bdd_test.name.presence || @bdd_test.path}" %>
+
+<style>
+  .gherkin-wrap { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid #1c2330;
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: .86rem; line-height: 1.55; }
+  .gherkin-wrap pre, .gherkin-wrap textarea {
+    margin: 0; padding: 14px 16px; white-space: pre-wrap; word-break: break-word;
+    font: inherit; tab-size: 2; border: 0;
+  }
+  .gherkin-hl { background: #0e1116; color: #aab2bd; min-height: 52vh; }
+  .gherkin-wrap textarea {
+    position: absolute; inset: 0; height: 100%; width: 100%; background: transparent;
+    color: transparent; caret-color: #e8e6df; resize: none; outline: none; overflow: hidden;
+  }
+  .gh-feature  { color: #7aa2f7; font-weight: 700; }
+  .gh-scenario { color: #9ece6a; font-weight: 700; }
+  .gh-step     { color: #e0af68; font-weight: 600; }
+  .gh-tag      { color: #bb9af7; }
+  .gh-string   { color: #9ece6a; }
+  .gh-param    { color: #f7768e; }
+  .gh-comment  { color: #5c6370; font-style: italic; }
+  .test-studio-run-output {
+    background: #0e1116; color: #d7dbe0; border-radius: 8px; padding: 12px 14px;
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: .8rem;
+    max-height: 40vh; overflow-y: auto; white-space: pre-wrap; word-break: break-word; direction: ltr;
+  }
+  .test-studio-toolbar {
+    background: #161b22; border: 1px solid #1c2330; border-bottom: none;
+    border-radius: 10px 10px 0 0; padding: 8px 14px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .test-studio-toolbar .test-studio-path {
+    color: #aab2bd; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: .82rem;
+  }
+  .test-studio-toolbar .test-studio-actions { display: flex; gap: 6px; align-items: center; }
+  .test-studio-toolbar .btn { --bs-btn-padding-y: .2rem; --bs-btn-padding-x: .6rem; font-size: .8rem; }
+  .test-studio-toolbar .gherkin-wrap { border-radius: 0 0 10px 10px; }
+
+  .test-studio-step-report { margin-bottom: 10px; }
+  .tsr-scenario { border: 1px solid #e2e5ea; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; background: #fff; }
+  .tsr-scenario-name { font-weight: 700; margin-bottom: 6px; }
+  .tsr-steps { list-style: none; margin: 0; padding: 0; }
+  .tsr-step { display: flex; align-items: flex-start; gap: 6px; padding: 3px 0; font-size: .86rem; }
+  .tsr-step-passed { color: #1a7f37; }
+  .tsr-step-failed { color: #b42318; font-weight: 600; }
+  .tsr-step-skipped, .tsr-step-undefined, .tsr-step-pending { color: #6b7280; }
+  .tsr-error {
+    direction: ltr; text-align: left; background: #fff5f5; border: 1px solid #f3c6c6;
+    color: #b42318; border-radius: 6px; padding: 8px 10px; margin: 6px 0 0 0;
+    font-size: .78rem; white-space: pre-wrap; width: 100%; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  }
+</style>
+
+<%= turbo_stream_from :bdd_tests %>
+
+<nav class="breadcrumb is-small mb-2"><ul>
+  <li><%= link_to t("bdd_tests.title"), bdd_tests_path %></li>
+  <li class="is-active"><a><%= t("bdd_tests.edit_breadcrumb") %></a></li>
+</ul></nav>
+
+<%= form_with url: bdd_test_path(@bdd_test), method: :patch, id: "bdd-test-edit-form" do %>
+<% end %>
+
+<div class="test-studio-toolbar">
+  <span class="test-studio-path">🔬 <%= @bdd_test.path %> — <%= @bdd_test.project.name %></span>
+  <div class="test-studio-actions">
+    <%= button_tag t("bdd_tests.save"), class: "btn btn-primary btn-sm", form: "bdd-test-edit-form" %>
+    <%= button_to t("bdd_tests.run_this_test"), run_bdd_test_path(@bdd_test), method: :post,
+          class: "btn btn-success btn-sm", form_class: "d-inline" %>
+    <%= link_to t("bdd_tests.back_to_studio"), bdd_tests_path, class: "btn btn-secondary btn-sm" %>
+  </div>
+</div>
+
+<div class="gherkin-wrap mb-2" data-controller="gherkin-editor" dir="<%= @rtl ? "rtl" : "ltr" %>">
+  <pre class="gherkin-hl" data-gherkin-editor-target="highlight" aria-hidden="true"></pre>
+  <textarea name="content" form="bdd-test-edit-form" spellcheck="false" autocapitalize="off" autocomplete="off"
+            data-gherkin-editor-target="input"
+            data-action="input->gherkin-editor#render scroll->gherkin-editor#sync"><%= @content %></textarea>
+</div>
+
+<div class="mt-3">
+  <%= render "bdd_tests/run_output", run: @bdd_test.latest_bdd_test_run, bdd_test: @bdd_test %>
+</div>

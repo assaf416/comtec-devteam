@@ -2,7 +2,7 @@ class ProjectsController < ApplicationController
   before_action :set_project, only: [ :show, :edit, :update, :destroy, :dashboard, :report, :ci_dashboard, :calendar_events, :sync_issues ]
 
   def index
-    @projects = Project.includes(:members).order(:name)
+    @projects = Project.order(:name)
   end
 
   def show
